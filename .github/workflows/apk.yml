@@ -36,8 +36,10 @@ jobs:
           npx --yes expo prebuild --platform android --clean
           deps=$(node -e 'const p=require("./package.json");console.log(Object.entries(p.dependencies).map(e=>e.join("@")).join(" | "))')
           echo "::notice title=Bagimliliklar::$deps"
-          pubs=$(grep -l '"publication"' node_modules/*/expo-module.config.json node_modules/@*/*/expo-module.config.json 2>/dev/null | tr '\n' ' ')
-          echo "::notice title=Publication modulleri::$pubs"
+          al=$(npm ls expo-modules-autolinking --all 2>/dev/null | tr '\n' ' ' | sed 's/%/%25/g')
+          echo "::notice title=Autolinking surumleri::$al"
+          m1=$(npx expo-modules-autolinking resolve --platform android --json 2>&1 | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);console.log(JSON.stringify(j.modules.filter(m=>JSON.stringify(m).includes("publication"))).slice(0,3000))}catch(e){console.log("parse: "+d.slice(0,1500))}})' | tr '\n' ' ' | sed 's/%/%25/g')
+          echo "::notice title=Publication modulleri::$m1"
 
       - name: APK derle
         working-directory: app/android
