@@ -10,9 +10,11 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.DebugTraceUtil
 import androidx.media3.transformer.AudioEncoderSettings
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
@@ -79,6 +81,7 @@ class Exporter(
       .build()
 
     val startedAt = System.currentTimeMillis()
+    DebugTraceUtil.enableTracing = true
     val t = Transformer.Builder(context)
       .setVideoMimeType(videoMime)
       .setAudioMimeType(MimeTypes.AUDIO_AAC)
@@ -99,6 +102,8 @@ class Exporter(
           finish()
           settle()
           file.delete()
+          // Teşhis: Media3'ün iç izleme özeti (hangi aşamanın durduğunu gösterir)
+          Log.e("KurguExport", "export failed ${exportException.errorCodeName}: ${exportException.cause?.message ?: exportException.message}".take(4000))
           onFail("EXPORT_FAILED", "${exportException.errorCodeName}: ${exportException.message ?: ""}")
         }
       })
@@ -134,6 +139,7 @@ class Exporter(
       val t = transformer ?: return
       if (t.getProgress(holder) == Transformer.PROGRESS_STATE_AVAILABLE && holder.progress != lastProgress) {
         lastProgress = holder.progress
+        if (holder.progress % 5 == 0) Log.i("KurguExport", "progress ${holder.progress}%")
         onProgress(holder.progress)
       }
       main.postDelayed(this, 250)
