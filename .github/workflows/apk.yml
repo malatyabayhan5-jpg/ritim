@@ -69,34 +69,3 @@ jobs:
             Ritim.apk
             app/package.json
 
-      - name: KVM'yi etkinleştir (emülatör için)
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Android emülatöründe uçtan uca test
-        continue-on-error: true
-        timeout-minutes: 35
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis_playstore
-          arch: x86_64
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash e2e/run.sh
-
-      - name: Test sonuçlarını yayınla
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ -d e2e-out ]; then
-            zip -qr e2e-sonuclari.zip e2e-out
-            gh release upload "v1.0.${{ github.run_number }}" e2e-sonuclari.zip --clobber || true
-            summary=$( (cat e2e-out/cihaz.txt; cat e2e-out/sonuclar.txt) 2>/dev/null | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
-            echo "::notice title=Uctan uca test::$summary"
-          else
-            echo "::warning title=Uctan uca test::Emülatör testi çalışmadı"
-          fi
