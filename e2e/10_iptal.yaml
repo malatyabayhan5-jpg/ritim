@@ -12,10 +12,10 @@ appId: com.ritim.muzik
     id: "archive-go"
 - extendedWaitUntil:
     visible:
-      id: "dl-btn-sh-7"
+      id: "dl-btn-sh-2"
     timeout: 15000
 - tapOn:
-    id: "dl-btn-sh-7"
+    id: "dl-btn-sh-2"
 - extendedWaitUntil:
     visible:
       id: "dl-audio"
@@ -31,11 +31,11 @@ appId: com.ritim.muzik
 - tapOn: "İptal"
 - extendedWaitUntil:
     visible:
-      id: "dl-btn-sh-7"
+      id: "dl-btn-sh-2"
     timeout: 10000
 - takeScreenshot: 10b_iptal_edildi
 - tapOn:
-    id: "dl-btn-sh-7"
+    id: "dl-btn-sh-2"
 - extendedWaitUntil:
     visible:
       id: "dl-audio"
