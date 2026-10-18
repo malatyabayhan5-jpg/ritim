@@ -60,10 +60,10 @@ export function PlayerProvider({ children }) {
     (tracks, startIndex = 0, opts = {}) => {
       if (!tracks || !tracks.length) return;
       // YouTube parçaları ses oynatıcısında çalınmaz (uygulama içi YouTube oynatıcısında açılır)
-      const startTrack = tracks[Math.max(0, Math.min(startIndex, tracks.length - 1))];
+      const chosen = tracks[Math.max(0, Math.min(startIndex, tracks.length - 1))];
       let list = tracks.filter((t) => t && t.source !== 'youtube');
       if (!list.length) return;
-      let i = Math.max(0, list.indexOf(startTrack));
+      let i = Math.max(0, list.indexOf(chosen));
       if (opts.shuffle) {
         // Fisher-Yates
         for (let k = list.length - 1; k > 0; k--) {

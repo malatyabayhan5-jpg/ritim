@@ -60,6 +60,11 @@ for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_in
   (cd "$OUT" && maestro test "../e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   [ "$flow" = "10_iptal" ] && adb emu network speed full > /dev/null 2>&1
+  # Çevrimdışı senaryolar (7 ve 8) bitince ağı yeniden aç
+  if [ "$flow" = "8_cevrimdisi_video_ve_silme" ]; then
+    adb shell svc wifi enable; adb shell svc data enable; sleep 8
+    echo "Ağ yeniden açıldı: $(adb shell dumpsys connectivity | grep -m1 -E 'Active default network' | tr -d '\r')" >> "$OUT/sonuclar.txt"
+  fi
   if [ "$flow" = "3_video_secme" ]; then
     sleep 12
     adb exec-out screencap -p > "$OUT/3b_oynatma_12sn.png" 2>/dev/null
@@ -83,8 +88,6 @@ for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_in
   echo "$flow: $res | ön plandaki uygulama: ${fg:-bilinmiyor} | süreç: ${pid:-YOK}$ext" | tee -a "$OUT/sonuclar.txt"
   adb exec-out screencap -p > "$OUT/${flow}_son_ekran.png" 2>/dev/null
 done
-
-adb shell svc wifi enable; adb shell svc data enable
 
 # Çökme ve hata kayıtları (test aracının kendi mesajları hariç)
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true

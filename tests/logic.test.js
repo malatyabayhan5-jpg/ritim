@@ -262,3 +262,12 @@ test('YouTube parçası: favori/çalma listesi yapısı ve indirme engeli', asyn
   assert.equal(o.video.length + o.audio.length, 0);
   assert.match(o.blockedReason, /indirilemez/);
 });
+
+import { readFileSync } from 'node:fs';
+
+test('Gerileme: playQueue içinde startTrack fonksiyonu gölgelenmemeli (1.7.0 çökmesi)', () => {
+  const src = readFileSync('src/context/PlayerContext.js', 'utf8');
+  const body = src.slice(src.indexOf('const playQueue = useCallback('), src.indexOf('const playAt = useCallback('));
+  assert.ok(body.length > 50);
+  assert.ok(!/\b(const|let|var)\s+startTrack\b/.test(body), 'playQueue içinde startTrack adında yerel değişken var');
+});
