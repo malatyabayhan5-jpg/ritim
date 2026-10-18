@@ -1,0 +1,60 @@
+# Otomatik altyazı: konuşmalı test videosu (espeak-ng, İngilizce) -> model indirme
+# onayı -> cihaz içi tanıma -> zaman çizelgesinde "hello" içeren altyazı katmanı.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "new-project"
+    timeout: 30000
+- tapOn:
+    id: "new-project"
+- waitForAnimationToEnd:
+    timeout: 5000
+# Konuşma videosu galeriye ilk yüklendiği için listede en sonda (5. öğe)
+- tapOn:
+    text: "(Video|Photo|Fotoğraf).*"
+    index: 4
+- tapOn:
+    text: "(Add|Ekle).*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 90000
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-ai"
+- tapOn:
+    id: "ai-run-autoCaptions"
+- extendedWaitUntil:
+    visible:
+      id: "caption-start"
+    timeout: 10000
+- tapOn:
+    id: "caption-lang-en"
+- tapOn:
+    id: "caption-model-base"
+- takeScreenshot: 40_altyazi_paneli
+- tapOn:
+    id: "caption-start"
+# Model indirme onayı
+- tapOn:
+    text: "(İndir|Download)"
+- extendedWaitUntil:
+    visible:
+      id: "caption-progress"
+    timeout: 10000
+- takeScreenshot: 41_altyazi_ilerleme
+- extendedWaitUntil:
+    notVisible:
+      id: "caption-progress"
+    timeout: 900000
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 42_altyazi_sonuc
+- assertVisible:
+    id: "text-item-.*"
+- assertVisible:
+    text: "(?i).*hello.*"

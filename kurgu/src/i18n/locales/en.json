@@ -436,7 +436,7 @@
     "tools": {
       "autoCaptions": {
         "title": "Auto captions",
-        "desc": "Transcribes speech and creates timed caption layers (Whisper-class model, Turkish included)."
+        "desc": "Transcribes speech on the device and creates timed caption layers (whisper.cpp; Turkish, English, Arabic)."
       },
       "removeBackground": {
         "title": "Remove background",
@@ -704,6 +704,41 @@
       "hexagon": "Hexagon",
       "bevel": "Bevel",
       "grout": "Grout"
+    }
+  },
+  "captions": {
+    "unsupported": "Auto captions are not available on this device (a 64-bit processor is required).",
+    "language": "Spoken language",
+    "model": "Recognition model",
+    "lang": {
+      "auto": "Automatic",
+      "tr": "Türkçe",
+      "en": "English",
+      "ar": "العربية"
+    },
+    "models": {
+      "base": "Fast",
+      "small": "More accurate"
+    },
+    "privacy": "Speech recognition runs on your device; audio is never sent to a server. The model is downloaded once on first use. Existing auto captions are replaced.",
+    "start": "Generate captions",
+    "remove": "Remove captions",
+    "removed": "Auto captions removed.",
+    "download": "Download",
+    "downloadTitle": "Download the model?",
+    "downloadMessage": "The speech recognition model ({size}) will be downloaded once from Hugging Face (ggerganov/whisper.cpp, MIT license) and verified. Your video is not uploaded. Mobile data may be used.",
+    "downloading": "Downloading model… {percent}%",
+    "transcribing": "Recognizing speech: clip {current}/{total} · {percent}%",
+    "added_one": "Added {n} caption.",
+    "added_other": "Added {n} captions.",
+    "none": "No speech was found in the video.",
+    "cancelled": "Caption generation cancelled.",
+    "errors": {
+      "MODEL_DOWNLOAD": "Could not download the model. Check your internet connection.",
+      "MODEL_CHECKSUM": "The downloaded model could not be verified and was deleted. Please try again.",
+      "CAPTIONS_UNSUPPORTED": "Auto captions are not available on this device.",
+      "NO_AUDIO": "No audio was found in the clip.",
+      "CAPTIONS_FAILED": "Could not generate captions."
     }
   }
 }

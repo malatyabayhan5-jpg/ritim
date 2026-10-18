@@ -19,7 +19,7 @@ class KurguEngineModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("KurguEngine")
 
-    Events("onExportProgress")
+    Events("onExportProgress", "onAiProgress")
 
     AsyncFunction("probe") { uri: String ->
       MediaTools.probe(context, uri)
@@ -39,6 +39,32 @@ class KurguEngineModule : Module() {
 
     AsyncFunction("synthesizeSpeech") { text: String, lang: String, outPath: String, rate: Double, pitch: Double, promise: Promise ->
       Speech.synthesize(context, text, lang, outPath.removePrefix("file://"), rate.toFloat(), pitch.toFloat(), promise)
+    }
+
+    // --- Otomatik altyazı (cihaz içi konuşma tanıma) ---
+    AsyncFunction("captionModels") {
+      mapOf("supported" to Captions.isAvailable(), "models" to Captions.models(context))
+    }
+
+    AsyncFunction("downloadCaptionModel") { id: String, promise: Promise ->
+      background("download", promise) { Captions.download(context, id) { p -> sendEvent("onAiProgress", mapOf("phase" to "download", "progress" to p)) }; true }
+    }
+
+    AsyncFunction("deleteCaptionModel") { id: String ->
+      Captions.deleteModel(context, id)
+    }
+
+    AsyncFunction("transcribe") { uri: String, fromMs: Double, toMs: Double, language: String, modelId: String, promise: Promise ->
+      background("transcribe", promise) {
+        sendEvent("onAiProgress", mapOf("phase" to "audio", "progress" to 0.0))
+        Captions.transcribe(context, uri, fromMs.toLong(), toMs.toLong(), language, modelId) { p ->
+          sendEvent("onAiProgress", mapOf("phase" to "transcribe", "progress" to p))
+        }
+      }
+    }
+
+    AsyncFunction("cancelAi") {
+      Captions.cancel()
     }
 
     AsyncFunction("encoderCapabilities") {
@@ -146,6 +172,19 @@ class KurguEngineModule : Module() {
         view.setScrubbing(enabled)
       }
     }
+  }
+
+  /** Uzun AI işlerini ayrı iş parçacığında çalıştırır; hata kodu istisna iletisinden gelir. */
+  private fun background(name: String, promise: Promise, block: () -> Any?) {
+    Thread({
+      try {
+        promise.resolve(block())
+      } catch (e: Throwable) {
+        val msg = e.message ?: ""
+        val code = if (Regex("^[A-Z_]+$").matches(msg)) msg else "AI_FAILED"
+        promise.reject(code, msg.ifEmpty { name }, e)
+      }
+    }, "kurgu-$name").start()
   }
 
   private fun keepScreenOn(on: Boolean) {

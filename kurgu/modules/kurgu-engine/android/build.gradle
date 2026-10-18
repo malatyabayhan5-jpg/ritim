@@ -23,11 +23,30 @@ project.android {
   }
 }
 
+// Otomatik altyazı için whisper.cpp yerel kütüphanesi (src/main/cpp). Uygulamanın
+// derlendiği ABI'lerle sınırlanır (-PreactNativeArchitectures).
+def kurguAbis = (findProperty("reactNativeArchitectures") ?: "armeabi-v7a,x86,x86_64,arm64-v8a").toString().split(",").collect { it.trim() }
+
 android {
   namespace "expo.modules.kurguengine"
+  ndkVersion safeExtGet("ndkVersion", "27.1.12297006")
   defaultConfig {
     versionCode 1
     versionName "0.1.0"
+    ndk {
+      abiFilters(*kurguAbis)
+    }
+    externalNativeBuild {
+      cmake {
+        arguments "-DANDROID_STL=c++_static"
+      }
+    }
+  }
+  externalNativeBuild {
+    cmake {
+      path "src/main/cpp/CMakeLists.txt"
+      version "3.22.1"
+    }
   }
   lintOptions {
     abortOnError false

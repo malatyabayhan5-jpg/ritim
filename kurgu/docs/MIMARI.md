@@ -162,6 +162,24 @@ parça render motorudur. Önerilen yol:
 - **E2E doğrulama:** `e2e/fx_check.py` dışa aktarılan MP4'te efekt katmanının izini
   (çift ton paleti) kare kare arar; efekt yalnızca katman aralığında görünmelidir.
 
+## 9c. Cihaz içi AI araçları
+
+Hepsi cihazda çalışır; video, ses veya metin hiçbir sunucuya gönderilmez. Ağır ölçüm
+yerel motorda (Kotlin/Java/C++), karar mantığı saf JS'de (`src/model/ai.js`,
+`src/model/captions.js`) ve birim testlidir. Her işlem tek bir geri al adımıdır.
+
+| Araç | Yerel ölçüm | Karar (JS) |
+|---|---|---|
+| Sessizlik kaldırma | `MediaTools.waveform` (50/sn tepe) | `detectSilences` → `removeSourceRanges` |
+| Sahne algılama | `SceneDetector.kt` (donanım kod çözücü, Y/U/V histogram farkı, 6/sn) | `pickSceneCuts` → `splitMainAtSourceTimes` |
+| Gürültü azaltma | `dsp/SpectralDenoiser.java` + `DenoiseProcessor.kt` (Media3 ses işlemcisi) | klip/ses klibi `denoise` alanı |
+| Metinden konuşma | `Speech.kt` (Android TextToSpeech → WAV) | metnin yazı sisteminden dil seçimi |
+| Otomatik altyazı | `Captions.kt` (ses çözme, 16 kHz sinc yeniden örnekleme, model indirme + SHA-256) → `WhisperNative` (JNI) → whisper.cpp | `captionChunks` → `addClipCaptions` |
+
+whisper.cpp, `src/main/cpp/CMakeLists.txt` ile derleme sırasında sabit commit'ten
+alınır ve yalnızca 64 bit ABI'ler için derlenir (32 bit cihazlarda araç "kullanılamaz"
+gösterilir). JNI köprüsü masaüstünde de derlenip test edilebilir (bkz. PROGRESS.md).
+
 ## 10. Bilinen sınırlamalar (bu sürüm)
 
 - Önizleme/dışa aktarma motoru yalnızca Android'de.
@@ -169,4 +187,4 @@ parça render motorudur. Önerilen yol:
   çok girdili video birleştirici gerektirir; sonraki aşamadadır (bkz. OZELLIKLER.md).
 - Hız 0,1x–10x sabit hızdır; hız eğrisi ve optik akış yoktur.
 - Ters oynatma yok (ters kodlama için ayrı bir işleme adımı gerekir).
-- AI araçları bir model/servise bağlanmadı; uygulamada "Planlandı" olarak gösterilir.
+- Bulut gerektiren AI araçları (otomatik kurgu, görüntü iyileştirme) ve arka plan kaldırma, altyazı çevirisi henüz yok; uygulamada "Planlandı" olarak gösterilir.

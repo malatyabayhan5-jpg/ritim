@@ -44,6 +44,9 @@ kod yalnızca lisansı açıkça ticari kullanıma izin veriyorsa ve atıf yapı
 | AndroidX Media3 | Apache-2.0 | Kotlin motoru |
 | Expo / React Native ve bağımlılıkları | MIT | Uygulama |
 | Playwright + Chromium (yalnızca geliştirme aracı, uygulamaya girmez) | Apache-2.0 / BSD | `tools/fx-lab` |
+| whisper.cpp + ggml (ggml-org, v1.9.5, commit d1be6fd) | MIT | Otomatik altyazı; derleme sırasında sabit commit'ten alınır (`src/main/cpp/CMakeLists.txt`, commit doğrulanır) |
+| Whisper model ağırlıkları (OpenAI, ggml biçimi: huggingface.co/ggerganov/whisper.cpp) | MIT | Uygulamaya gömülmez; kullanıcı onayıyla indirilir, SHA-256 ile doğrulanır |
+| espeak-ng (yalnızca CI test medyası üretimi, uygulamaya girmez) | GPL-3.0 | `e2e/run.sh` |
 
 Efekt shader'larının tamamı (21 dosya), test sahneleri (`tools/fx-lab/scenes.py`,
 prosedürel olarak üretilir) ve efekt küçük resimleri **özgündür**; harici görsel,
@@ -54,9 +57,22 @@ charge, to any person obtaining a copy of this software and associated documenta
 files … THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND." —
 Copyright (c) 2014 David Hoskins.
 
+## 4b. AI araçları kararları (2026-10-18)
+
+| Araç | Karar | Gerekçe |
+|---|---|---|
+| Otomatik altyazı | whisper.cpp, cihaz içi | Açık lisans (MIT), Türkçe/Arapça desteği, internet ve hesap gerektirmez, ses cihazdan çıkmaz. Bulut ASR servisleri ücretli ve API anahtarı gerektirir |
+| Metinden konuşma | Android TextToSpeech | Ücretsiz, cihaz içi, ek model yok; ses kalitesi cihaz motoruna bağlı |
+| Gürültü azaltma | Özgün spektral çıkarma (Java) | RNNoise (BSD) gibi modeller NDK + model gerektirir; sabit gürültü için klasik yöntem yeterli ve ölçülebilir |
+| Sessizlik / sahne | Özgün sinyal işleme | Model gerektirmez, deterministik, birim testlenebilir |
+| Arka plan kaldırma | Sonraki tur | Kare başına segmentasyon modeli (ör. MediaPipe/ML Kit) gerçek cihazda performans ölçümü gerektirir |
+| Otomatik kurgu, görüntü iyileştirme | Bulut gerektirir, yapılmadı | Ücretli servis ve kullanıcı anahtarı; kullanıcı onayı olmadan yapılmaz |
+
 ## 5. Maliyet ve erişim notları
 
 - Ücretli bir servis, API anahtarı veya bulut işleme kullanılmadı; tüm efektler
-  cihaz üzerinde GPU ile çalışır.
+  cihaz üzerinde GPU ile, AI araçları cihaz CPU'sunda çalışır.
+- Altyazı modeli dosyalarının sunucusu (huggingface.co) bu geliştirme ortamından
+  erişilemedi; özetler CI'da indirilen dosyalardan alındı.
 - Gerçek Android cihaz bu ortamda yok: GPU performansı, ısınma ve pil ölçümleri
   yapılamadı. Efektlerdeki "yoğun" (heavy) etiketi örnek sayısına göre tahmindir.

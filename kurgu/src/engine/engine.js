@@ -133,3 +133,40 @@ export async function synthesizeSpeech(text, lang, outPath, { rate = 1, pitch = 
     throw new EngineError(e?.code || 'TTS_FAILED', e?.message);
   }
 }
+
+// --- Otomatik altyazı ---
+
+export async function captionModels() {
+  if (!KurguEngine) return { supported: false, models: [] };
+  return KurguEngine.captionModels();
+}
+
+async function withAiProgress(onProgress, run) {
+  const engine = requireEngine();
+  const sub = engine.addListener('onAiProgress', (e) => onProgress?.(e.phase, e.progress));
+  try {
+    return await run(engine);
+  } catch (e) {
+    throw new EngineError(e?.code || 'AI_FAILED', e?.message);
+  } finally {
+    sub.remove();
+  }
+}
+
+export function downloadCaptionModel(id, onProgress) {
+  return withAiProgress(onProgress, (engine) => engine.downloadCaptionModel(id));
+}
+
+export function deleteCaptionModel(id) {
+  return requireEngine().deleteCaptionModel(id);
+}
+
+/** Klibin kaynak aralığını tanır: { lang, segments:[{t0,t1,text}] } (ms, srcIn'e göre). */
+export async function transcribe(media, fromMs, toMs, language, modelId, onProgress) {
+  const json = await withAiProgress(onProgress, (engine) => engine.transcribe(mediaUri(media), fromMs, toMs, language, modelId));
+  return JSON.parse(json);
+}
+
+export function cancelAi() {
+  return KurguEngine ? KurguEngine.cancelAi() : Promise.resolve();
+}

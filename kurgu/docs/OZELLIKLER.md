@@ -115,7 +115,7 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 | Chroma key, maske, arka plan kaldırma, hareket takibi | ⏳ | — |
 | Efekt favorileri / arama | ⏳ | — |
 
-\* E: emülatör akışına eklendi; sonucu `PROGRESS.md`'de. L: aynı shader efekt laboratuvarında (WebGL) referans hesapla karşılaştırıldı.
+\* B*: `tools/dsp-test` ölçümlü testi (CI'da). E: emülatör akışına eklendi; sonucu `PROGRESS.md`'de. L: aynı shader efekt laboratuvarında (WebGL) referans hesapla karşılaştırıldı.
 
 ## Ses
 
@@ -127,16 +127,20 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 | Ses kırpma, bölme, taşıma, hız | ✅ | — |
 | Dalga biçimi | ✅ | — |
 | Ses kaydı (mikrofon) | ⏳ | — |
-| EQ, compressor, limiter, gürültü azaltma, normalizasyon, perde | ⏳ | — |
+| Gürültü azaltma (cihaz içi spektral, klip ve ses klibi başına güç ayarı) | ✅ (B*) | Sabit gürültüye (uğultu, fan, hışırtı) yöneliktir; ani gürültüleri (köpek, korna) ayırmaz |
+| EQ, compressor, limiter, normalizasyon, perde | ⏳ | — |
 
 ## Altyazı ve AI
 
-| Özellik | Durum | Planlanan çalışma biçimi |
+| Özellik | Durum | Çalışma biçimi / test |
 |---|---|---|
-| Otomatik altyazı (Türkçe dahil), SRT/VTT | ⏳ | Cihaz içi Whisper sınıfı model (indirme gerekir) |
-| Arka plan kaldırma | ⏳ | Cihaz içi segmentasyon modeli |
-| Gürültü azaltma, sessizlik kaldırma, sahne algılama | ⏳ | Cihaz içi |
-| Metinden konuşma, otomatik kurgu, görüntü iyileştirme, altyazı çevirisi | ⏳ | Bulut (internet + açık izin) |
+| Otomatik altyazı (Türkçe, İngilizce, Arapça; otomatik dil) | ✅ (B, E*) | Cihaz içi whisper.cpp; model ilk kullanımda onayla indirilir (Hızlı ~57 MB / Daha doğru ~181 MB), SHA-256 doğrulanır. 64 bit cihaz gerekir. SRT/VTT dışa aktarma ⏳ |
+| Sessizlik kaldırma | ✅ (B, E*) | Cihaz içi ses analizi, uyarlamalı eşik |
+| Sahne algılama (sahnelere böl) | ✅ (B, E*) | Cihaz içi, donanım kod çözücü + histogram farkı |
+| Gürültü azaltma | ✅ (B*) | Cihaz içi; bkz. Ses |
+| Metinden konuşma (seslendirme) | ✅ (E*) | Cihazın kendi TTS motoru; dilin sesi cihazda yüklü olmalı |
+| Arka plan kaldırma, altyazı çevirisi | ⏳ | Cihaz içi model (sonraki tur) |
+| Otomatik kurgu, görüntü iyileştirme | ⏳ | Bulut servisi + kullanıcının kendi anahtarı gerekir; koda anahtar gömülmez |
 | AI video/görsel üretimi, avatar, dudak senkronu | ⏳ | Bulut; maliyet ve veri aktarımı kullanıcıya gösterilecek |
 
 ## Dışa aktarma

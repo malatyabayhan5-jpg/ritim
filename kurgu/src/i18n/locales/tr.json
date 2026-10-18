@@ -436,7 +436,7 @@
     "tools": {
       "autoCaptions": {
         "title": "Otomatik altyazı",
-        "desc": "Konuşmayı yazıya döker, zamanlanmış altyazı katmanları oluşturur (Whisper sınıfı model; Türkçe dahil)."
+        "desc": "Konuşmayı cihaz içinde yazıya döker ve zamanlanmış altyazı katmanları oluşturur (whisper.cpp; Türkçe, İngilizce, Arapça)."
       },
       "removeBackground": {
         "title": "Arka plan kaldırma",
@@ -704,6 +704,41 @@
       "hexagon": "Altıgen",
       "bevel": "Kabartma",
       "grout": "Derz"
+    }
+  },
+  "captions": {
+    "unsupported": "Otomatik altyazı bu cihazda kullanılamıyor (64 bit işlemci gerekir).",
+    "language": "Konuşma dili",
+    "model": "Tanıma modeli",
+    "lang": {
+      "auto": "Otomatik",
+      "tr": "Türkçe",
+      "en": "English",
+      "ar": "العربية"
+    },
+    "models": {
+      "base": "Hızlı",
+      "small": "Daha doğru"
+    },
+    "privacy": "Konuşma tanıma cihazınızda çalışır; ses hiçbir sunucuya gönderilmez. Model ilk kullanımda bir kez indirilir. Mevcut otomatik altyazılar yenileriyle değiştirilir.",
+    "start": "Altyazı oluştur",
+    "remove": "Altyazıları kaldır",
+    "removed": "Otomatik altyazılar kaldırıldı.",
+    "download": "İndir",
+    "downloadTitle": "Model indirilsin mi?",
+    "downloadMessage": "Konuşma tanıma modeli ({size}) Hugging Face sunucusundan (ggerganov/whisper.cpp, MIT lisansı) bir kez indirilecek ve doğrulanacak. Videonuz gönderilmez. Mobil veri kullanılabilir.",
+    "downloading": "Model indiriliyor… %{percent}",
+    "transcribing": "Konuşma tanınıyor: klip {current}/{total} · %{percent}",
+    "added_one": "{n} altyazı eklendi.",
+    "added_other": "{n} altyazı eklendi.",
+    "none": "Videoda konuşma bulunamadı.",
+    "cancelled": "Altyazı oluşturma iptal edildi.",
+    "errors": {
+      "MODEL_DOWNLOAD": "Model indirilemedi. İnternet bağlantınızı kontrol edin.",
+      "MODEL_CHECKSUM": "İndirilen model doğrulanamadı ve silindi. Lütfen tekrar deneyin.",
+      "CAPTIONS_UNSUPPORTED": "Otomatik altyazı bu cihazda kullanılamıyor.",
+      "NO_AUDIO": "Klipte ses bulunamadı.",
+      "CAPTIONS_FAILED": "Altyazı oluşturulamadı."
     }
   }
 }

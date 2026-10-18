@@ -23,11 +23,13 @@ import {
 import TextHandle from '../editor/TextHandle';
 import FxPanel from '../editor/FxPanel';
 import AiPanel from '../editor/AiPanel';
+import CaptionsPanel from '../editor/CaptionsPanel';
+import { addClipCaptions, captionableClips, hasCaptions, removeCaptions } from '../model/captions';
 import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
 import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
-import { sceneScores, speechPeaks, synthesizeSpeech, thumbnails } from '../engine/engine';
+import { cancelAi, captionModels, downloadCaptionModel, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -62,6 +64,8 @@ export default function EditorScreen({ params, focused }) {
   const [saveState, setSaveState] = useState('saved');
   const [previewError, setPreviewError] = useState(null);
   const [fxSel, setFxSel] = useState(null);
+  const [cap, setCap] = useState({ info: null, lang: null, modelId: 'base', progress: null });
+  const capCancelled = useRef(false);
   const settings = useRef({ haptics: true, previewQuality: 'medium', imageDurationMs: 3000 });
   const previewRef = useRef(null);
   const trimBase = useRef(null);
@@ -371,7 +375,74 @@ export default function EditorScreen({ params, focused }) {
     };
   };
 
+  // --- Otomatik altyazı ---
+  const confirmAsync = (title, message, okLabel) =>
+    new Promise((resolve) =>
+      Alert.alert(title, message, [
+        { text: t('common.cancel'), style: 'cancel', onPress: () => resolve(false) },
+        { text: okLabel, onPress: () => resolve(true) },
+      ], { cancelable: true, onDismiss: () => resolve(false) }),
+    );
+
+  const openCaptions = async () => {
+    openPanel('captions');
+    const info = await captionModels().catch(() => ({ supported: false, models: [] }));
+    setCap((c) => ({ ...c, info, lang: c.lang || (['tr', 'en', 'ar'].includes(lang) ? lang : 'auto') }));
+  };
+
+  const startCaptions = async () => {
+    const clips = captionableClips(project);
+    if (!clips.length) return toast(t('ai.needAudioClip'));
+    const model = cap.info?.models.find((m) => m.id === cap.modelId);
+    if (!model) return;
+    capCancelled.current = false;
+    const pct = (v) => fmt.number(Math.round(Math.max(0, Math.min(1, v)) * 100));
+    try {
+      if (!model.downloaded) {
+        const ok = await confirmAsync(t('captions.downloadTitle'), t('captions.downloadMessage', { size: fmt.bytes(model.sizeBytes) }), t('captions.download'));
+        if (!ok) return;
+        setCap((c) => ({ ...c, progress: { label: t('captions.downloading', { percent: pct(0) }), value: 0 } }));
+        await downloadCaptionModel(model.id, (phase, v) => setCap((c) => ({ ...c, progress: { label: t('captions.downloading', { percent: pct(v) }), value: v } })));
+        const info = await captionModels().catch(() => cap.info);
+        setCap((c) => ({ ...c, info }));
+      }
+      const results = [];
+      for (let i = 0; i < clips.length; i++) {
+        if (capCancelled.current) throw Object.assign(new Error('CANCELLED'), { code: 'CANCELLED' });
+        const clip = clips[i];
+        const step = (v) => setCap((c) => ({ ...c, progress: { label: t('captions.transcribing', { current: i + 1, total: clips.length, percent: pct(v) }), value: (i + v) / clips.length } }));
+        step(0);
+        const res = await transcribe(project.media[clip.mediaId], clip.srcIn, clip.srcOut, cap.lang || 'auto', model.id, (phase, v) => step(phase === 'transcribe' ? v : 0));
+        results.push({ clipId: clip.id, segments: res.segments || [] });
+      }
+      let added = 0;
+      apply((p) => {
+        let q = removeCaptions(p);
+        added = 0;
+        for (const r of results) {
+          const out = addClipCaptions(q, r.clipId, r.segments);
+          q = out.project;
+          added += out.added;
+        }
+        return q;
+      });
+      setCap((c) => ({ ...c, progress: null }));
+      toast(added ? t('captions.added', { count: added }) : t('captions.none'));
+    } catch (e) {
+      setCap((c) => ({ ...c, progress: null }));
+      const code = e?.code || '';
+      if (code === 'CANCELLED') return toast(t('captions.cancelled'));
+      toast(t(`captions.errors.${['MODEL_DOWNLOAD', 'MODEL_CHECKSUM', 'CAPTIONS_UNSUPPORTED', 'NO_AUDIO'].includes(code) ? code : 'CAPTIONS_FAILED'}`), 'error');
+    }
+  };
+
+  const cancelCaptions = () => {
+    capCancelled.current = true;
+    cancelAi().catch(() => {});
+  };
+
   const runAi = async (key) => {
+    if (key === 'autoCaptions') return openCaptions();
     const clip = selectedMain || clipAtPlayhead();
     const media = clip ? project.media[clip.mediaId] : null;
     try {
@@ -789,6 +860,25 @@ export default function EditorScreen({ params, focused }) {
       }
       case 'ai':
         return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
+      case 'captions':
+        return (
+          <CaptionsPanel
+            info={cap.info}
+            lang={cap.lang}
+            onLang={(l) => setCap((c) => ({ ...c, lang: l }))}
+            modelId={cap.modelId}
+            onModel={(m) => setCap((c) => ({ ...c, modelId: m }))}
+            progress={cap.progress}
+            onStart={startCaptions}
+            onCancel={cancelCaptions}
+            canRemove={hasCaptions(project)}
+            onRemove={() => {
+              apply((p) => removeCaptions(p));
+              toast(t('captions.removed'));
+            }}
+            onClose={close}
+          />
+        );
       case 'fxLayer':
         return (
           <FxPanel
