@@ -195,9 +195,9 @@ appId: app.kurgu.editor
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 13_projeye_devam
-# Efekt katmanı kaydedilip geri yüklendi mi?
-- assertVisible:
-    id: "effect-item-.*"
+# Efekt katmanının kaydedilip geri yüklendiği, yeniden açılıştan sonra yapılan dışa
+# aktarmada efektin videoda görünmesiyle (run.sh -> fx_check.py) doğrulanır. Şerit
+# oynatma kafasından uzakta olabileceği için burada ekranda aranmaz.
 # Dışa aktarma
 - tapOn:
     id: "export-open"
