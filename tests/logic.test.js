@@ -247,3 +247,18 @@ test('Servis: indirme seçenekleri (mock ve API)', async () => {
   assert.equal(old.audio[0].url, 'https://api.ornek.com/f/old.mp3'); // /formats yoksa eski uç noktaya döner
   await svc.saveConfig({ mode: 'mock' });
 });
+
+test('YouTube parçası: favori/çalma listesi yapısı ve indirme engeli', async () => {
+  const t = yt.youtubeTrack({ id: 'abcdefghijk', title: 'Yağmur', channel: 'Kanal', duration: 60 });
+  assert.equal(t.id, 'yt:abcdefghijk');
+  assert.equal(t.source, 'youtube');
+  assert.equal(t.url, null); // dosya adresi yok: ses oynatıcısında çalınmaz, indirilmez
+  assert.match(t.artwork, /i\.ytimg\.com\/vi\/abcdefghijk\//);
+  assert.deepEqual(yt.videoFromTrack(t), { id: 'abcdefghijk', title: 'Yağmur', channel: 'Kanal', duration: 60, thumbnail: t.artwork, license: null });
+  const ds = await import('../src/services/downloadSources.js');
+  assert.equal(ds.canDownload(t), false);
+  assert.equal(ds.canOpenDownloadMenu(t), true);
+  const o = await ds.loadOptionsFor(t);
+  assert.equal(o.video.length + o.audio.length, 0);
+  assert.match(o.blockedReason, /indirilemez/);
+});

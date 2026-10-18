@@ -10,6 +10,7 @@ import { EmptyState } from '../components/StateView';
 import { colors, formatTime, space } from '../theme';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
+import { videoFromTrack } from '../services/youtubeService';
 
 function formatSize(bytes) {
   if (!bytes) return '0 MB';
@@ -131,7 +132,15 @@ export default function PlaylistScreen({ route, navigation }) {
               onMore={kind === 'videos' ? undefined : () => setSheetTrack(item)}
             />
           ) : (
-            <TrackRow track={item} onPress={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
+            <TrackRow
+              track={item}
+              onPress={() =>
+                item.source === 'youtube'
+                  ? navigation.navigate('YouTubePlayer', { video: videoFromTrack(item) })
+                  : playQueue(tracks, index)
+              }
+              onMore={() => setSheetTrack(item)}
+            />
           )
         )}
       />

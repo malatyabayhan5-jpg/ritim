@@ -24,6 +24,7 @@ export default function NamePrompt({ visible, title, initial = '', confirmLabel 
             value={value}
             onChangeText={setValue}
             placeholder="Liste adı"
+            testID="name-input"
             placeholderTextColor={colors.textFaint}
             style={styles.input}
             autoFocus
@@ -36,7 +37,7 @@ export default function NamePrompt({ visible, title, initial = '', confirmLabel 
             <Pressable onPress={onCancel} style={styles.btn}>
               <Text style={styles.cancel}>Vazgeç</Text>
             </Pressable>
-            <Pressable onPress={submit} style={[styles.btn, styles.primary, !value.trim() && { opacity: 0.4 }]}>
+            <Pressable testID="name-confirm" onPress={submit} style={[styles.btn, styles.primary, !value.trim() && { opacity: 0.4 }]}>
               <Text style={styles.primaryText}>{confirmLabel}</Text>
             </Pressable>
           </View>

@@ -8,7 +8,7 @@ import { colors, radius, space } from '../theme';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useDownloadOptions } from './DownloadOptions';
-import { canDownload } from '../services/downloadSources';
+import { canDownload, canOpenDownloadMenu } from '../services/downloadSources';
 
 function toast(msg) {
   if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -78,6 +78,8 @@ export default function TrackActionsSheet({ track, onClose, extraActions = [], s
                 }}
               />
               <Action icon="list" label="Çalma listesine ekle" onPress={() => setMode('playlists')} />
+              {track.source !== 'youtube' ? (
+              <>
               <Action
                 icon="play-forward-outline"
                 label="Sıradaki olarak çal"
@@ -94,6 +96,8 @@ export default function TrackActionsSheet({ track, onClose, extraActions = [], s
                   done('Sıraya eklendi');
                 }}
               />
+              </>
+              ) : null}
               {downloaded ? (
                 <Action
                   icon="trash-outline"
@@ -105,10 +109,10 @@ export default function TrackActionsSheet({ track, onClose, extraActions = [], s
                   }}
                 />
               ) : null}
-              {canDownload(track) ? (
+              {canOpenDownloadMenu(track) ? (
                 <Action
                   icon="arrow-down-circle-outline"
-                  label={downloading ? 'İndiriliyor…' : 'İndir… (video / yalnızca ses)'}
+                  label={downloading ? 'İndiriliyor…' : canDownload(track) ? 'İndir… (video / yalnızca ses)' : 'İndir… (bu içerik için kapalı)'}
                   onPress={() => {
                     onClose();
                     openDownloadOptions(track);

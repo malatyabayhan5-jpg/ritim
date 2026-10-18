@@ -59,8 +59,11 @@ export function PlayerProvider({ children }) {
   const playQueue = useCallback(
     (tracks, startIndex = 0, opts = {}) => {
       if (!tracks || !tracks.length) return;
-      let list = tracks.slice();
-      let i = Math.max(0, Math.min(startIndex, list.length - 1));
+      // YouTube parçaları ses oynatıcısında çalınmaz (uygulama içi YouTube oynatıcısında açılır)
+      const startTrack = tracks[Math.max(0, Math.min(startIndex, tracks.length - 1))];
+      let list = tracks.filter((t) => t && t.source !== 'youtube');
+      if (!list.length) return;
+      let i = Math.max(0, list.indexOf(startTrack));
       if (opts.shuffle) {
         // Fisher-Yates
         for (let k = list.length - 1; k > 0; k--) {

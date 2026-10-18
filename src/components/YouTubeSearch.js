@@ -17,12 +17,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, formatTime, radius, space, type } from '../theme';
+import TrackActionsSheet from './TrackActionsSheet';
 import {
   getYouTubeSettings,
   loadYouTubeSettings,
   parseYouTubeId,
   saveYouTubeSettings,
   searchYouTube,
+  youtubeTrack,
 } from '../services/youtubeService';
 
 function KeySettings({ visible, onClose, onSaved }) {
@@ -109,6 +111,7 @@ export default function YouTubeSearch() {
   const [searched, setSearched] = useState(false);
   const lastQuery = useRef('');
   const reqId = useRef(0);
+  const [sheetTrack, setSheetTrack] = useState(null);
 
   useEffect(() => {
     loadYouTubeSettings().then(setSettings);
@@ -277,9 +280,19 @@ export default function YouTubeSearch() {
               </Text>
               {item.license === 'creativeCommon' ? <Text style={styles.cc}>CC</Text> : null}
             </View>
+            <Pressable
+              testID={`yt-more-${item.id}`}
+              onPress={() => setSheetTrack(youtubeTrack(item))}
+              hitSlop={10}
+              style={styles.moreBtn}
+            >
+              <Ionicons name="ellipsis-vertical" size={18} color={colors.textDim} />
+            </Pressable>
           </Pressable>
         )}
       />
+
+      <TrackActionsSheet track={sheetTrack} onClose={() => setSheetTrack(null)} />
 
       <KeySettings
         visible={settingsOpen}
@@ -325,6 +338,7 @@ const styles = StyleSheet.create({
   },
   errorText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 19 },
   row: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  moreBtn: { paddingLeft: space.xs, paddingVertical: space.xs, alignSelf: 'center' },
   thumb: { width: 140, height: 79, borderRadius: 8, backgroundColor: colors.surface2 },
   duration: { position: 'absolute', right: 4, bottom: 4, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
   durationText: { color: '#fff', fontSize: 11, fontWeight: '700', fontVariant: ['tabular-nums'] },

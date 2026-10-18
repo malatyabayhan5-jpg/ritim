@@ -11,6 +11,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, formatTime, radius, space } from '../theme';
 import { isAllowedYouTubeHost, isExternalAppUrl, mobileWatchUrl, parseYouTubeId } from '../services/youtubeService';
 import { usePlayer } from '../context/PlayerContext';
+import { useLibrary } from '../context/LibraryContext';
+import TrackActionsSheet from '../components/TrackActionsSheet';
+import { useDownloadOptions } from '../components/DownloadOptions';
+import { youtubeTrack } from '../services/youtubeService';
 
 const ORIGIN = 'https://com.ritim.muzik';
 
@@ -59,6 +63,31 @@ export default function YouTubePlayerScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState('embed'); // 'embed' | 'watch'
+  const lib = useLibrary();
+  const { openDownloadOptions } = useDownloadOptions();
+  const [sheet, setSheet] = useState(null);
+  const yt = youtubeTrack(video);
+  const fav = lib.isFavorite(yt.id);
+
+  const actions = (
+    <View style={styles.actionsRow}>
+      <Pressable testID="yt-fav" onPress={() => lib.toggleFavorite(yt)} style={styles.actionBtn} hitSlop={6}>
+        <Ionicons name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? colors.accent : colors.text} />
+        <Text style={styles.actionText}>{fav ? 'Favorilerde' : 'Favori'}</Text>
+      </Pressable>
+      <Pressable testID="yt-playlist" onPress={() => setSheet({ track: yt, playlists: true })} style={styles.actionBtn} hitSlop={6}>
+        <Ionicons name="add-circle-outline" size={22} color={colors.text} />
+        <Text style={styles.actionText}>Listeye ekle</Text>
+      </Pressable>
+      <Pressable testID="yt-download" onPress={() => openDownloadOptions(yt)} style={styles.actionBtn} hitSlop={6}>
+        <Ionicons name="arrow-down-circle-outline" size={22} color={colors.text} />
+        <Text style={styles.actionText}>İndir</Text>
+      </Pressable>
+    </View>
+  );
+  const sheetEl = (
+    <TrackActionsSheet track={sheet ? sheet.track : null} startOnPlaylists={sheet ? sheet.playlists : false} onClose={() => setSheet(null)} />
+  );
   const [embedCode, setEmbedCode] = useState(null);
 
   // Yerel müzik çalıyorsa iki ses üst üste binmesin
@@ -95,6 +124,7 @@ export default function YouTubePlayerScreen({ route, navigation }) {
             Bu video gömülü oynatıcıda açılamadı{embedCode ? ` (YouTube kodu ${embedCode})` : ''}; YouTube'un mobil oynatıcısıyla burada oynatılıyor.
           </Text>
         </View>
+        {actions}
         <WebView
           testID="yt-watch-webview"
           source={{ uri: mobileWatchUrl(video.id) }}
@@ -118,6 +148,7 @@ export default function YouTubePlayerScreen({ route, navigation }) {
             <ActivityIndicator color={colors.accent} />
           </View>
         ) : null}
+        {sheetEl}
       </View>
     );
   }
@@ -200,6 +231,7 @@ export default function YouTubePlayerScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.info}>
         <Text style={styles.title}>{video.title}</Text>
+        {actions}
         {video.channel || video.duration ? (
           <Text style={styles.channel}>
             {[video.channel, video.duration ? formatTime(video.duration) : null].filter(Boolean).join(' · ')}
@@ -219,6 +251,7 @@ export default function YouTubePlayerScreen({ route, navigation }) {
           </Text>
         </View>
       </ScrollView>
+      {sheetEl}
     </View>
   );
 }
@@ -238,6 +271,9 @@ const styles = StyleSheet.create({
   ccText: { color: colors.accent, fontSize: 11, fontWeight: '800' },
   ytBtn: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: '#CC0000', borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: space.sm },
   ytBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  actionsRow: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  actionBtn: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: space.sm, borderRadius: radius.md, backgroundColor: colors.surface },
+  actionText: { color: colors.text, fontSize: 12, fontWeight: '600' },
   modeNote: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, alignItems: 'flex-start' },
   modeNoteText: { flex: 1, color: colors.textDim, fontSize: 12, lineHeight: 17 },
   note: { flexDirection: 'row', gap: space.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: space.md, marginTop: space.sm },

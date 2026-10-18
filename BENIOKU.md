@@ -12,6 +12,7 @@ React Native (Expo SDK 54) ile yazılmış müzik uygulaması.
 - Arşivim: arama servisi katmanı (src/services/mediaService.js). Mock modu harici servis gerektirmez; "Kendi API'm" modunda sunucu adresi ve erişim anahtarı uygulama içinden ayarlanır
 - İndirmelerde MIME türü ve dosya imzası kontrolü, iptal, uygulama açılışında yerel dosyaları yeniden keşif
 - İndirme seçenekleri menüsü: Video indir / Yalnızca ses indir / İptal. Yalnızca kaynağın gerçekten sunduğu çözünürlük ve ses biçimleri boyutlarıyla listelenir; telefonda dönüştürme yapılmaz. YouTube içerikleri indirilemez.
+- YouTube: arama uygulama içinde; sonuçların sağında eylem menüsü (favori, çalma listesi, indirme menüsü). YouTube öğeleri favorilerde ve çalma listelerinde saklanır, uygulama içi YouTube oynatıcısında açılır. İndirme menüsü YouTube için kapalıdır ve nedenini gösterir.
 - İndirilen sesler ve İndirilen videolar ayrı listelerde; çevrimdışı oynatma, silme, dosya boyutu
 - Linkten indir: herkese açık herhangi bir .mp3/.m4a linkini telefona kaydetme (http ve https)
 

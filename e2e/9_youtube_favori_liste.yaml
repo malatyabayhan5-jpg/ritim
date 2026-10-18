@@ -1,0 +1,90 @@
+# YouTube sonucunu uygulama içinden favorilere ve çalma listesine ekleme; indirme menüsünde somut engel;
+# kayıtlı YouTube öğesinin Kütüphane'den yine uygulama içinde açılması
+appId: com.ritim.muzik
+---
+- launchApp
+- tapOn:
+    id: "tab-search"
+- tapOn:
+    id: "seg-youtube"
+- tapOn:
+    id: "yt-input"
+- eraseText: 30
+- inputText: "rain sounds"
+- tapOn:
+    id: "yt-go"
+- extendedWaitUntil:
+    visible:
+      id: "yt-browse"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      text: ".*([Rr]ain|RAIN).*"
+      index: 1
+    timeout: 45000
+- tapOn:
+    point: "50%,32%"
+- extendedWaitUntil:
+    visible:
+      id: "yt-fav"
+    timeout: 25000
+- tapOn:
+    id: "yt-fav"
+- assertVisible: "Favorilerde"
+- tapOn:
+    id: "yt-playlist"
+- tapOn: "Yeni çalma listesi"
+- tapOn:
+    id: "name-input"
+- inputText: "YT Test"
+- tapOn:
+    id: "name-confirm"
+- tapOn:
+    id: "yt-download"
+- extendedWaitUntil:
+    visible:
+      id: "dl-blocked"
+    timeout: 10000
+- takeScreenshot: 9a_youtube_indirme_engeli
+- tapOn:
+    id: "dl-cancel"
+- takeScreenshot: 9b_youtube_oynatici_eylemler
+- pressKey: back
+- pressKey: back
+- runFlow:
+    when:
+      notVisible:
+        id: "tab-library"
+    commands:
+      - pressKey: back
+- tapOn:
+    id: "tab-library"
+- tapOn: "Favoriler"
+- extendedWaitUntil:
+    visible:
+      id: "track-row"
+    timeout: 10000
+- takeScreenshot: 9c_favoriler
+- tapOn:
+    id: "track-row"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "yt-player"
+    timeout: 15000
+- takeScreenshot: 9d_favoriden_acildi
+- pressKey: back
+- pressKey: back
+- tapOn: "YT Test"
+- extendedWaitUntil:
+    visible:
+      id: "track-row"
+    timeout: 10000
+- tapOn:
+    id: "track-row"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "yt-player"
+    timeout: 15000
+- takeScreenshot: 9e_listeden_acildi

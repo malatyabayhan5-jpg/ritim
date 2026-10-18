@@ -15,6 +15,7 @@ export default function TrackRow({ track, onPress, onMore, showArtwork = true, n
 
   return (
     <Pressable
+      testID="track-row"
       onPress={onPress}
       onLongPress={onMore}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
@@ -44,6 +45,7 @@ export default function TrackRow({ track, onPress, onMore, showArtwork = true, n
           {track.title}
         </Text>
         <View style={styles.metaRow}>
+          {track.source === 'youtube' ? <Ionicons name="logo-youtube" size={14} color="#FF3B30" style={{ marginRight: 4 }} /> : null}
           {downloaded ? <Ionicons name="arrow-down-circle" size={14} color={colors.accent} style={{ marginRight: 4 }} /> : null}
           {p !== undefined ? <Text style={styles.progress}>%{Math.round(p * 100)} · </Text> : null}
           <Text style={styles.meta} numberOfLines={1}>

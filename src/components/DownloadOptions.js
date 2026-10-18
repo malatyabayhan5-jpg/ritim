@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Artwork from './Artwork';
 import { colors, radius, space } from '../theme';
 import { formatBytes } from '../services/formats';
-import { canDownload, loadOptionsFor } from '../services/downloadSources';
+import { canOpenDownloadMenu, loadOptionsFor } from '../services/downloadSources';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
 import { navigate } from '../navigation';
@@ -186,13 +186,20 @@ function OptionsSheet({ request, onClose }) {
                   </View>
                 ) : null}
 
+                {opts && opts.blockedReason ? (
+                  <View testID="dl-blocked" style={styles.blockedBox}>
+                    <Ionicons name="lock-closed-outline" size={18} color={colors.textDim} />
+                    <Text style={styles.blockedText}>{opts.blockedReason}</Text>
+                  </View>
+                ) : null}
+
                 {opts ? (
                   <>
                     <Row
                       testID="dl-video"
                       icon="film-outline"
                       title="Video indir"
-                      subtitle={videoCount ? `Görüntü ve ses birlikte · ${videoCount} kalite` : 'Bu kaynak video dosyası sunmuyor'}
+                      subtitle={videoCount ? `Görüntü ve ses birlikte · ${videoCount} kalite` : opts.blockedReason ? 'YouTube izin vermiyor' : 'Bu kaynak video dosyası sunmuyor'}
                       disabled={!videoCount}
                       onPress={() => setStep('video')}
                       right={videoCount ? <Ionicons name="chevron-forward" size={18} color={colors.textDim} /> : null}
@@ -201,7 +208,7 @@ function OptionsSheet({ request, onClose }) {
                       testID="dl-audio"
                       icon="musical-notes-outline"
                       title="Yalnızca ses indir"
-                      subtitle={audioCount ? `Görüntü olmadan · ${audioCount} biçim` : 'Bu kaynak ayrı bir ses dosyası sunmuyor'}
+                      subtitle={audioCount ? `Görüntü olmadan · ${audioCount} biçim` : opts.blockedReason ? 'YouTube izin vermiyor' : 'Bu kaynak ayrı bir ses dosyası sunmuyor'}
                       disabled={!audioCount}
                       onPress={() => setStep('audio')}
                       right={audioCount ? <Ionicons name="chevron-forward" size={18} color={colors.textDim} /> : null}
@@ -229,8 +236,8 @@ export function DownloadOptionsProvider({ children }) {
   const [request, setRequest] = useState(null);
 
   const openDownloadOptions = useCallback((track) => {
-    if (!canDownload(track)) {
-      toast(track && track.source === 'youtube' ? 'YouTube içerikleri indirilemez' : 'Bu dosya zaten telefonda');
+    if (!canOpenDownloadMenu(track)) {
+      toast('Bu dosya zaten telefonda');
       return;
     }
     setRequest({ track, at: Date.now() });
@@ -282,5 +289,7 @@ const styles = StyleSheet.create({
   pillText: { color: colors.text, fontSize: 12, fontWeight: '700' },
   errorBox: { flexDirection: 'row', gap: space.sm, margin: space.lg, padding: space.md, borderRadius: radius.md, backgroundColor: 'rgba(242,85,90,0.12)' },
   errorText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 19 },
+  blockedBox: { flexDirection: 'row', gap: space.sm, margin: space.lg, marginBottom: space.sm, padding: space.md, borderRadius: radius.md, backgroundColor: colors.surface2 },
+  blockedText: { flex: 1, color: colors.textDim, fontSize: 13, lineHeight: 19 },
   footNote: { color: colors.textFaint, fontSize: 12, paddingHorizontal: space.lg, paddingVertical: space.md, lineHeight: 17 },
 });

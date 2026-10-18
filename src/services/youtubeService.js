@@ -193,3 +193,42 @@ export function hasApiKey() {
 }
 
 export const __test = { decodeEntities, apiError };
+
+// YouTube videosunu Ritim'in ortak parça yapısına çevirir (favoriler ve çalma listeleri için).
+// url yoktur: bu parçalar Ritim'in ses oynatıcısında değil, uygulama içi YouTube oynatıcısında açılır.
+export function youtubeTrack(video) {
+  const id = String(video.id || video.videoId);
+  return {
+    id: `yt:${id}`,
+    videoId: id,
+    title: video.title || 'YouTube videosu',
+    artist: video.channel || video.artist || 'YouTube',
+    album: 'YouTube',
+    albumId: null,
+    artwork: video.thumbnail || `https://i.ytimg.com/vi/${encodeURIComponent(id)}/mqdefault.jpg`,
+    duration: video.duration || 0,
+    license: video.license || null,
+    source: 'youtube',
+    url: null,
+  };
+}
+
+// Kaydedilmiş bir YouTube parçasından oynatıcı ekranının beklediği video nesnesi
+export function videoFromTrack(track) {
+  return {
+    id: track.videoId || String(track.id).replace(/^yt:/, ''),
+    title: track.title,
+    channel: track.artist,
+    duration: track.duration || 0,
+    thumbnail: track.artwork,
+    license: track.license,
+  };
+}
+
+export function isYouTubeTrack(track) {
+  return !!track && track.source === 'youtube';
+}
+
+// İndirme menüsünde gösterilen somut engel
+export const YOUTUBE_DOWNLOAD_BLOCK =
+  "YouTube, resmi API'sinde video veya ses dosyası vermiyor ve kullanım şartları YouTube dışında indirmeyi yasaklıyor. Bu içerik izlenebilir, favorilere ve çalma listelerine eklenebilir, ancak indirilemez.";

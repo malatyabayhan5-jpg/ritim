@@ -50,7 +50,7 @@ adb shell am force-stop com.ritim.muzik
 
 : > "$OUT/sonuclar.txt"
 ALL_OK=1
-for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_indir 6_ses_indir 7_cevrimdisi 8_cevrimdisi_video_ve_silme; do
+for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_indir 6_ses_indir 7_cevrimdisi 8_cevrimdisi_video_ve_silme 9_youtube_favori_liste; do
   if [ "$flow" = "7_cevrimdisi" ]; then
     adb shell svc wifi disable; adb shell svc data disable; sleep 3
     echo "Ağ kapatıldı: $(adb shell dumpsys connectivity | grep -m1 -E 'Active default network' | tr -d '\r')" >> "$OUT/sonuclar.txt"

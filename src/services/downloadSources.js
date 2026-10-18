@@ -4,6 +4,7 @@ import { getTrackOptions } from '../api/archive';
 import { getDownloadOptions } from './mediaService';
 import { extFromUrl, isVideoExt } from './audioFormat';
 import { finalizeOptions } from './formats';
+import { YOUTUBE_DOWNLOAD_BLOCK } from './youtubeService';
 
 export function canDownload(track) {
   if (!track) return false;
@@ -11,7 +12,13 @@ export function canDownload(track) {
   return true;
 }
 
+// İndirme menüsünün açılabildiği içerikler (YouTube'da menü açılır ama seçenekler engel nedeniyle kapalıdır)
+export function canOpenDownloadMenu(track) {
+  return !!track && track.source !== 'local';
+}
+
 export async function loadOptionsFor(track) {
+  if (track && track.source === 'youtube') return { video: [], audio: [], blockedReason: YOUTUBE_DOWNLOAD_BLOCK };
   if (!canDownload(track)) return { video: [], audio: [] };
   if (track.source === 'server') {
     return getDownloadOptions({ id: track.itemId || String(track.id).replace(/^srv:/, '').split('#')[0] });
