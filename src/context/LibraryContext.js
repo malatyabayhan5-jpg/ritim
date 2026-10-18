@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import { mockDownloadAPI } from '../api/server';
 
 const STORAGE_KEY = 'ritim:library:v1';
 const DOWNLOAD_DIR = FileSystem.documentDirectory + 'muzik/';
@@ -174,7 +175,8 @@ export function LibraryProvider({ children }) {
     const dest = DOWNLOAD_DIR + file;
     try {
       await ensureDir();
-      const job = FileSystem.createDownloadResumable(track.url, dest, {}, (e) => {
+      const opts = track.headers ? { headers: track.headers } : {};
+      const job = FileSystem.createDownloadResumable(track.url, dest, opts, (e) => {
         const total = e.totalBytesExpectedToWrite;
         const ratio = total > 0 ? e.totalBytesWritten / total : 0;
         setProgress((p) => ({ ...p, [track.id]: ratio }));
@@ -191,6 +193,7 @@ export function LibraryProvider({ children }) {
       const info = await FileSystem.getInfoAsync(dest);
       if (!info.exists || !info.size) throw new Error('İndirilen dosya boş.');
       const saved = { ...track };
+      delete saved.headers; // kimlik bilgileri telefonda saklanmaz
       setDownloads((d) => ({ ...d, [track.id]: { track: saved, file, size: info.size || 0, at: Date.now() } }));
       return { ok: true };
     } catch (e) {
@@ -239,6 +242,45 @@ export function LibraryProvider({ children }) {
         duration: 0,
         ext: extFromUrl(url) || 'mp3',
         source: 'url',
+      };
+      const res = await runDownload(track);
+      return { ...res, track };
+    },
+    [downloads, runDownload]
+  );
+
+  // Kendi sunucundaki bir arama sonucunu indir (src/api/server.js)
+  const downloadServerItem = useCallback(
+    async (item) => {
+      const id = `srv:${item.id}`;
+      if (downloads[id]) return { ok: true, exists: true };
+      let target;
+      try {
+        target = await mockDownloadAPI(item.url);
+      } catch (e) {
+        return { ok: false, error: (e && e.message) || 'Sunucudan indirme adresi alınamadı.' };
+      }
+      if (!target || !isValidAudioUrl(target.url)) {
+        return { ok: false, error: 'Sunucu geçerli bir indirme adresi döndürmedi.' };
+      }
+      const dur =
+        typeof item.duration === 'number'
+          ? item.duration
+          : String(item.duration || '')
+              .split(':')
+              .reduce((a, p) => a * 60 + (parseFloat(p) || 0), 0);
+      const track = {
+        id,
+        title: item.title || 'İsimsiz parça',
+        artist: item.artist || 'Arşivim',
+        album: 'Arşivim',
+        albumId: null,
+        url: target.url,
+        artwork: item.thumbnail || null,
+        duration: dur || 0,
+        ext: target.ext || extFromUrl(target.url) || 'mp3',
+        headers: target.headers || null,
+        source: 'server',
       };
       const res = await runDownload(track);
       return { ...res, track };
@@ -298,6 +340,7 @@ export function LibraryProvider({ children }) {
       isDownloaded,
       downloadTrack,
       downloadFromUrl,
+      downloadServerItem,
       updateDownloadInfo,
       removeDownload,
     }),
@@ -322,6 +365,7 @@ export function LibraryProvider({ children }) {
       isDownloaded,
       downloadTrack,
       downloadFromUrl,
+      downloadServerItem,
       updateDownloadInfo,
       removeDownload,
     ]

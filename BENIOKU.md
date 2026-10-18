@@ -9,6 +9,7 @@ React Native (Expo SDK 54) ile yazılmış müzik uygulaması.
 - Çalma listeleri: oluştur, yeniden adlandır, sil, parça ekle/çıkar
 - Favoriler
 - İndirme ve çevrimdışı dinleme (tek parça veya tüm albüm)
+- Arşivim: kendi sunucunda arama ve indirme (bağlantı noktası: src/api/server.js, şu an deneme modunda)
 - Linkten indir: herkese açık herhangi bir .mp3/.m4a linkini telefona kaydetme (http ve https)
 
 Müzikler Internet Archive'ın Creative Commons lisanslı "netlabels" koleksiyonundan gelir.
