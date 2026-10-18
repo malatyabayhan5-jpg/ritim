@@ -5,6 +5,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -17,7 +18,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, formatTime, radius, space, type } from '../theme';
-import { getYouTubeSettings, loadYouTubeSettings, saveYouTubeSettings, searchYouTube } from '../services/youtubeService';
+import {
+  getYouTubeSettings,
+  loadYouTubeSettings,
+  parseYouTubeId,
+  saveYouTubeSettings,
+  searchUrl,
+  searchYouTube,
+} from '../services/youtubeService';
 
 function KeySettings({ visible, onClose, onSaved }) {
   const [apiKey, setApiKey] = useState('');
@@ -48,6 +56,10 @@ function KeySettings({ visible, onClose, onSaved }) {
               <Ionicons name="close" size={24} color={colors.textDim} />
             </Pressable>
           </View>
+          <Text style={styles.help}>
+            Anahtar isteğe bağlıdır. Anahtar yokken aramalar YouTube uygulamasında açılır; video linki yapıştırırsan video
+            burada oynatılır.
+          </Text>
           <Text style={styles.label}>YouTube Data API anahtarı</Text>
           <View style={styles.keyRow}>
             <TextInput
@@ -67,7 +79,8 @@ function KeySettings({ visible, onClose, onSaved }) {
           </View>
           <Text style={styles.help} selectable>
             Anahtar almak için: console.cloud.google.com → yeni proje → "YouTube Data API v3"ü etkinleştir → Kimlik bilgileri →
-            API anahtarı oluştur. Ücretsiz günlük kota yaklaşık 100 aramaya yeter.
+            API anahtarı oluştur. Ücretsizdir, kart gerekmez; kart isteyen "Ücretsiz deneme" ekranını atlayabilirsin. Günlük kota
+            yaklaşık 100 aramaya yeter.
           </Text>
           <View style={styles.switchRow}>
             <View style={{ flex: 1 }}>
@@ -110,6 +123,20 @@ export default function YouTubeSearch() {
       return;
     }
     Keyboard.dismiss();
+
+    // Yapıştırılmış YouTube linki: anahtar gerekmeden resmi oynatıcıda aç
+    const videoId = parseYouTubeId(q);
+    if (videoId) {
+      navigation.navigate('YouTubePlayer', { video: { id: videoId, title: 'YouTube videosu', channel: '', duration: 0 } });
+      return;
+    }
+
+    // Anahtar yoksa aramayı YouTube'un kendisinde aç
+    if (!settings.apiKey) {
+      Linking.openURL(searchUrl(q)).catch(() => setError('YouTube açılamadı.'));
+      return;
+    }
+
     if (q === lastQuery.current && searched && !error) return; // aynı sorguyu tekrar gönderme (kota korunur)
     if (loading) return;
     const id = ++reqId.current;
@@ -127,7 +154,6 @@ export default function YouTubeSearch() {
       setError(e.message);
       setResults([]);
       lastQuery.current = '';
-      if (!settings.apiKey) setSettingsOpen(true);
     } finally {
       if (id === reqId.current) setLoading(false);
     }
@@ -161,7 +187,7 @@ export default function YouTubeSearch() {
               setQuery(t);
               if (error) setError(null);
             }}
-            placeholder="YouTube'da ara"
+            placeholder={settings.apiKey ? "YouTube'da ara veya link yapıştır" : 'Ara (YouTube\'da açılır) veya link yapıştır'}
             placeholderTextColor={colors.textFaint}
             style={styles.input}
             returnKeyType="search"
@@ -205,14 +231,14 @@ export default function YouTubeSearch() {
             <View style={styles.empty}>
               <Ionicons name={searched ? 'search-outline' : 'logo-youtube'} size={40} color={colors.textFaint} />
               <Text style={styles.emptyTitle}>
-                {searched ? 'Sonuç bulunamadı' : settings.apiKey ? 'YouTube\'da ara' : 'API anahtarı gerekiyor'}
+                {searched ? 'Sonuç bulunamadı' : 'YouTube\'da ara'}
               </Text>
               <Text style={styles.emptyText}>
                 {searched
                   ? 'Başka bir kelime dene.'
                   : settings.apiKey
                   ? 'Videolar YouTube\'un resmi oynatıcısıyla açılır.'
-                  : 'Sağ üstteki ⚙ simgesinden YouTube Data API anahtarını ekle.'}
+                  : 'Yazdığın aramayı YouTube uygulamasında açarım. Bir video linki yapıştırırsan burada oynatırım. Sonuçları uygulama içinde görmek için ⚙ menüsünden ücretsiz bir API anahtarı ekleyebilirsin.'}
               </Text>
             </View>
           )

@@ -135,3 +135,14 @@ test('YouTube: arama akışı ve hatalar', async () => {
   globalThis.fetch = async () => ({ ok: false, status: 400, json: async () => ({ error: { errors: [{ reason: 'keyInvalid' }] } }) });
   await assert.rejects(yt.searchYouTube('x'), /geçersiz/);
 });
+
+test('YouTube: link ayrıştırma ve anahtarsız arama adresi', () => {
+  assert.equal(yt.parseYouTubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(yt.parseYouTubeId('https://youtube.com/watch?feature=share&v=abcdefghijk&t=10'), 'abcdefghijk');
+  assert.equal(yt.parseYouTubeId('youtu.be/abcdefghijk?si=x'), 'abcdefghijk');
+  assert.equal(yt.parseYouTubeId('https://m.youtube.com/shorts/abcdefghijk'), 'abcdefghijk');
+  assert.equal(yt.parseYouTubeId('https://music.youtube.com/watch?v=abcdefghijk'), 'abcdefghijk');
+  assert.equal(yt.parseYouTubeId('lofi müzik'), null);
+  assert.equal(yt.parseYouTubeId('https://evil.com/watch?v=abcdefghijk'), null);
+  assert.equal(yt.searchUrl(' kuş sesi '), 'https://www.youtube.com/results?search_query=ku%C5%9F%20sesi');
+});

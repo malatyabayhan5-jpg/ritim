@@ -139,6 +139,30 @@ export async function searchYouTube(query, { pageToken } = {}) {
   return { results, nextPageToken: search.nextPageToken || null };
 }
 
+// Anahtar gerektirmez: YouTube'un kendi arama sayfası (YouTube uygulaması yüklüyse orada açılır)
+export function searchUrl(query) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(String(query || '').trim())}`;
+}
+
+// Yapıştırılan bir YouTube linkinden video kimliğini çıkarır; link değilse null
+export function parseYouTubeId(text) {
+  const t = String(text || '').trim();
+  const patterns = [
+    /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtube\.com\/watch\?(?:[^#]*&)?v=([A-Za-z0-9_-]{11})/,
+    /^(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/(?:shorts|embed|live|v)\/([A-Za-z0-9_-]{11})/,
+    /^(?:https?:\/\/)?youtu\.be\/([A-Za-z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = re.exec(t);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+export function hasApiKey() {
+  return !!settings.apiKey;
+}
+
 export function watchUrl(videoId) {
   return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
 }
