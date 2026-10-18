@@ -205,6 +205,10 @@ appId: app.kurgu.editor
     visible:
       id: "export-start"
     timeout: 20000
+# Emülatörün GPU'su yazılımsaldır (SwiftShader): GPU efektli dışa aktarma 720p ile sınanır
+- tapOn:
+    id: "res-720"
+    optional: true
 - takeScreenshot: 14_disa_aktarma_ayarlari
 - tapOn:
     id: "export-start"

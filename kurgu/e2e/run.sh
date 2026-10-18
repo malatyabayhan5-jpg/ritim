@@ -65,7 +65,8 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 
 adb logcat -c
 : > "$OUT/sonuclar.txt"
-for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi; do
+# AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
+for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   if [ $code -eq 0 ]; then echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"; else echo "$flow: BAŞARISIZ (çıkış $code)" >> "$OUT/sonuclar.txt"; adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null; fi
