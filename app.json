@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ritim",
     "slug": "ritim",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ritim.muzik",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -39,6 +41,14 @@
         "expo-audio",
         {
           "enableBackgroundPlayback": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ]

@@ -8,10 +8,47 @@ const MAX_RECENT = 30;
 
 const LibraryContext = createContext(null);
 
+const AUDIO_EXTS = ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'opus', 'flac'];
+
+function extFromUrl(url) {
+  const path = String(url || '').split('?')[0].split('#')[0];
+  const m = path.match(/\.([a-zA-Z0-9]{2,5})$/);
+  const ext = m ? m[1].toLowerCase() : '';
+  return AUDIO_EXTS.includes(ext) ? ext : '';
+}
+
 function fileNameFor(track) {
-  const safe = track.id.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const trimmed = safe.length > 120 ? safe.slice(safe.length - 120) : safe;
-  return trimmed.toLowerCase().endsWith('.mp3') ? trimmed : trimmed + '.mp3';
+  const ext = track.ext || extFromUrl(track.url) || 'mp3';
+  const base = track.id.replace(/\.[a-zA-Z0-9]{2,5}$/, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const trimmed = base.length > 110 ? base.slice(base.length - 110) : base;
+  return `${trimmed}.${ext}`;
+}
+
+function hashString(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+function titleFromUrl(url) {
+  try {
+    const path = String(url).split('?')[0].split('#')[0];
+    const last = decodeURIComponent(path.split('/').pop() || '');
+    const name = last.replace(/\.[a-zA-Z0-9]{2,5}$/, '').replace(/[_+]+/g, ' ').trim();
+    return name || 'İsimsiz parça';
+  } catch (e) {
+    return 'İsimsiz parça';
+  }
+}
+
+function headerValue(headers, key) {
+  if (!headers) return '';
+  const k = Object.keys(headers).find((h) => h.toLowerCase() === key);
+  return k ? String(headers[k]) : '';
+}
+
+export function isValidAudioUrl(text) {
+  return /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(String(text || '').trim());
 }
 
 async function ensureDir() {
@@ -32,6 +69,7 @@ export function LibraryProvider({ children }) {
   const [downloads, setDownloads] = useState({}); // { [trackId]: { track, file, size } }
   const [recent, setRecent] = useState([]);
   const [progress, setProgress] = useState({}); // { [trackId]: 0..1 }
+  const [pending, setPending] = useState({}); // { [trackId]: track } süren indirmeler
   const active = useRef({});
 
   // İlk açılışta kayıtlı kütüphaneyi yükle
@@ -126,41 +164,93 @@ export function LibraryProvider({ children }) {
 
   const isDownloaded = useCallback((id) => !!downloads[id], [downloads]);
 
-  const downloadTrack = useCallback(async (track) => {
-    if (active.current[track.id]) return;
+  // Ortak indirme çekirdeği: { ok, error } döndürür
+  const runDownload = useCallback(async (track) => {
+    if (active.current[track.id]) return { ok: false, error: 'Bu dosya zaten indiriliyor.' };
     active.current[track.id] = true;
+    setPending((p) => ({ ...p, [track.id]: track }));
     setProgress((p) => ({ ...p, [track.id]: 0 }));
     const file = fileNameFor(track);
+    const dest = DOWNLOAD_DIR + file;
     try {
       await ensureDir();
-      const job = FileSystem.createDownloadResumable(track.url, DOWNLOAD_DIR + file, {}, (e) => {
+      const job = FileSystem.createDownloadResumable(track.url, dest, {}, (e) => {
         const total = e.totalBytesExpectedToWrite;
         const ratio = total > 0 ? e.totalBytesWritten / total : 0;
         setProgress((p) => ({ ...p, [track.id]: ratio }));
       });
       const res = await job.downloadAsync();
-      if (!res || (res.status && res.status >= 400)) {
-        throw new Error('İndirme başarısız oldu');
+      if (!res) throw new Error('İndirme yarıda kesildi.');
+      if (res.status && res.status >= 400) {
+        throw new Error(`Sunucu ${res.status} hatası döndürdü. Linkin doğru ve herkese açık olduğundan emin ol.`);
       }
-      const info = await FileSystem.getInfoAsync(DOWNLOAD_DIR + file);
-      setDownloads((d) => ({ ...d, [track.id]: { track, file, size: info.size || 0, at: Date.now() } }));
-      return true;
+      const type = headerValue(res.headers, 'content-type').toLowerCase();
+      if (type.includes('text/html') || type.includes('application/json')) {
+        throw new Error('Bu link bir ses dosyası değil, bir web sayfası açıyor. Doğrudan .mp3 veya .m4a dosyasının linkini gir.');
+      }
+      const info = await FileSystem.getInfoAsync(dest);
+      if (!info.exists || !info.size) throw new Error('İndirilen dosya boş.');
+      const saved = { ...track };
+      setDownloads((d) => ({ ...d, [track.id]: { track: saved, file, size: info.size || 0, at: Date.now() } }));
+      return { ok: true };
     } catch (e) {
       console.warn('İndirme hatası', e);
       try {
-        await FileSystem.deleteAsync(DOWNLOAD_DIR + file, { idempotent: true });
+        await FileSystem.deleteAsync(dest, { idempotent: true });
       } catch (err) {
         // yoksay
       }
-      return false;
+      const msg = e && e.message ? e.message : 'İndirme başarısız oldu.';
+      return { ok: false, error: /network|failed to connect|unable to resolve|cleartext/i.test(msg) ? 'Sunucuya bağlanılamadı. İnternet bağlantını ve linki kontrol et.' : msg };
     } finally {
       delete active.current[track.id];
+      setPending((p) => {
+        const next = { ...p };
+        delete next[track.id];
+        return next;
+      });
       setProgress((p) => {
         const next = { ...p };
         delete next[track.id];
         return next;
       });
     }
+  }, []);
+
+  const downloadTrack = useCallback(async (track) => (await runDownload(track)).ok, [runDownload]);
+
+  // Herhangi bir açık ses dosyası linkinden indir
+  const downloadFromUrl = useCallback(
+    async (rawUrl, meta = {}) => {
+      const url = String(rawUrl || '').trim();
+      if (!isValidAudioUrl(url)) {
+        return { ok: false, error: 'Geçerli bir link gir (http:// veya https:// ile başlamalı).' };
+      }
+      const id = `url:${hashString(url)}`;
+      if (downloads[id]) return { ok: false, error: 'Bu dosya zaten indirilmiş.', exists: true };
+      const track = {
+        id,
+        title: (meta.title || '').trim() || titleFromUrl(url),
+        artist: (meta.artist || '').trim() || 'Bilinmeyen sanatçı',
+        album: 'Linkten indirilenler',
+        albumId: null,
+        url,
+        artwork: null,
+        duration: 0,
+        ext: extFromUrl(url) || 'mp3',
+        source: 'url',
+      };
+      const res = await runDownload(track);
+      return { ...res, track };
+    },
+    [downloads, runDownload]
+  );
+
+  const updateDownloadInfo = useCallback((id, patch) => {
+    const clean = {};
+    if (patch.title && patch.title.trim()) clean.title = patch.title.trim();
+    if (patch.artist && patch.artist.trim()) clean.artist = patch.artist.trim();
+    setDownloads((d) => (d[id] ? { ...d, [id]: { ...d[id], track: { ...d[id].track, ...clean } } } : d));
   }, []);
 
   const removeDownload = useCallback(
@@ -195,6 +285,7 @@ export function LibraryProvider({ children }) {
       downloads,
       downloadList,
       progress,
+      pending,
       isFavorite,
       toggleFavorite,
       addRecent,
@@ -206,6 +297,8 @@ export function LibraryProvider({ children }) {
       getLocalUri,
       isDownloaded,
       downloadTrack,
+      downloadFromUrl,
+      updateDownloadInfo,
       removeDownload,
     }),
     [
@@ -216,6 +309,7 @@ export function LibraryProvider({ children }) {
       downloads,
       downloadList,
       progress,
+      pending,
       isFavorite,
       toggleFavorite,
       addRecent,
@@ -227,6 +321,8 @@ export function LibraryProvider({ children }) {
       getLocalUri,
       isDownloaded,
       downloadTrack,
+      downloadFromUrl,
+      updateDownloadInfo,
       removeDownload,
     ]
   );

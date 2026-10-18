@@ -13,6 +13,7 @@ import MiniPlayer from './src/components/MiniPlayer';
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import LibraryScreen from './src/screens/LibraryScreen';
+import DownloadScreen from './src/screens/DownloadScreen';
 import AlbumScreen from './src/screens/AlbumScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
@@ -37,6 +38,7 @@ const navTheme = {
 const TAB_ICONS = {
   Home: ['home', 'home-outline'],
   Search: ['search', 'search-outline'],
+  Download: ['cloud-download', 'cloud-download-outline'],
   Library: ['library', 'library-outline'],
 };
 
@@ -63,6 +65,7 @@ function Tabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Ana sayfa' }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Ara' }} />
+      <Tab.Screen name="Download" component={DownloadScreen} options={{ title: 'İndir' }} />
       <Tab.Screen name="Library" component={LibraryScreen} options={{ title: 'Kütüphane' }} />
     </Tab.Navigator>
   );
