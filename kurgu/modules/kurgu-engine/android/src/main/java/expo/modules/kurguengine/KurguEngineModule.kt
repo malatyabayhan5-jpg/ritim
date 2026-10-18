@@ -1,0 +1,153 @@
+package expo.modules.kurguengine
+
+import android.content.Context
+import android.os.Build
+import android.os.PowerManager
+import android.view.WindowManager
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.exception.Exceptions
+import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
+
+class KurguEngineModule : Module() {
+  private val context: Context
+    get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+
+  private var exporter: Exporter? = null
+
+  override fun definition() = ModuleDefinition {
+    Name("KurguEngine")
+
+    Events("onExportProgress")
+
+    AsyncFunction("probe") { uri: String ->
+      MediaTools.probe(context, uri)
+    }
+
+    AsyncFunction("thumbnails") { uri: String, timesMs: List<Double>, heightPx: Int, outDir: String, isImage: Boolean ->
+      MediaTools.thumbnails(context, uri, timesMs, heightPx, outDir, isImage)
+    }
+
+    AsyncFunction("waveform") { uri: String, peaksPerSecond: Int, maxPeaks: Int ->
+      MediaTools.waveform(context, uri, peaksPerSecond, maxPeaks)
+    }
+
+    AsyncFunction("encoderCapabilities") {
+      MediaTools.encoderCapabilities()
+    }
+
+    AsyncFunction("deviceStatus") {
+      val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+      mapOf(
+        "thermal" to (if (Build.VERSION.SDK_INT >= 29) pm.currentThermalStatus else -1),
+        "powerSave" to pm.isPowerSaveMode,
+        "sdk" to Build.VERSION.SDK_INT,
+        "model" to Build.MODEL,
+      )
+    }
+
+    AsyncFunction("exportVideo") { specJson: String, outPath: String, options: Map<String, Any?>, promise: Promise ->
+      if (exporter?.isRunning == true) {
+        promise.reject("EXPORT_BUSY", "An export is already running", null)
+        return@AsyncFunction
+      }
+      val spec = try {
+        RenderSpec.parse(specJson)
+      } catch (e: Exception) {
+        promise.reject("BAD_SPEC", e.message, e)
+        return@AsyncFunction
+      }
+      val opts = ExportOptions(
+        width = (options["width"] as? Number)?.toInt() ?: spec.width,
+        height = (options["height"] as? Number)?.toInt() ?: spec.height,
+        fps = (options["fps"] as? Number)?.toInt() ?: spec.fps,
+        videoBitrate = (options["videoBitrate"] as? Number)?.toInt() ?: 10_000_000,
+        audioBitrate = (options["audioBitrate"] as? Number)?.toInt() ?: 192_000,
+        codec = options["codec"] as? String ?: "h264",
+      )
+      val ctx = context
+      val title = options["notificationTitle"] as? String ?: "Kurgu"
+      val text = options["notificationText"] as? String ?: ""
+      val ex = Exporter(ctx) { p ->
+        sendEvent("onExportProgress", mapOf("progress" to p))
+        ExportService.update(ctx, title, text, p)
+      }
+      exporter = ex
+      keepScreenOn(true)
+      ExportService.start(ctx, title, text)
+      try {
+        ex.start(
+          spec.copy(fps = opts.fps),
+          opts,
+          outPath,
+          onDone = { result ->
+            keepScreenOn(false)
+            ExportService.stop(ctx)
+            promise.resolve(result)
+          },
+          onFail = { code, message ->
+            keepScreenOn(false)
+            ExportService.stop(ctx)
+            promise.reject(code, message, null)
+          },
+        )
+      } catch (e: Exception) {
+        keepScreenOn(false)
+        ExportService.stop(ctx)
+        exporter = null
+        promise.reject("EXPORT_FAILED", e.message ?: e.javaClass.simpleName, e)
+      }
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("cancelExport") {
+      val cancelled = exporter?.cancel() ?: false
+      keepScreenOn(false)
+      ExportService.stop(context)
+      cancelled
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("saveToGallery") { path: String, displayName: String ->
+      Exporter.saveToGallery(context, path, displayName)
+    }
+
+    View(KurguPreviewView::class) {
+      Events("onPosition", "onPlaybackState", "onPreviewError")
+
+      Prop("spec") { view: KurguPreviewView, spec: String? ->
+        view.setSpec(spec)
+      }
+
+      Prop("previewQuality") { view: KurguPreviewView, quality: String? ->
+        view.setPreviewQuality(quality)
+      }
+
+      AsyncFunction("play") { view: KurguPreviewView ->
+        view.play()
+      }
+
+      AsyncFunction("pause") { view: KurguPreviewView ->
+        view.pause()
+      }
+
+      AsyncFunction("seekTo") { view: KurguPreviewView, ms: Double ->
+        view.seekTo(ms)
+      }
+
+      AsyncFunction("setScrubbing") { view: KurguPreviewView, enabled: Boolean ->
+        view.setScrubbing(enabled)
+      }
+    }
+  }
+
+  private fun keepScreenOn(on: Boolean) {
+    val activity = appContext.currentActivity ?: return
+    activity.runOnUiThread {
+      if (on) {
+        activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+      } else {
+        activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+      }
+    }
+  }
+}

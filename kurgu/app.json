@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "Kurgu",
+    "slug": "kurgu",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "backgroundColor": "#0B0B0F",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0B0F"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.kurgu.editor",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Projelerinize video ve fotoğraf eklemek için galerinize erişim gerekir.",
+        "NSPhotoLibraryAddUsageDescription": "Dışa aktardığınız videoları galeriye kaydetmek için gerekir."
+      }
+    },
+    "android": {
+      "package": "app.kurgu.editor",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0B0F"
+      },
+      "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "pan",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Projelerinize video ve fotoğraf eklemek için galerinize erişim gerekir.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
+          }
+        }
+      ],
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

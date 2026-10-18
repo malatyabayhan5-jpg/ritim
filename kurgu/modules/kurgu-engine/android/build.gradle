@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+
+group = 'expo.modules.kurguengine'
+version = '0.1.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+buildscript {
+  ext.safeExtGet = { prop, fallback ->
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  }
+}
+
+project.android {
+  compileSdkVersion safeExtGet("compileSdkVersion", 36)
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 24)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
+  }
+}
+
+android {
+  namespace "expo.modules.kurguengine"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+// Media3 1.9.x: Transformer (dışa aktarma), CompositionPlayer (önizleme) ve efekt zinciri.
+// Önizleme ve dışa aktarma aynı Composition nesnesinden üretilir.
+def media3Version = "1.9.4"
+
+dependencies {
+  implementation "androidx.media3:media3-transformer:$media3Version"
+  implementation "androidx.media3:media3-effect:$media3Version"
+  implementation "androidx.media3:media3-common:$media3Version"
+  implementation "androidx.media3:media3-exoplayer:$media3Version"
+}
