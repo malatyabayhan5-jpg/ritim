@@ -19,37 +19,41 @@ function durationLabel(d) {
   return d || '';
 }
 
+// Satır iki ayrı dokunma alanından oluşur: sol taraf (oynat / menü) ve sağdaki durum düğmesi
+// (indir / iptal). İptal düğmesi satırın dokunma alanının içinde olmadığı için dokunuş satıra kaymaz.
 function ResultRow({ item, state, progress, onPress, onCancel, onDownloadPress }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
-      android_ripple={{ color: colors.surface2 }}
-    >
-      <View>
-        <Artwork uri={item.thumbnail} size={52} radius={6} />
-        {item.kind === 'video' ? (
-          <View style={styles.videoBadge}>
-            <Ionicons name="film" size={11} color="#fff" />
-          </View>
-        ) : null}
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={[styles.title, state === 'playing' && { color: colors.accent }]} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.meta} numberOfLines={1}>
-          {[item.artist, durationLabel(item.duration)].filter(Boolean).join(' · ')}
-        </Text>
-        {state === 'downloading' ? (
-          <View style={styles.bar}>
-            <View style={[styles.barFill, { width: `${Math.max(4, (progress || 0) * 100)}%` }]} />
-          </View>
-        ) : null}
-      </View>
+    <View style={styles.row}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.rowMain, pressed && { opacity: 0.7 }]}
+        android_ripple={{ color: colors.surface2 }}
+      >
+        <View>
+          <Artwork uri={item.thumbnail} size={52} radius={6} />
+          {item.kind === 'video' ? (
+            <View style={styles.videoBadge}>
+              <Ionicons name="film" size={11} color="#fff" />
+            </View>
+          ) : null}
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[styles.title, state === 'playing' && { color: colors.accent }]} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={styles.meta} numberOfLines={1}>
+            {[item.artist, durationLabel(item.duration)].filter(Boolean).join(' · ')}
+          </Text>
+          {state === 'downloading' ? (
+            <View style={styles.bar}>
+              <View style={[styles.barFill, { width: `${Math.max(4, (progress || 0) * 100)}%` }]} />
+            </View>
+          ) : null}
+        </View>
+      </Pressable>
       <View style={styles.stateBox}>
         {state === 'downloading' ? (
-          <Pressable onPress={onCancel} hitSlop={10} style={{ alignItems: 'center' }}>
+          <Pressable testID={`dl-cancel-${item.id}`} onPress={onCancel} hitSlop={12} style={styles.cancelBtn}>
             <Text style={styles.percent}>%{Math.round((progress || 0) * 100)}</Text>
             <Text style={styles.cancel}>İptal</Text>
           </Pressable>
@@ -65,7 +69,7 @@ function ResultRow({ item, state, progress, onPress, onCancel, onDownloadPress }
           </Pressable>
         )}
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -322,7 +326,9 @@ const styles = StyleSheet.create({
   },
   errorText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 19 },
   sectionLabel: { paddingHorizontal: space.lg, marginTop: space.lg, marginBottom: space.xs },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingRight: space.lg },
+  rowMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, paddingVertical: space.sm },
+  cancelBtn: { alignItems: 'center', paddingVertical: 6, paddingHorizontal: 4 },
   title: { color: colors.text, fontSize: 15, fontWeight: '600' },
   meta: { color: colors.textDim, fontSize: 13, marginTop: 3 },
   bar: { height: 3, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden', marginTop: 6 },

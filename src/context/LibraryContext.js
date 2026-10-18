@@ -291,10 +291,16 @@ export function LibraryProvider({ children }) {
     const slot = jobs.current[id];
     if (!slot) return;
     slot.cancelled = true;
+    if (!slot.job) return;
     try {
-      if (slot.job) await slot.job.cancelAsync();
+      if (typeof slot.job.cancelAsync === 'function') await slot.job.cancelAsync();
+      else await slot.job.pauseAsync(); // eski sürümler: duraklat; runDownload yarım dosyayı siler
     } catch (e) {
-      // yoksay
+      try {
+        await slot.job.pauseAsync();
+      } catch (err) {
+        // yoksay
+      }
     }
   }, []);
 
