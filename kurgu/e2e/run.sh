@@ -29,32 +29,30 @@ ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lav
   -f lavfi -i "sine=frequency=500:sample_rate=44100:duration=7.5" \
   -filter_complex "[2]trim=duration=2.5,setpts=PTS-STARTPTS[m];[0][1][m]concat=n=3:v=1:a=0,format=yuv420p[v];[3]volume='if(between(t,2,4),0,1)':eval=frame[a]" \
   -map "[v]" -map "[a]" -c:v libx264 -c:a aac -t 7.5 "$M/kurgu_sahne.mp4"
-# Galeri seçicisindeki sıra dosya tarihine göredir (adb push tarihi korur). Sırayı
-# kesinleştir: yeniden eskiye video2, foto, video1, sahne, konusma.
-i=0
-for f in kurgu_konusma.mp4 kurgu_sahne.mp4 kurgu_video1.mp4 kurgu_foto.jpg kurgu_video2.mp4; do
-  [ -f "$M/$f" ] && touch -d "2024-01-01 10:0$i:00" "$M/$f"
-  i=$((i+1))
-done
 ls -l "$M" >> "$OUT/cihaz.txt"
-
 adb shell mkdir -p /sdcard/DCIM/Camera /sdcard/Music
-# AI test videoları önce yüklenir: seçicide en sonda kalır, kabul akışının seçimi değişmez
-# (sıra, yeniden eskiye: video2, foto, video1, sahne, konusma)
-[ -f "$M/kurgu_konusma.mp4" ] && adb push "$M/kurgu_konusma.mp4" /sdcard/DCIM/Camera/ > /dev/null
-sleep 2
-adb push "$M/kurgu_sahne.mp4" /sdcard/DCIM/Camera/ > /dev/null
 
-sleep 2
-adb push "$M/kurgu_video1.mp4" /sdcard/DCIM/Camera/ > /dev/null
-adb push "$M/kurgu_foto.jpg" /sdcard/DCIM/Camera/ > /dev/null
-adb push "$M/kurgu_video2.mp4" /sdcard/DCIM/Camera/ > /dev/null
-adb push "$M/kurgu_muzik.mp3" /sdcard/Music/ > /dev/null
-adb shell content call --uri content://media --method scan_volume --arg external_primary > /dev/null 2>&1 || true
-for f in DCIM/Camera/kurgu_konusma.mp4 DCIM/Camera/kurgu_sahne.mp4 DCIM/Camera/kurgu_video1.mp4 DCIM/Camera/kurgu_foto.jpg DCIM/Camera/kurgu_video2.mp4 Music/kurgu_muzik.mp3; do
-  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/$f" > /dev/null 2>&1 || true
-done
-sleep 5
+# Her akıştan önce galeriye yalnızca o akışın medyası konur: seçicideki sıra
+# tahmin edilmez. Sıra (yeniden eskiye) push sırasının tersidir.
+gallery() {
+  adb shell rm -f /sdcard/DCIM/Camera/kurgu_* /sdcard/Music/kurgu_* > /dev/null 2>&1
+  adb shell content delete --uri content://media/external/file --where "_display_name\ LIKE\ \'kurgu_%\'" > /dev/null 2>&1 || true
+  for f in "$@"; do
+    case "$f" in *.mp3) dir=Music ;; *) dir=DCIM/Camera ;; esac
+    adb push "$M/$f" "/sdcard/$dir/" > /dev/null
+    adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/$dir/$f" > /dev/null 2>&1 || true
+    sleep 1.2
+  done
+  adb shell content call --uri content://media --method scan_volume --arg external_primary > /dev/null 2>&1 || true
+  sleep 4
+  adb shell content query --uri content://media/external/file --projection _display_name --where "_display_name\ LIKE\ \'kurgu_%\'" 2>/dev/null | sed 's/^/    galeri: /' >> "$OUT/cihaz.txt"
+}
+
+# Akış başarısız olursa ekrandaki metinleri günlüğe yaz (hata iletisini görmek için)
+screen_texts() {
+  adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1
+  adb shell cat /sdcard/ui.xml 2>/dev/null | grep -o 'text="[^"]\+"' | sed 's/text=//' | head -40 | tr '\n' ' '
+}
 
 adb install -r "$APK" > "$OUT/install.txt" 2>&1 || { echo "APK kurulamadı"; cat "$OUT/install.txt"; }
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS > /dev/null 2>&1 || true
@@ -67,9 +65,19 @@ adb logcat -c
 : > "$OUT/sonuclar.txt"
 # AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
 for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
+  case "$flow" in
+    3_ai_araclari) gallery kurgu_sahne.mp4 ;;
+    4_otomatik_altyazi) [ -f "$M/kurgu_konusma.mp4" ] && gallery kurgu_konusma.mp4 ;;
+    1_kabul_akisi) gallery kurgu_video1.mp4 kurgu_foto.jpg kurgu_video2.mp4 kurgu_muzik.mp3 ;;
+  esac
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
-  if [ $code -eq 0 ]; then echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"; else echo "$flow: BAŞARISIZ (çıkış $code)" >> "$OUT/sonuclar.txt"; adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null; fi
+  if [ $code -eq 0 ]; then
+    echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"
+  else
+    echo "$flow: BAŞARISIZ (çıkış $code) — ekranda: $(screen_texts | cut -c1-500)" >> "$OUT/sonuclar.txt"
+    adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
+  fi
 done
 
 # Dışa aktarılan videoyu cihazdan al ve bağımsız bir araçla (ffprobe) denetle
@@ -108,6 +116,6 @@ done
 echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== AI araçları günlüğü ====="
-grep -E "KurguAI" "$OUT/logcat.txt" 2>/dev/null | cut -c1-600 | head -40
+grep -E "KurguAI|KurguExport" "$OUT/logcat.txt" 2>/dev/null | cut -c1-600 | head -40
 echo "===== JS / yerel hata satırları ====="
 grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60

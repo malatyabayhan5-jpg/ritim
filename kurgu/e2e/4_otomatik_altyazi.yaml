@@ -11,10 +11,10 @@ appId: app.kurgu.editor
     id: "new-project"
 - waitForAnimationToEnd:
     timeout: 5000
-# Konuşma videosu galeriye ilk yüklendiği için listede en sonda (5. öğe)
+# Galeride yalnızca konuşma test videosu var (run.sh gallery)
 - tapOn:
     text: "(Video|Photo|Fotoğraf).*"
-    index: 4
+    index: 0
 - tapOn:
     text: "(Add|Ekle).*"
 - extendedWaitUntil:

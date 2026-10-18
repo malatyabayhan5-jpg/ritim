@@ -129,6 +129,7 @@ export default function ExportScreen({ params }) {
         setPhase('setup');
         return;
       }
+      console.log(`[KurguExport] failed: ${e?.code} ${e?.message}`);
       setErr({ code: e?.code || 'EXPORT_FAILED', message: e?.message });
       setPhase('error');
     }
