@@ -1,0 +1,65 @@
+# Dil değişimi: TR -> AR (sağdan sola) -> EN -> TR. Uygulama yeniden başlatılmaz,
+# açık proje kapanmaz; zaman çizelgesi Arapçada da soldan sağa kalır.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "project-prj_.*"
+    timeout: 30000
+- tapOn:
+    id: "project-prj_.*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 30000
+- tapOn:
+    id: "editor-close"
+- tapOn:
+    id: "open-settings"
+- tapOn:
+    id: "lang-ar"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 20_ayarlar_arapca
+- assertVisible:
+    text: "الإعدادات"
+- tapOn:
+    id: "settings-back"
+- takeScreenshot: 21_ana_ekran_arapca
+- tapOn:
+    id: "project-prj_.*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 22_editor_arapca
+- assertVisible:
+    text: "تصدير"
+- tapOn:
+    id: "tool-text"
+- takeScreenshot: 23_metin_araclari_arapca
+- tapOn:
+    id: "tool-back"
+- tapOn:
+    id: "editor-close"
+- tapOn:
+    id: "open-settings"
+- tapOn:
+    id: "lang-en"
+- assertVisible:
+    text: "Settings"
+- takeScreenshot: 24_ayarlar_ingilizce
+- tapOn:
+    id: "settings-back"
+- takeScreenshot: 25_ana_ekran_ingilizce
+- tapOn:
+    id: "open-settings"
+- tapOn:
+    id: "lang-tr"
+- assertVisible:
+    text: "Ayarlar"
+- tapOn:
+    id: "settings-back"

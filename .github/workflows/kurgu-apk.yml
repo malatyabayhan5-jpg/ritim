@@ -65,3 +65,55 @@ jobs:
         with:
           name: Kurgu-apk
           path: Kurgu.apk
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Kurgu-apk
+
+      - name: ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+
+      - name: KVM'yi etkinleştir
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emülatörde kabul testi
+        continue-on-error: true
+        timeout-minutes: 60
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          cores: 4
+          ram-size: 4096M
+          disk-size: 6000M
+          emulator-boot-timeout: 1500
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash kurgu/e2e/run.sh
+
+      - name: Sonuçlar
+        if: always()
+        run: |
+          if [ -d e2e-out ]; then
+            summary=$( (cat e2e-out/cihaz.txt | head -1; cat e2e-out/sonuclar.txt) 2>/dev/null | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
+            echo "::notice title=Kurgu emulator testi::$summary"
+          else
+            echo "::warning title=Kurgu emulator testi::Emülatör testi çalışmadı"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Kurgu-e2e
+          path: e2e-out

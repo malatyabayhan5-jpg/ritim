@@ -1,0 +1,180 @@
+# Kabul akışı (emülatör): yeni proje -> galeriden çoklu seçim -> oynatma -> bölme ->
+# metin -> filtre -> geçiş -> ses -> uygulamayı kapat/aç -> projeye devam -> MP4 dışa aktarma.
+appId: app.kurgu.editor
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "new-project"
+    timeout: 60000
+- takeScreenshot: 01_ana_ekran
+- tapOn:
+    id: "new-project"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 02_galeri_secici
+# Android Photo Picker: öğeler "Video/Photo taken on ..." açıklamasıyla listelenir
+- tapOn:
+    text: "(Video|Photo|Fotoğraf).*"
+    index: 0
+- tapOn:
+    text: "(Video|Photo|Fotoğraf).*"
+    index: 1
+- tapOn:
+    text: "(Video|Photo|Fotoğraf).*"
+    index: 2
+- takeScreenshot: 03_secim
+- tapOn:
+    text: "(Add|Ekle).*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 90000
+- extendedWaitUntil:
+    visible:
+      id: "clip-2"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 04_editor
+# Oynat / duraklat
+- tapOn:
+    id: "play-toggle"
+- swipe:
+    start: "50%, 50%"
+    end: "50%, 50%"
+    duration: 2500
+- tapOn:
+    id: "play-toggle"
+- takeScreenshot: 05_oynatma
+# Bölme: ilk klibin ortasına git ve böl
+- tapOn:
+    id: "clip-0"
+- tapOn:
+    id: "tool-split"
+- takeScreenshot: 06_bolme
+- tapOn:
+    id: "tool-back"
+# Metin
+- tapOn:
+    id: "tool-text"
+- tapOn:
+    id: "tool-addText"
+- tapOn:
+    id: "text-input"
+- eraseText: 20
+- inputText: "Merhaba Kurgu"
+- hideKeyboard
+- tapOn:
+    id: "text-tab-animation"
+- takeScreenshot: 07_metin_paneli
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+# Filtre (oynatma kafasındaki klip)
+- tapOn:
+    id: "tool-filters"
+- tapOn:
+    id: "filter-vivid"
+- takeScreenshot: 08_filtre
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+# Efekt
+- tapOn:
+    id: "tool-effects"
+- tapOn:
+    id: "effect-vignette"
+    optional: true
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+# Geçiş: iki klip arasındaki düğme
+- tapOn:
+    id: "transition-.*"
+    index: 0
+- tapOn:
+    id: "transition-type-fade"
+- takeScreenshot: 09_gecis
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+# Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle
+- tapOn:
+    id: "tool-audio"
+- tapOn:
+    id: "tool-soundFromVideo"
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-audio"
+    optional: true
+- tapOn:
+    id: "tool-music"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: 10_dosya_secici
+- tapOn:
+    text: "kurgu_muzik.*"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 11_zaman_cizelgesi
+# Kaydedilmesini bekle, uygulamayı kapat ve yeniden aç
+- extendedWaitUntil:
+    visible:
+      text: "(Kaydedildi|Saved)"
+    timeout: 15000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "project-prj_.*"
+    timeout: 30000
+- takeScreenshot: 12_yeniden_acilis
+- tapOn:
+    id: "project-prj_.*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 13_projeye_devam
+# Dışa aktarma
+- tapOn:
+    id: "export-open"
+- extendedWaitUntil:
+    visible:
+      id: "export-start"
+    timeout: 20000
+- takeScreenshot: 14_disa_aktarma_ayarlari
+- tapOn:
+    id: "export-start"
+- extendedWaitUntil:
+    visible:
+      id: "export-progress"
+    timeout: 20000
+- takeScreenshot: 15_disa_aktariliyor
+- extendedWaitUntil:
+    visible:
+      id: "export-done"
+    timeout: 900000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 16_disa_aktarma_bitti
+- scrollUntilVisible:
+    element:
+      id: "export-finish"
+- tapOn:
+    id: "export-finish"

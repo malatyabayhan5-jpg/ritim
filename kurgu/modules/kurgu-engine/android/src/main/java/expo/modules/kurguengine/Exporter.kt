@@ -83,7 +83,6 @@ class Exporter(
       .setVideoMimeType(videoMime)
       .setAudioMimeType(MimeTypes.AUDIO_AAC)
       .setEncoderFactory(encoderFactory)
-      .setPortraitEncodingEnabled(true)
       .addListener(object : Transformer.Listener {
         override fun onCompleted(composition: Composition, exportResult: ExportResult) {
           finish()
