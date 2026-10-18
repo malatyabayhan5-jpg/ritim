@@ -1,0 +1,501 @@
+// Editörün alt panelleri. Her panel yalnızca değer değişikliğini bildirir;
+// projeye uygulama ve geri al geçmişi EditorScreen'dedir. `onChange(patch, key)`
+// içindeki `key`, kaydırıcı sürüklenirken geçmişin tek adımda birleşmesini sağlar.
+
+import { useState } from 'react';
+import { ScrollView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useI18n } from '../i18n';
+import { Button, Chip, Icon, Panel, Row, Slider, Txt } from '../ui';
+import { colors, radius, space } from '../theme';
+import { ADJUSTMENTS, EFFECTS, EFFECT_CATEGORIES, FILTERS, FILTER_CATEGORIES } from '../model/color';
+import {
+  ASPECT_OPTIONS,
+  FONTS,
+  TEXT_ANIMATIONS_IN,
+  TEXT_ANIMATIONS_OUT,
+  TEXT_COLORS,
+  TEXT_PRESETS,
+  TRANSITIONS,
+  TRANSITION_CATEGORIES,
+  TRANSITION_MAX_MS,
+  TRANSITION_MIN_MS,
+} from '../model/catalog';
+import { DEFAULT_ADJUST } from '../model/schema';
+import { SPEED_MAX, SPEED_MIN } from '../model/timeline';
+
+const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
+
+function Hscroll({ children }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hscroll}>
+      {children}
+    </ScrollView>
+  );
+}
+
+function Labeled({ label, children }) {
+  return (
+    <View style={styles.labeled}>
+      <Txt dim style={styles.label}>
+        {label}
+      </Txt>
+      {children}
+    </View>
+  );
+}
+
+export function SpeedPanel({ clip, onChange, onClose }) {
+  const { t, fmt } = useI18n();
+  // Logaritmik kaydırıcı: 0.1x..10x
+  const toSlider = (s) => Math.log10(s);
+  const fromSlider = (v) => Math.round(Math.pow(10, v) * 100) / 100;
+  return (
+    <Panel title={t('tools.speed')} onClose={onClose} testID="panel-speed">
+      <View style={styles.body}>
+        <Slider
+          testID="speed-slider"
+          value={toSlider(clip.speed)}
+          min={Math.log10(SPEED_MIN)}
+          max={Math.log10(SPEED_MAX)}
+          center={0}
+          onChange={(v) => onChange({ speed: fromSlider(v) }, 'speed')}
+          formatValue={(v) => `${fmt.number(fromSlider(v), { maximumFractionDigits: 2 })}x`}
+        />
+        <Hscroll>
+          {SPEED_PRESETS.map((s) => (
+            <Chip key={s} label={`${fmt.number(s)}x`} active={Math.abs(clip.speed - s) < 0.01} onPress={() => onChange({ speed: s })} />
+          ))}
+        </Hscroll>
+        <Txt faint style={styles.hint}>
+          {t('panels.speedHint')}
+        </Txt>
+      </View>
+    </Panel>
+  );
+}
+
+export function VolumePanel({ item, maxFadeMs, onChange, onClose, canMute = true }) {
+  const { t, fmt } = useI18n();
+  const pct = (v) => `${fmt.number(Math.round(v * 100))}%`;
+  const sec = (ms) => fmt.duration(ms);
+  return (
+    <Panel title={t('tools.volume')} onClose={onClose} testID="panel-volume">
+      <View style={styles.body}>
+        <Labeled label={t('panels.volume')}>
+          <Slider testID="volume-slider" value={item.muted ? 0 : item.volume} min={0} max={1} onChange={(v) => onChange({ volume: v, muted: false }, 'volume')} formatValue={pct} />
+        </Labeled>
+        <Labeled label={t('panels.fadeIn')}>
+          <Slider value={item.fadeIn || 0} min={0} max={maxFadeMs} step={100} onChange={(v) => onChange({ fadeIn: v }, 'fadeIn')} formatValue={sec} />
+        </Labeled>
+        <Labeled label={t('panels.fadeOut')}>
+          <Slider value={item.fadeOut || 0} min={0} max={maxFadeMs} step={100} onChange={(v) => onChange({ fadeOut: v }, 'fadeOut')} formatValue={sec} />
+        </Labeled>
+        {canMute ? (
+          <Row>
+            <Chip icon={item.muted ? 'volume-mute' : 'volume-high'} label={item.muted ? t('panels.unmute') : t('panels.mute')} active={item.muted} onPress={() => onChange({ muted: !item.muted })} testID="mute-toggle" />
+          </Row>
+        ) : null}
+      </View>
+    </Panel>
+  );
+}
+
+function Tile({ label, active, onPress, color, icon, testID }) {
+  return (
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => [styles.tile, active && styles.tileActive, pressed && { opacity: 0.7 }]}>
+      <View style={[styles.tileSwatch, { backgroundColor: color || colors.surface3 }]}>{icon ? <Icon name={icon} size={22} /> : null}</View>
+      <Text numberOfLines={1} style={[styles.tileText, active && { color: colors.text }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+// Filtre önizleme renkleri: filtrenin orta griye etkisi (gerçek matristen hesaplanır).
+function swatch(matrix) {
+  const base = [0.55, 0.42, 0.33];
+  const out = [0, 1, 2].map((r) => Math.max(0, Math.min(1, matrix[r] * base[0] + matrix[4 + r] * base[1] + matrix[8 + r] * base[2] + matrix[12 + r])));
+  return `rgb(${out.map((v) => Math.round(v * 255)).join(',')})`;
+}
+
+export function FilterPanel({ clip, onChange, onApplyAll, onClose }) {
+  const { t, fmt } = useI18n();
+  const [cat, setCat] = useState(FILTERS.find((f) => f.id === clip.filter.id)?.category || 'basic');
+  return (
+    <Panel title={t('tools.filters')} onClose={onClose} testID="panel-filters">
+      <View style={styles.body}>
+        <Hscroll>
+          {FILTER_CATEGORIES.map((c) => (
+            <Chip key={c} label={t(`filters.category.${c}`)} active={cat === c} onPress={() => setCat(c)} />
+          ))}
+        </Hscroll>
+        <Hscroll>
+          {FILTERS.filter((f) => f.category === cat || f.id === 'none').map((f) => (
+            <Tile key={f.id} testID={`filter-${f.id}`} label={t(`filters.${f.id}`)} color={swatch(f.matrix)} icon={f.id === 'none' ? 'ban-outline' : null} active={clip.filter.id === f.id} onPress={() => onChange({ filter: { id: f.id, intensity: clip.filter.id === f.id ? clip.filter.intensity : 1 } })} />
+          ))}
+        </Hscroll>
+        {clip.filter.id !== 'none' ? (
+          <Labeled label={t('panels.intensity')}>
+            <Slider value={clip.filter.intensity} min={0} max={1} onChange={(v) => onChange({ filter: { id: clip.filter.id, intensity: v } }, 'filterIntensity')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+          </Labeled>
+        ) : null}
+        <Row>
+          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ filter: clip.filter })} />
+        </Row>
+      </View>
+    </Panel>
+  );
+}
+
+export function AdjustPanel({ clip, onChange, onApplyAll, onClose }) {
+  const { t, fmt } = useI18n();
+  const [key, setKey] = useState('brightness');
+  const def = ADJUSTMENTS.find((a) => a.key === key);
+  const value = clip.adjust[key] || 0;
+  return (
+    <Panel title={t('tools.adjust')} onClose={onClose} testID="panel-adjust">
+      <View style={styles.body}>
+        <Hscroll>
+          {ADJUSTMENTS.map((a) => (
+            <Chip key={a.key} label={t(`adjust.${a.key}`)} active={key === a.key} onPress={() => setKey(a.key)} icon={clip.adjust[a.key] ? 'ellipse' : null} testID={`adjust-${a.key}`} />
+          ))}
+        </Hscroll>
+        <Slider
+          testID="adjust-slider"
+          value={value}
+          min={def.min}
+          max={def.max}
+          center={0}
+          onChange={(v) => onChange({ adjust: { [key]: Math.round(v * 100) / 100 } }, `adjust.${key}`)}
+          formatValue={(v) => fmt.number(Math.round(v * 100))}
+        />
+        <Row>
+          <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ adjust: { ...DEFAULT_ADJUST } })} />
+          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ adjust: clip.adjust })} />
+        </Row>
+      </View>
+    </Panel>
+  );
+}
+
+export function EffectsPanel({ clip, onChange, onApplyAll, onClose }) {
+  const { t, fmt } = useI18n();
+  const [cat, setCat] = useState(EFFECTS.find((f) => f.id === clip.fx.id)?.category || 'basic');
+  return (
+    <Panel title={t('tools.effects')} onClose={onClose} testID="panel-effects">
+      <View style={styles.body}>
+        <Hscroll>
+          {EFFECT_CATEGORIES.map((c) => (
+            <Chip key={c} label={t(`effects.category.${c}`)} active={cat === c} onPress={() => setCat(c)} />
+          ))}
+        </Hscroll>
+        <Hscroll>
+          {EFFECTS.filter((f) => f.category === cat || f.id === 'none').map((f) => (
+            <Tile key={f.id} testID={`effect-${f.id}`} label={t(`effects.${f.id}`)} icon={EFFECT_ICONS[f.id] || 'sparkles-outline'} active={clip.fx.id === f.id} onPress={() => onChange({ fx: { id: f.id, intensity: clip.fx.id === f.id ? clip.fx.intensity : 1 } })} />
+          ))}
+        </Hscroll>
+        {clip.fx.id !== 'none' ? (
+          <Labeled label={t('panels.intensity')}>
+            <Slider value={clip.fx.intensity} min={0} max={1} onChange={(v) => onChange({ fx: { id: clip.fx.id, intensity: v } }, 'fxIntensity')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+          </Labeled>
+        ) : null}
+        <Row>
+          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ fx: clip.fx })} />
+        </Row>
+      </View>
+    </Panel>
+  );
+}
+
+const EFFECT_ICONS = {
+  none: 'ban-outline',
+  glitch: 'pulse-outline',
+  rgbSplit: 'color-filter-outline',
+  pixelate: 'grid-outline',
+  mosaic: 'apps-outline',
+  blur: 'water-outline',
+  dream: 'cloud-outline',
+  vignette: 'aperture-outline',
+  filmGrain: 'film-outline',
+  oldFilm: 'film',
+  vhs: 'tv-outline',
+  sharpen: 'diamond-outline',
+};
+
+export function TransformPanel({ clip, canvasFit, onChange, onClose }) {
+  const { t, fmt } = useI18n();
+  const tr = clip.transform;
+  const fit = tr.fit || canvasFit;
+  return (
+    <Panel title={t('tools.transform')} onClose={onClose} testID="panel-transform">
+      <View style={styles.body}>
+        <Hscroll>
+          <Chip icon="refresh" label={t('panels.rotate')} onPress={() => onChange({ transform: { rotation: ((tr.rotation || 0) + 90) % 360 } })} testID="rotate" />
+          <Chip icon="swap-horizontal" label={t('panels.flipH')} active={tr.flipH} onPress={() => onChange({ transform: { flipH: !tr.flipH } })} />
+          <Chip icon="swap-vertical" label={t('panels.flipV')} active={tr.flipV} onPress={() => onChange({ transform: { flipV: !tr.flipV } })} />
+          <Chip icon="contract-outline" label={t('panels.fit')} active={fit === 'fit'} onPress={() => onChange({ transform: { fit: 'fit' } })} />
+          <Chip icon="expand-outline" label={t('panels.fill')} active={fit === 'fill'} onPress={() => onChange({ transform: { fit: 'fill' } })} />
+        </Hscroll>
+        <Labeled label={t('panels.scale')}>
+          <Slider value={tr.scale} min={0.2} max={4} center={1} onChange={(v) => onChange({ transform: { scale: Math.round(v * 100) / 100 } }, 'scale')} formatValue={(v) => `${fmt.number(Math.round(v * 100))}%`} />
+        </Labeled>
+        <Labeled label={t('panels.positionX')}>
+          <Slider value={tr.x} min={-1} max={1} center={0} onChange={(v) => onChange({ transform: { x: Math.round(v * 100) / 100 } }, 'posX')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+        </Labeled>
+        <Labeled label={t('panels.positionY')}>
+          <Slider value={tr.y} min={-1} max={1} center={0} onChange={(v) => onChange({ transform: { y: Math.round(v * 100) / 100 } }, 'posY')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+        </Labeled>
+        <Row>
+          <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ transform: { rotation: 0, flipH: false, flipV: false, scale: 1, x: 0, y: 0, fit: null } })} />
+        </Row>
+      </View>
+    </Panel>
+  );
+}
+
+export function TransitionPanel({ clip, maxMs, onChange, onApplyAll, onClose }) {
+  const { t, fmt } = useI18n();
+  const [cat, setCat] = useState(TRANSITIONS.find((x) => x.id === clip.transition.type)?.category || 'basic');
+  const limit = Math.max(TRANSITION_MIN_MS, Math.min(TRANSITION_MAX_MS, maxMs));
+  return (
+    <Panel title={t('tools.transition')} onClose={onClose} testID="panel-transition">
+      <View style={styles.body}>
+        <Hscroll>
+          {TRANSITION_CATEGORIES.map((c) => (
+            <Chip key={c} label={t(`transitions.category.${c}`)} active={cat === c} onPress={() => setCat(c)} />
+          ))}
+        </Hscroll>
+        <Hscroll>
+          {TRANSITIONS.filter((x) => x.category === cat || x.id === 'none').map((x) => (
+            <Tile key={x.id} testID={`transition-type-${x.id}`} label={t(`transitions.${x.id}`)} icon={x.icon} active={clip.transition.type === x.id} onPress={() => onChange({ transition: { type: x.id } })} />
+          ))}
+        </Hscroll>
+        {clip.transition.type !== 'none' ? (
+          <Labeled label={t('panels.duration')}>
+            <Slider value={Math.min(limit, clip.transition.durationMs)} min={TRANSITION_MIN_MS} max={limit} step={50} onChange={(v) => onChange({ transition: { durationMs: v } }, 'trDur')} formatValue={(v) => fmt.duration(v)} />
+          </Labeled>
+        ) : null}
+        <Row>
+          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ transition: clip.transition })} />
+        </Row>
+      </View>
+    </Panel>
+  );
+}
+
+export function RatioPanel({ project, onChange, onClose }) {
+  const { t } = useI18n();
+  return (
+    <Panel title={t('tools.ratio')} onClose={onClose} testID="panel-ratio">
+      <View style={styles.body}>
+        <Hscroll>
+          {ASPECT_OPTIONS.map((r) => (
+            <Chip key={r} label={r} active={project.canvas.ratio === r} onPress={() => onChange({ ratio: r })} testID={`ratio-${r}`} />
+          ))}
+        </Hscroll>
+        <Labeled label={t('panels.canvasFit')}>
+          <Row>
+            <Chip icon="contract-outline" label={t('panels.fit')} active={project.canvas.fit === 'fit'} onPress={() => onChange({ fit: 'fit' })} />
+            <Chip icon="expand-outline" label={t('panels.fill')} active={project.canvas.fit === 'fill'} onPress={() => onChange({ fit: 'fill' })} />
+          </Row>
+        </Labeled>
+        <Txt faint style={styles.hint}>
+          {t('panels.ratioHint')}
+        </Txt>
+      </View>
+    </Panel>
+  );
+}
+
+export function ImageDurationPanel({ clip, onChange, onClose }) {
+  const { t, fmt } = useI18n();
+  const ms = clip.srcOut - clip.srcIn;
+  return (
+    <Panel title={t('tools.duration')} onClose={onClose} testID="panel-duration">
+      <View style={styles.body}>
+        <Slider value={ms} min={500} max={15000} step={100} onChange={(v) => onChange({ srcIn: 0, srcOut: v }, 'imgDur')} formatValue={(v) => fmt.duration(v)} />
+      </View>
+    </Panel>
+  );
+}
+
+const TEXT_TABS = ['style', 'font', 'color', 'stroke', 'layout', 'animation'];
+
+export function TextPanel({ item, onChange, onClose, initialTab = 'style' }) {
+  const { t, fmt, textAlign } = useI18n();
+  const [tab, setTab] = useState(initialTab);
+  const st = item.style;
+  return (
+    <Panel title={t('tools.text')} onClose={onClose} testID="panel-text">
+      <View style={styles.body}>
+        <TextInput
+          testID="text-input"
+          value={item.text}
+          onChangeText={(text) => onChange({ text }, 'text')}
+          multiline
+          placeholder={t('text.placeholder')}
+          placeholderTextColor={colors.textFaint}
+          style={[styles.textInput, { textAlign }]}
+        />
+        <Hscroll>
+          {TEXT_TABS.map((k) => (
+            <Chip key={k} label={t(`text.tab.${k}`)} active={tab === k} onPress={() => setTab(k)} testID={`text-tab-${k}`} />
+          ))}
+        </Hscroll>
+        {tab === 'style' ? (
+          <Hscroll>
+            {TEXT_PRESETS.map((p) => (
+              <Pressable key={p.id} onPress={() => onChange({ style: p.style })} style={styles.presetTile} testID={`text-preset-${p.id}`}>
+                <Text
+                  style={{
+                    color: argbToCss(p.style.color),
+                    backgroundColor: p.style.background ? argbToCss(p.style.background) : 'transparent',
+                    fontWeight: p.style.bold === false ? '400' : '800',
+                    fontStyle: p.style.italic ? 'italic' : 'normal',
+                    textShadowColor: p.style.stroke ? argbToCss(p.style.stroke) : 'rgba(0,0,0,0.6)',
+                    textShadowRadius: 2,
+                    paddingHorizontal: 6,
+                    fontSize: 16,
+                  }}
+                >
+                  Aa
+                </Text>
+              </Pressable>
+            ))}
+          </Hscroll>
+        ) : null}
+        {tab === 'font' ? (
+          <>
+            <Hscroll>
+              {FONTS.map((f) => (
+                <Chip key={f} label={t(`fonts.${f}`)} active={st.font === f} onPress={() => onChange({ style: { font: f } })} />
+              ))}
+            </Hscroll>
+            <Row>
+              <Chip icon="text" label={t('text.bold')} active={st.bold} onPress={() => onChange({ style: { bold: !st.bold } })} />
+              <Chip icon="text-outline" label={t('text.italic')} active={st.italic} onPress={() => onChange({ style: { italic: !st.italic } })} />
+            </Row>
+            <Labeled label={t('text.size')}>
+              <Slider value={st.size} min={0.02} max={0.16} onChange={(v) => onChange({ style: { size: v } }, 'tsize')} formatValue={(v) => fmt.number(Math.round(v * 1000))} />
+            </Labeled>
+          </>
+        ) : null}
+        {tab === 'color' ? (
+          <>
+            <ColorRow value={st.color} onPick={(c) => onChange({ style: { color: c } })} />
+            <Labeled label={t('text.opacity')}>
+              <Slider value={st.opacity} min={0.1} max={1} onChange={(v) => onChange({ style: { opacity: v } }, 'topacity')} formatValue={(v) => `${fmt.number(Math.round(v * 100))}%`} />
+            </Labeled>
+            <Labeled label={t('text.background')}>
+              <ColorRow value={st.background} allowNone onPick={(c) => onChange({ style: { background: c === null ? '#00000000' : withAlpha(c, 'B3') } })} />
+            </Labeled>
+          </>
+        ) : null}
+        {tab === 'stroke' ? (
+          <>
+            <ColorRow value={st.stroke} allowNone onPick={(c) => onChange({ style: { stroke: c === null ? '#00000000' : c, strokeWidth: c === null ? 0 : st.strokeWidth || 0.003 } })} />
+            <Labeled label={t('text.strokeWidth')}>
+              <Slider value={st.strokeWidth} min={0} max={0.012} onChange={(v) => onChange({ style: { strokeWidth: v } }, 'tstroke')} formatValue={(v) => fmt.number(Math.round(v * 1000))} />
+            </Labeled>
+            <Row>
+              <Chip icon="contrast-outline" label={t('text.shadow')} active={st.shadow} onPress={() => onChange({ style: { shadow: !st.shadow } })} />
+            </Row>
+          </>
+        ) : null}
+        {tab === 'layout' ? (
+          <>
+            <Row>
+              {['left', 'center', 'right'].map((a) => (
+                <Chip key={a} icon={`reorder-${a === 'center' ? 'three' : a === 'left' ? 'two' : 'four'}-outline`} label={t(`text.align.${a}`)} active={st.align === a} onPress={() => onChange({ style: { align: a } })} />
+              ))}
+            </Row>
+            <Labeled label={t('text.letterSpacing')}>
+              <Slider value={st.letterSpacing} min={-0.05} max={0.4} center={0} onChange={(v) => onChange({ style: { letterSpacing: Math.round(v * 100) / 100 } }, 'tls')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+            </Labeled>
+            <Labeled label={t('text.lineHeight')}>
+              <Slider value={st.lineHeight} min={0.8} max={2.5} onChange={(v) => onChange({ style: { lineHeight: Math.round(v * 10) / 10 } }, 'tlh')} formatValue={(v) => fmt.number(v, { maximumFractionDigits: 1 })} />
+            </Labeled>
+            <Labeled label={t('text.rotation')}>
+              <Slider value={item.rotation} min={-180} max={180} center={0} step={1} onChange={(v) => onChange({ rotation: v }, 'trot')} formatValue={(v) => `${fmt.number(v)}°`} />
+            </Labeled>
+          </>
+        ) : null}
+        {tab === 'animation' ? (
+          <>
+            <Labeled label={t('text.animIn')}>
+              <Hscroll>
+                {TEXT_ANIMATIONS_IN.map((a) => (
+                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animIn === a} onPress={() => onChange({ animIn: a })} />
+                ))}
+              </Hscroll>
+            </Labeled>
+            <Labeled label={t('text.animOut')}>
+              <Hscroll>
+                {TEXT_ANIMATIONS_OUT.map((a) => (
+                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animOut === a} onPress={() => onChange({ animOut: a })} />
+                ))}
+              </Hscroll>
+            </Labeled>
+            <Labeled label={t('text.animDuration')}>
+              <Slider value={item.animMs} min={100} max={2000} step={50} onChange={(v) => onChange({ animMs: v }, 'tanim')} formatValue={(v) => fmt.duration(v)} />
+            </Labeled>
+          </>
+        ) : null}
+      </View>
+    </Panel>
+  );
+}
+
+function ColorRow({ value, onPick, allowNone }) {
+  const { t } = useI18n();
+  const norm = (c) => (c || '').slice(0, 7).toUpperCase();
+  const none = !value || value.endsWith('00') && value.length === 9;
+  return (
+    <Hscroll>
+      {allowNone ? (
+        <Pressable accessibilityLabel={t('common.none')} onPress={() => onPick(null)} style={[styles.swatch, styles.swatchNone, none && styles.swatchActive]}>
+          <Icon name="ban-outline" size={18} color={colors.textDim} />
+        </Pressable>
+      ) : null}
+      {TEXT_COLORS.map((c) => (
+        <Pressable key={c} onPress={() => onPick(c)} style={[styles.swatch, { backgroundColor: argbToCss(c) }, !none && norm(value) === norm(c) && styles.swatchActive]} />
+      ))}
+    </Hscroll>
+  );
+}
+
+const withAlpha = (c, a) => `${c.slice(0, 7)}${a}`;
+
+/** "#RRGGBBAA" -> "rgba(...)" */
+export function argbToCss(c) {
+  if (!c || c.length < 7) return 'transparent';
+  const r = parseInt(c.slice(1, 3), 16);
+  const g = parseInt(c.slice(3, 5), 16);
+  const b = parseInt(c.slice(5, 7), 16);
+  const a = c.length >= 9 ? parseInt(c.slice(7, 9), 16) / 255 : 1;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+export function ConfirmRow({ children }) {
+  return <View style={styles.confirm}>{children}</View>;
+}
+
+export { Button };
+
+const styles = StyleSheet.create({
+  body: { paddingHorizontal: space.lg, gap: space.md, paddingBottom: space.sm },
+  hscroll: { gap: space.sm, paddingVertical: 2 },
+  labeled: { gap: 2 },
+  label: { fontSize: 12 },
+  hint: { fontSize: 12 },
+  tile: { width: 72, alignItems: 'center', gap: 4, padding: 3, borderRadius: radius.md, borderWidth: 2, borderColor: 'transparent' },
+  tileActive: { borderColor: colors.accent },
+  tileSwatch: { width: 60, height: 60, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  tileText: { color: colors.textDim, fontSize: 11 },
+  textInput: { backgroundColor: colors.bg, color: colors.text, borderRadius: radius.md, padding: space.md, minHeight: 52, maxHeight: 110, fontSize: 16 },
+  presetTile: { width: 64, height: 48, borderRadius: radius.md, backgroundColor: colors.surface3, alignItems: 'center', justifyContent: 'center' },
+  swatch: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: colors.border },
+  swatchNone: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
+  swatchActive: { borderColor: colors.text, borderWidth: 3 },
+  confirm: { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
+});

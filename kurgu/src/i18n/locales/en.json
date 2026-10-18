@@ -1,1 +1,491 @@
-{ "app": { "name": "Kurgu" } }
+{
+  "app": {
+    "name": "Kurgu"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "done": "Done",
+    "more": "More",
+    "no": "No",
+    "yes": "Yes",
+    "none": "None",
+    "save": "Save"
+  },
+  "home": {
+    "newProject": "New project",
+    "newProjectHint": "Pick videos and photos from your gallery",
+    "templates": "Templates",
+    "fromFiles": "From files",
+    "aiTools": "AI tools",
+    "importPackage": "Import project",
+    "projects": "Projects",
+    "filter": {
+      "all": "All",
+      "drafts": "Drafts",
+      "exported": "Exported"
+    },
+    "empty": "No projects yet. Tap \"New project\" to get started.",
+    "emptyFiltered": "No projects match this filter.",
+    "untitled": "Untitled project",
+    "defaultName": "Project {date}",
+    "clipCount_one": "{n} clip",
+    "clipCount_other": "{n} clips",
+    "exportedTag": "Exported",
+    "autosavedTag": "Auto-saved",
+    "recoveredTag": "Recovered",
+    "open": "Open",
+    "rename": "Rename",
+    "duplicate": "Duplicate",
+    "copySuffix": "(copy)",
+    "sharePackage": "Share project file",
+    "deleteTitle": "Delete project?",
+    "deleteMessage": "\"{name}\" and media copies used only by this project will be permanently deleted. Original files in your gallery are not affected.",
+    "deleted": "Project deleted",
+    "packageImported": "Project imported. You can relink any missing media.",
+    "version": "Version {version}"
+  },
+  "import": {
+    "progress": "Importing media… {done}/{total}",
+    "someFailed": "Some files could not be added"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "packageInvalid": "This file is not a valid Kurgu project.",
+    "projectOpen": "The project could not be opened. The file may be damaged.",
+    "import": {
+      "IMPORT_FAILED": "the file could not be copied",
+      "UNSUPPORTED_CODEC": "this device cannot decode the video format",
+      "UNREADABLE": "the file is unreadable or empty"
+    },
+    "export": {
+      "EXPORT_FAILED": "An error occurred while rendering the video. Try a lower resolution or frame rate.",
+      "EXPORT_BUSY": "Another export is already running.",
+      "BAD_SPEC": "The project data could not be read.",
+      "ENGINE_UNAVAILABLE": "The video engine is not available on this device."
+    }
+  },
+  "editor": {
+    "export": "Export",
+    "play": "Play",
+    "pause": "Pause",
+    "undo": "Undo",
+    "redo": "Redo",
+    "marker": "Add/remove marker",
+    "addMedia": "Add media",
+    "save": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "pending": "Changes will be saved",
+      "error": "Could not save"
+    },
+    "cannotSplit": "Move the playhead inside the clip to split it",
+    "emptyExport": "Add media to the timeline first",
+    "missingExport": "Relink missing media before exporting",
+    "emptyHint": "Tap the + button to add media",
+    "engineUnavailable": "The preview engine is currently available on Android only.",
+    "missingMedia_one": "A media file is missing ({name}). Tap to relink.",
+    "missingMedia_other": "{n} media files are missing. Tap to relink.",
+    "missingShort": "Missing",
+    "relinked": "Media relinked",
+    "noAudio": "This clip has no audio",
+    "previewError": "Preview error ({code}). Tap to dismiss.",
+    "recovered": "The project was recovered from the last good save",
+    "working": "Processing…"
+  },
+  "tools": {
+    "edit": "Edit",
+    "audio": "Audio",
+    "text": "Text",
+    "effects": "Effects",
+    "filters": "Filters",
+    "adjust": "Adjust",
+    "ratio": "Format",
+    "captions": "Captions",
+    "split": "Split",
+    "speed": "Speed",
+    "volume": "Volume",
+    "transform": "Transform",
+    "transition": "Transition",
+    "freeze": "Freeze frame",
+    "extractAudio": "Extract audio",
+    "replace": "Replace",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "duration": "Duration",
+    "music": "Add music",
+    "soundFromVideo": "Audio from video",
+    "addText": "Add text",
+    "editText": "Edit",
+    "textAnimation": "Animation"
+  },
+  "panels": {
+    "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
+    "volume": "Volume",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "intensity": "Intensity",
+    "applyToAll": "Apply to all",
+    "appliedToAll": "Applied to all clips",
+    "reset": "Reset",
+    "rotate": "Rotate",
+    "flipH": "Flip horizontal",
+    "flipV": "Flip vertical",
+    "fit": "Fit",
+    "fill": "Fill",
+    "scale": "Scale",
+    "positionX": "Horizontal position",
+    "positionY": "Vertical position",
+    "duration": "Duration",
+    "canvasFit": "Clip placement",
+    "ratioHint": "The format applies to the whole project; clips are fitted or filled according to the selected placement."
+  },
+  "adjust": {
+    "brightness": "Brightness",
+    "contrast": "Contrast",
+    "saturation": "Saturation",
+    "exposure": "Exposure",
+    "temperature": "Temperature",
+    "tint": "Tint",
+    "highlights": "Highlights",
+    "shadows": "Shadows",
+    "fade": "Fade",
+    "sharpen": "Sharpen",
+    "vignette": "Vignette",
+    "grain": "Grain"
+  },
+  "filters": {
+    "category": {
+      "basic": "Basic",
+      "cinematic": "Cinematic",
+      "bw": "Black & white",
+      "retro": "Retro",
+      "mood": "Mood"
+    },
+    "none": "None",
+    "vivid": "Vivid",
+    "natural": "Natural",
+    "warm": "Warm",
+    "cool": "Cool",
+    "cinema": "Cinema",
+    "noirCine": "Film noir",
+    "teal": "Teal",
+    "golden": "Golden hour",
+    "mono": "Mono",
+    "noir": "Noir",
+    "silver": "Silver",
+    "sepia": "Sepia",
+    "vintage": "Vintage",
+    "polaroid": "Instant",
+    "faded": "Faded",
+    "sunset": "Sunset",
+    "forest": "Forest",
+    "night": "Night",
+    "pastel": "Pastel",
+    "pop": "Pop"
+  },
+  "effects": {
+    "category": {
+      "basic": "Basic",
+      "distort": "Distort",
+      "lens": "Lens",
+      "retro": "Retro"
+    },
+    "none": "None",
+    "glitch": "Glitch",
+    "rgbSplit": "RGB split",
+    "pixelate": "Pixelate",
+    "mosaic": "Mosaic",
+    "blur": "Blur",
+    "dream": "Dream",
+    "vignette": "Vignette",
+    "filmGrain": "Film grain",
+    "oldFilm": "Old film",
+    "vhs": "VHS",
+    "sharpen": "Sharpen"
+  },
+  "transitions": {
+    "category": {
+      "basic": "Basic",
+      "camera": "Camera",
+      "slide": "Slide",
+      "effect": "Effect"
+    },
+    "none": "None",
+    "fade": "Dip to black",
+    "white": "Dip to white",
+    "flash": "Flash",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "spin": "Spin",
+    "slideLeft": "Slide left",
+    "slideRight": "Slide right",
+    "slideUp": "Slide up",
+    "slideDown": "Slide down",
+    "glitch": "Glitch"
+  },
+  "text": {
+    "default": "Text",
+    "placeholder": "Type your text",
+    "bold": "Bold",
+    "italic": "Italic",
+    "size": "Size",
+    "opacity": "Opacity",
+    "background": "Background",
+    "strokeWidth": "Stroke width",
+    "shadow": "Shadow",
+    "letterSpacing": "Letter spacing",
+    "lineHeight": "Line height",
+    "rotation": "Rotation",
+    "animIn": "In",
+    "animOut": "Out",
+    "animDuration": "Animation duration",
+    "tab": {
+      "style": "Style",
+      "font": "Font",
+      "color": "Color",
+      "stroke": "Stroke",
+      "layout": "Layout",
+      "animation": "Animation"
+    },
+    "align": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
+    },
+    "anim": {
+      "none": "None",
+      "fade": "Fade",
+      "pop": "Pop",
+      "slideUp": "Slide up",
+      "slideLeft": "Slide in",
+      "typewriter": "Typewriter"
+    },
+    "layout": {
+      "title": "Title",
+      "lowerThird": "Lower third",
+      "caption": "Caption",
+      "credits": "Credits",
+      "cta": "Call to action"
+    },
+    "sample": {
+      "title": "Your title",
+      "lowerThird": "Full name · Role",
+      "caption": "Caption text",
+      "credits": "Made with Kurgu",
+      "cta": "Follow!"
+    }
+  },
+  "fonts": {
+    "sans": "Sans",
+    "display": "Heavy display",
+    "condensed": "Condensed",
+    "light": "Light",
+    "serif": "Serif",
+    "mono": "Monospace",
+    "casual": "Casual",
+    "cursive": "Handwritten"
+  },
+  "export": {
+    "title": "Export",
+    "resolution": "Resolution",
+    "frameRate": "Frame rate (fps)",
+    "quality": "Quality",
+    "q": {
+      "low": "Smaller file",
+      "recommended": "Recommended",
+      "high": "High"
+    },
+    "bitrate": "Video bitrate: {mbps} Mbps",
+    "codec": "Codec",
+    "codecH264": "H.264 plays on every device and platform.",
+    "codecHevc": "Smaller files at the same quality; some older devices may not play them.",
+    "format": "Format",
+    "duration": "Duration",
+    "estimatedSize": "Estimated size",
+    "freeSpace": "Free space",
+    "unsupportedMode": "This device's encoder does not support this setting",
+    "start": "Export video",
+    "backgroundNote": "Progress is also shown in a notification while exporting.",
+    "preparing": "Preparing…",
+    "eta": "About {sec} s remaining",
+    "keepOpen": "You can switch apps; for best results keep the screen on.",
+    "cancel": "Cancel export",
+    "cancelTitle": "Cancel export?",
+    "cancelMessage": "The part rendered so far will be discarded.",
+    "cancelled": "Export cancelled",
+    "done": "Your video is ready",
+    "savedToGallery": "Saved to gallery (Movies/Kurgu)",
+    "savingToGallery": "Saving to gallery…",
+    "galleryFailed": "Could not save to the gallery; you can save it via Share.",
+    "verification": "Output check",
+    "check": {
+      "duration": "Duration",
+      "resolution": "Resolution",
+      "audio": "Audio",
+      "size": "File size"
+    },
+    "encoder": "Encoder: {name} · {sec} s",
+    "share": "Share",
+    "failed": "Export failed",
+    "retry": "Try again",
+    "notificationTitle": "Exporting video",
+    "lowSpaceTitle": "Not enough storage",
+    "lowSpace": "About {need} is required and {free} is free on the device.",
+    "thermal": "The device is hot. Export may be slower; consider waiting before exporting at high resolution.",
+    "powerSave": "Battery saver is on; exporting may take longer."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "systemLanguage": "Device language",
+    "languageNote": "The language changes immediately and open projects stay open. Your project names and texts are never translated.",
+    "newProjects": "New projects",
+    "defaultRatio": "Default format",
+    "ratioNote": "Projects started from the gallery use the aspect ratio of the first item.",
+    "imageDuration": "Photo duration",
+    "frameRate": "Frame rate",
+    "preview": "Preview",
+    "previewQuality": {
+      "low": "Smooth",
+      "medium": "Balanced",
+      "high": "High quality"
+    },
+    "previewNote": "Preview quality does not affect export quality. Choose \"Smooth\" on slower devices.",
+    "haptics": "Haptic feedback",
+    "storage": "Storage",
+    "usage": {
+      "media": "Project media",
+      "exports": "Exports",
+      "cache": "Cache",
+      "free": "Free space"
+    },
+    "clearCache": "Clear cache",
+    "clearCacheTitle": "Clear cache?",
+    "clearCacheMessage": "Thumbnails and waveforms will be regenerated and in-app export copies deleted. Videos in your gallery and your projects are kept.",
+    "cleared": "Cleared (including {size} of unused media)",
+    "privacy": "Privacy",
+    "privacyText": "Your videos are processed on your device and never sent to a server. The app does not collect usage data (telemetry).",
+    "about": "About",
+    "licenses": "Video engine: AndroidX Media3 (Apache 2.0). H.264/HEVC encoding uses the device's hardware encoder."
+  },
+  "help": {
+    "title": "Help & tips",
+    "start": {
+      "title": "Starting a project",
+      "body": "Tap \"New project\" on the home screen and pick one or more videos/photos from your gallery. The selection order becomes the timeline order. Templates build a ready-made edit that you can change afterwards."
+    },
+    "timeline": {
+      "title": "Timeline",
+      "body": "The white line in the middle is the playhead. Scroll the timeline with your finger to reach any frame. Pinch with two fingers to zoom. Tap a clip to select it; its tools appear in the bottom bar."
+    },
+    "trim": {
+      "title": "Split, trim and reorder",
+      "body": "Drag the white handles on the edges of the selected clip to trim its start or end. \"Split\" cuts the clip in two at the playhead. Long-press a clip and drag to change its order."
+    },
+    "text": {
+      "title": "Text",
+      "body": "Text > Add text places a text layer at the playhead. Drag it on the preview, pinch to scale and rotate, double-tap to edit. Style, color, stroke and animations are in the text panel."
+    },
+    "audio": {
+      "title": "Music & audio",
+      "body": "Audio > Add music places an audio file from your device at the playhead. Long-press audio clips to move them and drag their edges to trim. Fade in/out is in the volume panel."
+    },
+    "effects": {
+      "title": "Filters, effects & transitions",
+      "body": "Select a clip and tap Filters, Adjust or Effects. Tap the small square between two clips to add a transition. \"Apply to all\" copies the setting to every clip."
+    },
+    "export": {
+      "title": "Exporting",
+      "body": "Use the Export button at the top right to choose resolution, frame rate and quality. Only the options supported by your device's hardware encoder are enabled. When finished, the video is saved to the Movies/Kurgu folder in your gallery."
+    },
+    "save": {
+      "title": "Saving & undo",
+      "body": "Every change is saved automatically. The previous save is kept as a backup; if the app closes unexpectedly, the project opens from the last good save. Undo/Redo works for up to 100 steps."
+    },
+    "missing": {
+      "title": "Missing media",
+      "body": "If a media file was deleted or the project came from another device, a warning appears. Tap it and pick the file again to relink; your edits are kept."
+    }
+  },
+  "ai": {
+    "title": "AI tools",
+    "planned": "Planned",
+    "notice": "These tools are not yet connected to a model or service, so they cannot be used. Below you can see whether each will run on the device or in the cloud. Cloud tools will only send data with your explicit permission.",
+    "mode": {
+      "onDevice": "On-device model (download required, no internet needed)",
+      "cloud": "Cloud service (internet, account and permission required)"
+    },
+    "tools": {
+      "autoCaptions": {
+        "title": "Auto captions",
+        "desc": "Transcribes speech and creates timed caption layers (Whisper-class model, Turkish included)."
+      },
+      "removeBackground": {
+        "title": "Remove background",
+        "desc": "Separates people from the background (segmentation model)."
+      },
+      "noiseReduction": {
+        "title": "Noise reduction",
+        "desc": "Reduces background noise in speech."
+      },
+      "silenceRemoval": {
+        "title": "Remove silences",
+        "desc": "Finds silent parts and suggests cuts."
+      },
+      "sceneDetect": {
+        "title": "Scene detection",
+        "desc": "Automatically splits long videos at scene changes."
+      },
+      "textToSpeech": {
+        "title": "Text to speech",
+        "desc": "Generates voice-overs from text layers."
+      },
+      "autoCut": {
+        "title": "Auto edit",
+        "desc": "Extracts short, rhythmic clips from a long video."
+      },
+      "upscale": {
+        "title": "Enhance",
+        "desc": "Upscales and sharpens low-resolution footage."
+      },
+      "translate": {
+        "title": "Caption translation",
+        "desc": "Translates captions into other languages."
+      }
+    }
+  },
+  "templates": {
+    "title": "Templates",
+    "hint": "Choose a template, then pick your media. The result is a fully editable project.",
+    "meta": "{ratio} · {clips} clips · {sec} s",
+    "storyIntro": {
+      "name": "Story intro",
+      "desc": "Vertical, vivid opener with soft transitions"
+    },
+    "travel": {
+      "name": "Travel",
+      "desc": "Quick cuts with golden-hour tones"
+    },
+    "youtubeIntro": {
+      "name": "YouTube intro",
+      "desc": "Landscape, cinematic title and lower third"
+    },
+    "squarePromo": {
+      "name": "Square promo",
+      "desc": "Feed promo with a call-to-action"
+    },
+    "news": {
+      "name": "News",
+      "desc": "Clean news layout with lower thirds"
+    },
+    "memories": {
+      "name": "Memories",
+      "desc": "Vintage-toned 4:5 edit with credits"
+    }
+  }
+}

@@ -47,6 +47,7 @@ class Exporter(
   private var outFile: File? = null
   private val holder = ProgressHolder()
   private var lastProgress = -1
+  private var failCallback: ((String, String) -> Unit)? = null
 
   val isRunning: Boolean
     get() = transformer != null
@@ -63,6 +64,7 @@ class Exporter(
     file.parentFile?.mkdirs()
     if (file.exists()) file.delete()
     outFile = file
+    failCallback = onFail
 
     val composition: Composition = CompositionFactory.build(spec, options.width, options.height, forExport = true)
     val videoMime = when (options.codec) {
@@ -85,12 +87,14 @@ class Exporter(
       .addListener(object : Transformer.Listener {
         override fun onCompleted(composition: Composition, exportResult: ExportResult) {
           finish()
+          settle()
           onProgress(100)
           onDone(verify(file, System.currentTimeMillis() - startedAt, exportResult))
         }
 
         override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
           finish()
+          settle()
           file.delete()
           onFail("EXPORT_FAILED", "${exportException.errorCodeName}: ${exportException.message ?: ""}")
         }
@@ -107,12 +111,19 @@ class Exporter(
     t.cancel()
     finish()
     outFile?.delete()
+    val cb = failCallback
+    failCallback = null
+    cb?.invoke("CANCELLED", "Export cancelled")
     return true
   }
 
   private fun finish() {
     main.removeCallbacks(progressTick)
     transformer = null
+  }
+
+  private fun settle() {
+    failCallback = null
   }
 
   private val progressTick = object : Runnable {

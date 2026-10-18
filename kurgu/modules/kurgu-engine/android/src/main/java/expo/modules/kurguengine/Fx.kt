@@ -212,6 +212,9 @@ internal class FxShaderProgram(
       program.setFloatUniform("uRgbShift", shift)
       program.setFloatUniform("uGlitch", glitch)
       program.setFloatUniform("uSharpen", base.sharpen)
+      program.setFloatUniform("uHighlights", base.highlights)
+      program.setFloatUniform("uShadows", base.shadows)
+      program.setFloatUniform("uFade", base.fade)
       program.bindAttributesAndUniforms()
       GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
     } catch (e: GlUtil.GlException) {
@@ -249,6 +252,9 @@ uniform float uPixelate;
 uniform float uRgbShift;
 uniform float uGlitch;
 uniform float uSharpen;
+uniform float uHighlights;
+uniform float uShadows;
+uniform float uFade;
 varying vec2 vTexSamplingCoord;
 
 float rand(vec2 co) {
@@ -282,6 +288,15 @@ void main() {
       + texture2D(uTexSampler, uv + vec2(0.0, o.y)).rgb
       + texture2D(uTexSampler, uv - vec2(0.0, o.y)).rgb;
     c.rgb = clamp(c.rgb + (c.rgb - n * 0.25) * uSharpen * 2.0, 0.0, 1.0);
+  }
+  if (uHighlights != 0.0 || uShadows != 0.0) {
+    float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float hw = smoothstep(0.35, 1.0, l);
+    float sw = 1.0 - smoothstep(0.0, 0.45, l);
+    c.rgb = clamp(c.rgb + c.rgb * (uHighlights * 0.45 * hw) + (uShadows * 0.25 * sw) * (1.0 - c.rgb), 0.0, 1.0);
+  }
+  if (uFade > 0.0) {
+    c.rgb = mix(c.rgb, vec3(0.12) + c.rgb * 0.82, uFade);
   }
   if (uGrain > 0.0) {
     float g = rand(uv * uSize + vec2(uTime * 61.0, uTime * 17.0)) - 0.5;

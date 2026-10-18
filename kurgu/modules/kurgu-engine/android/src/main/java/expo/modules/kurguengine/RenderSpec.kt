@@ -13,9 +13,13 @@ data class FxParams(
   val rgbShift: Float,
   val glitch: Float,
   val sharpen: Float,
+  val highlights: Float,
+  val shadows: Float,
+  val fade: Float,
 ) {
   val isNoOp: Boolean
-    get() = vignette <= 0f && grain <= 0f && pixelate <= 0f && rgbShift <= 0f && glitch <= 0f && sharpen <= 0f
+    get() = vignette <= 0f && grain <= 0f && pixelate <= 0f && rgbShift <= 0f && glitch <= 0f && sharpen <= 0f &&
+      highlights == 0f && shadows == 0f && fade <= 0f
 }
 
 data class MainClip(
@@ -128,6 +132,9 @@ data class RenderSpec(
       rgbShift = o?.optDouble("rgbShift", 0.0)?.toFloat() ?: 0f,
       glitch = o?.optDouble("glitch", 0.0)?.toFloat() ?: 0f,
       sharpen = o?.optDouble("sharpen", 0.0)?.toFloat() ?: 0f,
+      highlights = o?.optDouble("highlights", 0.0)?.toFloat() ?: 0f,
+      shadows = o?.optDouble("shadows", 0.0)?.toFloat() ?: 0f,
+      fade = o?.optDouble("fade", 0.0)?.toFloat() ?: 0f,
     )
 
     private fun parseMain(o: JSONObject): MainClip {

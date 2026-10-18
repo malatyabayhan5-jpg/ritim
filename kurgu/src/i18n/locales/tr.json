@@ -1,1 +1,491 @@
-{ "app": { "name": "Kurgu" } }
+{
+  "app": {
+    "name": "Kurgu"
+  },
+  "common": {
+    "back": "Geri",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "delete": "Sil",
+    "done": "Tamam",
+    "more": "Diğer",
+    "no": "Hayır",
+    "yes": "Evet",
+    "none": "Yok",
+    "save": "Kaydet"
+  },
+  "home": {
+    "newProject": "Yeni proje",
+    "newProjectHint": "Galeriden video ve fotoğraf seçin",
+    "templates": "Şablonlar",
+    "fromFiles": "Dosyalardan",
+    "aiTools": "AI araçları",
+    "importPackage": "Proje içe aktar",
+    "projects": "Projeler",
+    "filter": {
+      "all": "Tümü",
+      "drafts": "Taslaklar",
+      "exported": "Dışa aktarılanlar"
+    },
+    "empty": "Henüz proje yok. Başlamak için \"Yeni proje\"ye dokunun.",
+    "emptyFiltered": "Bu filtrede proje yok.",
+    "untitled": "Adsız proje",
+    "defaultName": "Proje {date}",
+    "clipCount_one": "{n} klip",
+    "clipCount_other": "{n} klip",
+    "exportedTag": "Dışa aktarıldı",
+    "autosavedTag": "Otomatik kaydedildi",
+    "recoveredTag": "Kurtarıldı",
+    "open": "Aç",
+    "rename": "Yeniden adlandır",
+    "duplicate": "Kopyasını oluştur",
+    "copySuffix": "(kopya)",
+    "sharePackage": "Proje dosyasını paylaş",
+    "deleteTitle": "Proje silinsin mi?",
+    "deleteMessage": "\"{name}\" ve yalnızca bu projede kullanılan medya kopyaları kalıcı olarak silinecek. Galerinizdeki orijinal dosyalar etkilenmez.",
+    "deleted": "Proje silindi",
+    "packageImported": "Proje içe aktarıldı. Eksik medyayı yeniden bağlayabilirsiniz.",
+    "version": "Sürüm {version}"
+  },
+  "import": {
+    "progress": "Medya içe aktarılıyor… {done}/{total}",
+    "someFailed": "Bazı dosyalar eklenemedi"
+  },
+  "errors": {
+    "generic": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+    "packageInvalid": "Bu dosya geçerli bir Kurgu projesi değil.",
+    "projectOpen": "Proje açılamadı. Dosya bozuk olabilir.",
+    "import": {
+      "IMPORT_FAILED": "dosya kopyalanamadı",
+      "UNSUPPORTED_CODEC": "bu cihaz video biçimini çözemiyor",
+      "UNREADABLE": "dosya okunamadı veya boş"
+    },
+    "export": {
+      "EXPORT_FAILED": "Video oluşturulurken bir hata oluştu. Daha düşük çözünürlük veya kare hızı deneyin.",
+      "EXPORT_BUSY": "Başka bir dışa aktarma sürüyor.",
+      "BAD_SPEC": "Proje verisi okunamadı.",
+      "ENGINE_UNAVAILABLE": "Video motoru bu cihazda kullanılamıyor."
+    }
+  },
+  "editor": {
+    "export": "Dışa aktar",
+    "play": "Oynat",
+    "pause": "Duraklat",
+    "undo": "Geri al",
+    "redo": "Yinele",
+    "marker": "İşaretçi ekle/kaldır",
+    "addMedia": "Medya ekle",
+    "save": {
+      "saved": "Kaydedildi",
+      "saving": "Kaydediliyor…",
+      "pending": "Değişiklikler kaydedilecek",
+      "error": "Kaydedilemedi"
+    },
+    "cannotSplit": "Bölmek için oynatma kafasını klibin içine getirin",
+    "emptyExport": "Önce zaman çizelgesine medya ekleyin",
+    "missingExport": "Dışa aktarmadan önce eksik medyayı yeniden bağlayın",
+    "emptyHint": "Medya eklemek için + düğmesine dokunun",
+    "engineUnavailable": "Önizleme motoru şu anda yalnızca Android'de kullanılabilir.",
+    "missingMedia_one": "Bir medya dosyası bulunamadı ({name}). Yeniden bağlamak için dokunun.",
+    "missingMedia_other": "{n} medya dosyası bulunamadı. Yeniden bağlamak için dokunun.",
+    "missingShort": "Eksik",
+    "relinked": "Medya yeniden bağlandı",
+    "noAudio": "Bu klipte ses yok",
+    "previewError": "Önizleme hatası ({code}). Dokunarak kapatın.",
+    "recovered": "Proje son sağlam kayıttan kurtarıldı",
+    "working": "İşleniyor…"
+  },
+  "tools": {
+    "edit": "Düzenle",
+    "audio": "Ses",
+    "text": "Metin",
+    "effects": "Efektler",
+    "filters": "Filtreler",
+    "adjust": "Ayarla",
+    "ratio": "Format",
+    "captions": "Altyazı",
+    "split": "Böl",
+    "speed": "Hız",
+    "volume": "Ses düzeyi",
+    "transform": "Dönüştür",
+    "transition": "Geçiş",
+    "freeze": "Kareyi dondur",
+    "extractAudio": "Sesi ayır",
+    "replace": "Değiştir",
+    "duplicate": "Çoğalt",
+    "delete": "Sil",
+    "duration": "Süre",
+    "music": "Müzik ekle",
+    "soundFromVideo": "Videodan ses",
+    "addText": "Metin ekle",
+    "editText": "Düzenle",
+    "textAnimation": "Animasyon"
+  },
+  "panels": {
+    "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
+    "volume": "Ses düzeyi",
+    "fadeIn": "Yavaşça açıl",
+    "fadeOut": "Yavaşça kapan",
+    "mute": "Sessize al",
+    "unmute": "Sesi aç",
+    "intensity": "Yoğunluk",
+    "applyToAll": "Tümüne uygula",
+    "appliedToAll": "Tüm kliplere uygulandı",
+    "reset": "Sıfırla",
+    "rotate": "Döndür",
+    "flipH": "Yatay çevir",
+    "flipV": "Dikey çevir",
+    "fit": "Sığdır",
+    "fill": "Doldur",
+    "scale": "Ölçek",
+    "positionX": "Yatay konum",
+    "positionY": "Dikey konum",
+    "duration": "Süre",
+    "canvasFit": "Klip yerleşimi",
+    "ratioHint": "Format değişikliği tüm projeye uygulanır; klipler seçilen yerleşime göre sığdırılır veya doldurulur."
+  },
+  "adjust": {
+    "brightness": "Parlaklık",
+    "contrast": "Kontrast",
+    "saturation": "Doygunluk",
+    "exposure": "Pozlama",
+    "temperature": "Sıcaklık",
+    "tint": "Renk tonu",
+    "highlights": "Vurgular",
+    "shadows": "Gölgeler",
+    "fade": "Solukluk",
+    "sharpen": "Keskinlik",
+    "vignette": "Vinyet",
+    "grain": "Gren"
+  },
+  "filters": {
+    "category": {
+      "basic": "Temel",
+      "cinematic": "Sinematik",
+      "bw": "Siyah-beyaz",
+      "retro": "Retro",
+      "mood": "Atmosfer"
+    },
+    "none": "Yok",
+    "vivid": "Canlı",
+    "natural": "Doğal",
+    "warm": "Sıcak",
+    "cool": "Soğuk",
+    "cinema": "Sinema",
+    "noirCine": "Kara film",
+    "teal": "Turkuaz",
+    "golden": "Altın saat",
+    "mono": "Siyah-beyaz",
+    "noir": "Noir",
+    "silver": "Gümüş",
+    "sepia": "Sepya",
+    "vintage": "Vintage",
+    "polaroid": "Anlık",
+    "faded": "Soluk",
+    "sunset": "Gün batımı",
+    "forest": "Orman",
+    "night": "Gece",
+    "pastel": "Pastel",
+    "pop": "Pop"
+  },
+  "effects": {
+    "category": {
+      "basic": "Temel",
+      "distort": "Bozulma",
+      "lens": "Lens",
+      "retro": "Retro"
+    },
+    "none": "Yok",
+    "glitch": "Glitch",
+    "rgbSplit": "RGB kayması",
+    "pixelate": "Pikselleştir",
+    "mosaic": "Mozaik",
+    "blur": "Bulanıklık",
+    "dream": "Rüya",
+    "vignette": "Vinyet",
+    "filmGrain": "Film greni",
+    "oldFilm": "Eski film",
+    "vhs": "VHS",
+    "sharpen": "Keskinleştir"
+  },
+  "transitions": {
+    "category": {
+      "basic": "Temel",
+      "camera": "Kamera",
+      "slide": "Kaydırma",
+      "effect": "Efekt"
+    },
+    "none": "Yok",
+    "fade": "Siyaha geçiş",
+    "white": "Beyaza geçiş",
+    "flash": "Flaş",
+    "zoomIn": "Yakınlaş",
+    "zoomOut": "Uzaklaş",
+    "spin": "Döndür",
+    "slideLeft": "Sola kaydır",
+    "slideRight": "Sağa kaydır",
+    "slideUp": "Yukarı kaydır",
+    "slideDown": "Aşağı kaydır",
+    "glitch": "Glitch"
+  },
+  "text": {
+    "default": "Metin",
+    "placeholder": "Metninizi yazın",
+    "bold": "Kalın",
+    "italic": "İtalik",
+    "size": "Boyut",
+    "opacity": "Opaklık",
+    "background": "Arka plan",
+    "strokeWidth": "Kontur kalınlığı",
+    "shadow": "Gölge",
+    "letterSpacing": "Harf aralığı",
+    "lineHeight": "Satır aralığı",
+    "rotation": "Döndürme",
+    "animIn": "Giriş",
+    "animOut": "Çıkış",
+    "animDuration": "Animasyon süresi",
+    "tab": {
+      "style": "Stil",
+      "font": "Yazı tipi",
+      "color": "Renk",
+      "stroke": "Kontur",
+      "layout": "Düzen",
+      "animation": "Animasyon"
+    },
+    "align": {
+      "left": "Sola",
+      "center": "Ortala",
+      "right": "Sağa"
+    },
+    "anim": {
+      "none": "Yok",
+      "fade": "Belirme",
+      "pop": "Zıplama",
+      "slideUp": "Yukarı kayma",
+      "slideLeft": "Yana kayma",
+      "typewriter": "Daktilo"
+    },
+    "layout": {
+      "title": "Başlık",
+      "lowerThird": "Alt bant",
+      "caption": "Altyazı",
+      "credits": "Jenerik",
+      "cta": "Çağrı"
+    },
+    "sample": {
+      "title": "Başlığınız",
+      "lowerThird": "Ad Soyad · Unvan",
+      "caption": "Altyazı metni",
+      "credits": "Yapım: Kurgu",
+      "cta": "Takip et!"
+    }
+  },
+  "fonts": {
+    "sans": "Sade",
+    "display": "Kalın başlık",
+    "condensed": "Dar",
+    "light": "İnce",
+    "serif": "Tırnaklı",
+    "mono": "Eş aralıklı",
+    "casual": "Gündelik",
+    "cursive": "El yazısı"
+  },
+  "export": {
+    "title": "Dışa aktar",
+    "resolution": "Çözünürlük",
+    "frameRate": "Kare hızı (fps)",
+    "quality": "Kalite",
+    "q": {
+      "low": "Düşük boyut",
+      "recommended": "Önerilen",
+      "high": "Yüksek"
+    },
+    "bitrate": "Video bit hızı: {mbps} Mbps",
+    "codec": "Kodek",
+    "codecH264": "H.264 her cihazda ve platformda oynatılır.",
+    "codecHevc": "Aynı kalitede daha küçük dosya; bazı eski cihazlar oynatamayabilir.",
+    "format": "Biçim",
+    "duration": "Süre",
+    "estimatedSize": "Tahmini boyut",
+    "freeSpace": "Boş alan",
+    "unsupportedMode": "Bu cihazın kodlayıcısı bu ayarı desteklemiyor",
+    "start": "Videoyu dışa aktar",
+    "backgroundNote": "Dışa aktarma sırasında ilerleme bildirimde de gösterilir.",
+    "preparing": "Hazırlanıyor…",
+    "eta": "Kalan süre yaklaşık {sec} sn",
+    "keepOpen": "Uygulama arka plana alınabilir; en iyi sonuç için ekranı açık tutun.",
+    "cancel": "Dışa aktarmayı iptal et",
+    "cancelTitle": "İptal edilsin mi?",
+    "cancelMessage": "Şimdiye kadar işlenen kısım silinecek.",
+    "cancelled": "Dışa aktarma iptal edildi",
+    "done": "Video hazır",
+    "savedToGallery": "Galeriye kaydedildi (Filmler/Kurgu)",
+    "savingToGallery": "Galeriye kaydediliyor…",
+    "galleryFailed": "Galeriye kaydedilemedi; paylaş ile kaydedebilirsiniz.",
+    "verification": "Çıktı denetimi",
+    "check": {
+      "duration": "Süre",
+      "resolution": "Çözünürlük",
+      "audio": "Ses",
+      "size": "Dosya boyutu"
+    },
+    "encoder": "Kodlayıcı: {name} · {sec} sn",
+    "share": "Paylaş",
+    "failed": "Dışa aktarma başarısız",
+    "retry": "Tekrar dene",
+    "notificationTitle": "Video dışa aktarılıyor",
+    "lowSpaceTitle": "Yetersiz depolama",
+    "lowSpace": "Yaklaşık {need} gerekiyor, cihazda {free} boş alan var.",
+    "thermal": "Cihaz ısınmış. Dışa aktarma yavaşlayabilir; yüksek çözünürlükte bekleme önerilir.",
+    "powerSave": "Güç tasarrufu açık; dışa aktarma daha uzun sürebilir."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "systemLanguage": "Cihaz dili",
+    "languageNote": "Dil hemen değişir; açık projeler kapanmaz. Proje adları ve metinleriniz çevrilmez.",
+    "newProjects": "Yeni projeler",
+    "defaultRatio": "Varsayılan format",
+    "ratioNote": "Galeriden başlatılan projeler ilk medyanın oranını kullanır.",
+    "imageDuration": "Fotoğraf süresi",
+    "frameRate": "Kare hızı",
+    "preview": "Önizleme",
+    "previewQuality": {
+      "low": "Akıcı",
+      "medium": "Dengeli",
+      "high": "Yüksek kalite"
+    },
+    "previewNote": "Önizleme kalitesi dışa aktarma kalitesini etkilemez. Zayıf cihazlarda \"Akıcı\" seçin.",
+    "haptics": "Dokunsal geri bildirim",
+    "storage": "Depolama",
+    "usage": {
+      "media": "Proje medyası",
+      "exports": "Dışa aktarılanlar",
+      "cache": "Önbellek",
+      "free": "Boş alan"
+    },
+    "clearCache": "Önbelleği temizle",
+    "clearCacheTitle": "Önbellek temizlensin mi?",
+    "clearCacheMessage": "Küçük resimler ve dalga biçimleri yeniden oluşturulur; uygulamadaki dışa aktarma kopyaları silinir. Galerideki videolar ve projeleriniz silinmez.",
+    "cleared": "Temizlendi ({size} kullanılmayan medya dahil)",
+    "privacy": "Gizlilik",
+    "privacyText": "Videolarınız cihazınızda işlenir ve hiçbir sunucuya gönderilmez. Uygulama kullanım verisi (telemetri) toplamaz.",
+    "about": "Hakkında",
+    "licenses": "Video motoru: AndroidX Media3 (Apache 2.0). H.264/HEVC kodlama cihazın donanım kodlayıcısıyla yapılır."
+  },
+  "help": {
+    "title": "Yardım ve ipuçları",
+    "start": {
+      "title": "Proje başlatma",
+      "body": "Ana ekranda \"Yeni proje\"ye dokunun ve galeriden bir veya daha fazla video/fotoğraf seçin. Seçim sırası zaman çizelgesindeki sıra olur. Şablonlar hazır bir kurgu oluşturur; her şeyi sonradan değiştirebilirsiniz."
+    },
+    "timeline": {
+      "title": "Zaman çizelgesi",
+      "body": "Ortadaki beyaz çizgi oynatma kafasıdır. Zaman çizelgesini parmağınızla kaydırarak istediğiniz kareye gidin. İki parmakla açıp kapatarak yakınlaştırın. Bir klibe dokununca seçilir ve ilgili araçlar alttaki çubukta görünür."
+    },
+    "trim": {
+      "title": "Bölme, kırpma ve sıralama",
+      "body": "Seçili klibin kenarlarındaki beyaz tutamaçları sürükleyerek başını veya sonunu kırpın. \"Böl\" klibi oynatma kafasından ikiye ayırır. Bir klibe uzun basıp sürükleyerek sırasını değiştirin."
+    },
+    "text": {
+      "title": "Metin",
+      "body": "Metin > Metin ekle ile oynatma kafasına bir metin katmanı eklenir. Önizlemede metni sürükleyin, iki parmakla büyütüp döndürün, çift dokunarak düzenleyin. Stil, renk, kontur ve animasyonlar metin panelindedir."
+    },
+    "audio": {
+      "title": "Müzik ve ses",
+      "body": "Ses > Müzik ekle ile cihazınızdaki bir ses dosyası oynatma kafasına eklenir. Ses kliplerini uzun basıp taşıyabilir, kenarlarından kırpabilirsiniz. Ses düzeyi panelinde yavaşça açılma/kapanma ayarlanır."
+    },
+    "effects": {
+      "title": "Filtre, efekt ve geçiş",
+      "body": "Bir klip seçip Filtreler, Ayarla veya Efektler'e dokunun. İki klip arasındaki küçük kareye dokunarak geçiş ekleyin. \"Tümüne uygula\" aynı ayarı bütün kliplere kopyalar."
+    },
+    "export": {
+      "title": "Dışa aktarma",
+      "body": "Sağ üstteki Dışa aktar düğmesiyle çözünürlük, kare hızı ve kaliteyi seçin. Yalnızca cihazınızın donanım kodlayıcısının desteklediği seçenekler açıktır. Bitince video galeride Filmler/Kurgu klasörüne kaydedilir."
+    },
+    "save": {
+      "title": "Kaydetme ve geri alma",
+      "body": "Her değişiklik otomatik kaydedilir. Bir önceki kayıt yedek olarak tutulur; uygulama beklenmedik şekilde kapanırsa proje son sağlam kayıttan açılır. Geri al/Yinele 100 adıma kadar çalışır."
+    },
+    "missing": {
+      "title": "Eksik medya",
+      "body": "Bir medya dosyası silinmiş veya proje başka cihazdan aktarılmışsa uyarı çıkar. Uyarıya dokunup dosyayı yeniden seçerek bağlayın; kurgu ayarlarınız korunur."
+    }
+  },
+  "ai": {
+    "title": "AI araçları",
+    "planned": "Planlandı",
+    "notice": "Bu araçlar henüz bir modele veya servise bağlanmadı, bu yüzden kullanılamaz. Her birinin cihazda mı yoksa bulutta mı çalışacağı aşağıda belirtilmiştir. Bulut araçları yalnızca açık izninizle veri gönderecek.",
+    "mode": {
+      "onDevice": "Cihaz içi model (indirme gerekir, internet gerekmez)",
+      "cloud": "Bulut servisi (internet, hesap ve izin gerekir)"
+    },
+    "tools": {
+      "autoCaptions": {
+        "title": "Otomatik altyazı",
+        "desc": "Konuşmayı yazıya döker, zamanlanmış altyazı katmanları oluşturur (Whisper sınıfı model; Türkçe dahil)."
+      },
+      "removeBackground": {
+        "title": "Arka plan kaldırma",
+        "desc": "Kişiyi arka plandan ayırır (segmentasyon modeli)."
+      },
+      "noiseReduction": {
+        "title": "Gürültü azaltma",
+        "desc": "Konuşmadaki arka plan gürültüsünü azaltır."
+      },
+      "silenceRemoval": {
+        "title": "Sessizlik kaldırma",
+        "desc": "Sessiz bölümleri bulur ve kesmeyi önerir."
+      },
+      "sceneDetect": {
+        "title": "Sahne algılama",
+        "desc": "Uzun videoyu sahne değişimlerinden otomatik böler."
+      },
+      "textToSpeech": {
+        "title": "Metinden konuşma",
+        "desc": "Metin katmanlarından seslendirme üretir."
+      },
+      "autoCut": {
+        "title": "Otomatik kurgu",
+        "desc": "Uzun videodan kısa, ritme uygun klipler çıkarır."
+      },
+      "upscale": {
+        "title": "Görüntü iyileştirme",
+        "desc": "Düşük çözünürlüklü kaynakları büyütür ve netleştirir."
+      },
+      "translate": {
+        "title": "Altyazı çevirisi",
+        "desc": "Altyazıları başka dillere çevirir."
+      }
+    }
+  },
+  "templates": {
+    "title": "Şablonlar",
+    "hint": "Bir şablon seçin, ardından medyanızı seçin. Sonuç tamamen düzenlenebilir bir projedir.",
+    "meta": "{ratio} · {clips} klip · {sec} sn",
+    "storyIntro": {
+      "name": "Hikâye girişi",
+      "desc": "Dikey, yumuşak geçişli canlı açılış"
+    },
+    "travel": {
+      "name": "Seyahat",
+      "desc": "Hızlı kesmeler, altın saat tonları"
+    },
+    "youtubeIntro": {
+      "name": "YouTube girişi",
+      "desc": "Yatay, sinematik başlık ve alt bant"
+    },
+    "squarePromo": {
+      "name": "Kare tanıtım",
+      "desc": "Akış gönderisi için çağrı metinli tanıtım"
+    },
+    "news": {
+      "name": "Haber",
+      "desc": "Alt bantlı sade haber düzeni"
+    },
+    "memories": {
+      "name": "Anılar",
+      "desc": "Vintage tonlu, jenerikli 4:5 kurgu"
+    }
+  }
+}
