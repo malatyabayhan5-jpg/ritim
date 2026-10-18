@@ -1,48 +1,35 @@
-# İndirme iptali: 8 MB'lık MP3 indirmesi başlatılır ve hemen iptal edilir; dosya listeye eklenmemeli
+# İndirme iptali: veriyi 60 saniyede yavaşça gönderen bir test adresinden (httpbin.org/drip) indirme başlatılır,
+# birkaç saniye sonra iptal edilir. İptalden sonra indirme listesinden kalkmalı ve yarım dosya kaydedilmemeli.
 appId: com.ritim.muzik
 ---
 - launchApp
 - tapOn:
-    id: "tab-archive"
+    id: "tab-download"
 - tapOn:
-    id: "archive-input"
-- eraseText: 30
-- inputText: "soundhelix"
+    id: "link-input"
+- inputText: "https://httpbin.org/drip?duration=60&numbytes=3000000&code=200&delay=0"
 - tapOn:
-    id: "archive-go"
+    id: "link-go"
 - extendedWaitUntil:
     visible:
-      id: "dl-btn-sh-2"
-    timeout: 15000
-- tapOn:
-    id: "dl-btn-sh-2"
-- extendedWaitUntil:
-    visible:
-      id: "dl-audio"
+      id: "link-cancel"
     timeout: 20000
-- tapOn:
-    id: "dl-audio"
-- tapOn:
-    id: "opt-audio-mp3-x-orig"
-- extendedWaitUntil:
-    visible:
-      id: "dl-cancel-sh-2"
-    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
 - takeScreenshot: 10a_indiriliyor
 - tapOn:
-    id: "dl-cancel-sh-2"
+    id: "link-cancel"
 - extendedWaitUntil:
-    visible:
-      id: "dl-btn-sh-2"
-    timeout: 10000
+    notVisible:
+      id: "link-cancel"
+    timeout: 15000
 - takeScreenshot: 10b_iptal_edildi
 - tapOn:
-    id: "dl-btn-sh-2"
+    id: "tab-library"
+- tapOn:
+    id: "lib-audio"
 - extendedWaitUntil:
     visible:
-      id: "dl-audio"
-    timeout: 20000
-- assertNotVisible: "Zaten indirildi"
-- takeScreenshot: 10c_kayit_yok
-- tapOn:
-    id: "dl-cancel"
+      text: "İndirilen ses yok"
+    timeout: 10000
+- takeScreenshot: 10c_yarim_dosya_kaydedilmedi

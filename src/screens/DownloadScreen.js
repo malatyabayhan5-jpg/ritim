@@ -220,7 +220,7 @@ export default function DownloadScreen({ navigation }) {
                   </View>
                 </View>
                 <Text style={styles.percent}>%{Math.round(p * 100)}</Text>
-                <Pressable onPress={() => cancelDownload(t.id)} hitSlop={10}>
+                <Pressable testID="link-cancel" onPress={() => cancelDownload(t.id)} hitSlop={10}>
                   <Ionicons name="close-circle" size={22} color={colors.textDim} />
                 </Pressable>
               </View>
