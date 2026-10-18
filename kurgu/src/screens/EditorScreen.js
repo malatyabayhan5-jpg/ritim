@@ -459,6 +459,7 @@ export default function EditorScreen({ params, focused }) {
         if (!r.removedMs) return toast(t('ai.noSilence'));
         apply((p) => TL.removeSourceRanges(p, clip.id, ranges).project);
         setSelection(null);
+        setPanel(null);
         toast(t('ai.silenceRemoved', { seconds: fmt.number(Math.round(r.removedMs / 100) / 10), parts: r.pieces }));
       } else if (key === 'sceneDetect') {
         if (!clip || clip.kind !== 'video') return toast(t('ai.needVideoClip'));
@@ -471,6 +472,7 @@ export default function EditorScreen({ params, focused }) {
         if (!r.added) return toast(t('ai.noScenes'));
         apply((p) => TL.splitMainAtSourceTimes(p, clip.id, cuts).project);
         setSelection(null);
+        setPanel(null);
         toast(t('ai.scenesFound', { count: r.added + 1 }));
       } else if (key === 'noiseReduction') {
         if (selectedAudio) {
@@ -491,6 +493,7 @@ export default function EditorScreen({ params, focused }) {
         setBusy(null);
         if (!imported[0] || errors.length) return toast(t('errors.generic'), 'error');
         apply((p) => TL.addAudio(p, imported[0], text.start, 'voice').project);
+        setPanel(null);
         toast(t('ai.voiceAdded'));
       }
     } catch (e) {

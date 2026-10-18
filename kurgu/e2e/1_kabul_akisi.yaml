@@ -220,7 +220,8 @@ appId: app.kurgu.editor
     visible:
       id: "export-progress"
     timeout: 20000
-- takeScreenshot: 15_disa_aktariliyor
+# Not: dışa aktarma sürerken ekran görüntüsü alınmaz (yazılımsal GPU'lu emülatörde
+# ekran yakalama zaman aşımına uğrayabiliyor).
 - extendedWaitUntil:
     visible:
       id: "export-done"
