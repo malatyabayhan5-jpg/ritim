@@ -18,6 +18,7 @@ import ArchiveScreen from './src/screens/ArchiveScreen';
 import AlbumScreen from './src/screens/AlbumScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
+import YouTubePlayerScreen from './src/screens/YouTubePlayerScreen';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
@@ -85,6 +86,11 @@ export default function App() {
               <Stack.Screen name="Tabs" component={Tabs} />
               <Stack.Screen name="Album" component={AlbumScreen} />
               <Stack.Screen name="Playlist" component={PlaylistScreen} />
+              <Stack.Screen
+                name="YouTubePlayer"
+                component={YouTubePlayerScreen}
+                options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+              />
               <Stack.Screen
                 name="Player"
                 component={PlayerScreen}

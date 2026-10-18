@@ -3,7 +3,7 @@
 React Native (Expo SDK 54) ile yazılmış müzik uygulaması.
 
 - Ana sayfa: son çalınanlar, yeni eklenenler, en çok dinlenen albümler
-- Arama: sanatçı / albüm / tür araması, tür kartları
+- Arama: açık müzik arşivi (sanatçı / albüm / tür) ve YouTube Data API ile gerçek YouTube araması. YouTube videoları YouTube'un resmi gömülü oynatıcısıyla açılır; YouTube'un kuralları gereği indirilemez. API anahtarı uygulama içinden (⚙) girilir.
 - Oynatıcı: tam ekran oynatıcı, mini oynatıcı, ileri/geri sarma, karıştır, tekrarla (tümü / tek), çalma sırası
 - Arka planda çalma (ekran kapalıyken ve başka uygulamadayken)
 - Çalma listeleri: oluştur, yeniden adlandır, sil, parça ekle/çıkar

@@ -3,6 +3,7 @@ import { FlatList, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Artwork from '../components/Artwork';
+import YouTubeSearch from '../components/YouTubeSearch';
 import { EmptyState, ErrorState, Loading } from '../components/StateView';
 import { searchAlbums, searchByGenre } from '../api/archive';
 import { colors, radius, space, type } from '../theme';
@@ -21,6 +22,7 @@ const GENRES = [
 ];
 
 export default function SearchScreen({ navigation }) {
+  const [source, setSource] = useState('music'); // 'music' | 'youtube'
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState(null);
   const [results, setResults] = useState([]);
@@ -77,6 +79,17 @@ export default function SearchScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.top}>
         <Text style={type.h1}>Ara</Text>
+        <View style={styles.segment}>
+          {[
+            ['music', 'Açık müzik arşivi'],
+            ['youtube', 'YouTube'],
+          ].map(([key, label]) => (
+            <Pressable key={key} onPress={() => setSource(key)} style={[styles.segBtn, source === key && styles.segBtnOn]}>
+              <Text style={[styles.segText, source === key && styles.segTextOn]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        {source === 'music' ? (
         <View style={styles.inputWrap}>
           <Ionicons name="search" size={20} color={colors.onAccent} />
           <TextInput
@@ -98,9 +111,12 @@ export default function SearchScreen({ navigation }) {
             </Pressable>
           ) : null}
         </View>
+        ) : null}
       </View>
 
-      {showBrowse ? (
+      {source === 'youtube' ? (
+        <YouTubeSearch />
+      ) : showBrowse ? (
         <FlatList
           data={GENRES}
           keyExtractor={(g) => g.q}
@@ -158,6 +174,11 @@ export default function SearchScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   top: { paddingHorizontal: space.lg, paddingTop: space.lg, gap: space.md, paddingBottom: space.sm },
+  segment: { flexDirection: 'row', backgroundColor: colors.surface2, borderRadius: radius.pill, padding: 4 },
+  segBtn: { flex: 1, paddingVertical: 8, borderRadius: radius.pill, alignItems: 'center' },
+  segBtnOn: { backgroundColor: colors.text },
+  segText: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
+  segTextOn: { color: colors.onAccent },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',

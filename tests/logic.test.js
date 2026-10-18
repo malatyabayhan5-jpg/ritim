@@ -87,3 +87,51 @@ test('servis: API modu yapılandırma ve hata mesajları', async () => {
   await assert.rejects(svc.search('x'), /adresi girilmemiş/);
   await svc.saveConfig({ mode: 'mock' });
 });
+
+import * as yt from '../src/services/youtubeService.js';
+
+test('YouTube: ISO süre ayrıştırma', () => {
+  assert.equal(yt.parseIsoDuration('PT4M13S'), 253);
+  assert.equal(yt.parseIsoDuration('PT1H2M3S'), 3723);
+  assert.equal(yt.parseIsoDuration('PT45S'), 45);
+  assert.equal(yt.parseIsoDuration('P0D'), 0);
+  assert.equal(yt.parseIsoDuration('garip'), 0);
+});
+
+test('YouTube: arama akışı ve hatalar', async () => {
+  await yt.loadYouTubeSettings();
+  await assert.rejects(yt.searchYouTube('lofi'), /API anahtarı gerekiyor/);
+  await yt.saveYouTubeSettings({ apiKey: ' KEY123 ', creativeCommonsOnly: true });
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    if (url.includes('/search?')) {
+      return { ok: true, status: 200, json: async () => ({
+        nextPageToken: 'NEXT',
+        items: [
+          { id: { videoId: 'v1' }, snippet: { title: 'Doğa &amp; Kuşlar', channelTitle: 'Kanal', thumbnails: { medium: { url: 'https://i.ytimg.com/v1.jpg' } } } },
+          { id: { videoId: 'v2' }, snippet: { title: 'Gömülemez', channelTitle: 'K2', thumbnails: {} } },
+          { id: { channelId: 'c1' }, snippet: { title: 'kanal sonucu' } },
+        ] }) };
+    }
+    return { ok: true, status: 200, json: async () => ({ items: [
+      { id: 'v1', contentDetails: { duration: 'PT3M5S' }, status: { license: 'creativeCommon', embeddable: true } },
+      { id: 'v2', contentDetails: { duration: 'PT1M' }, status: { license: 'youtube', embeddable: false } },
+    ] }) };
+  };
+  const r = await yt.searchYouTube('kuş sesleri');
+  assert.equal(r.nextPageToken, 'NEXT');
+  assert.equal(r.results.length, 1);
+  assert.deepEqual(
+    { id: r.results[0].id, title: r.results[0].title, duration: r.results[0].duration, license: r.results[0].license },
+    { id: 'v1', title: 'Doğa & Kuşlar', duration: 185, license: 'creativeCommon' }
+  );
+  assert.match(calls[0], /videoLicense=creativeCommon/);
+  assert.match(calls[0], /videoEmbeddable=true/);
+  assert.match(calls[0], /key=KEY123/);
+  assert.match(calls[1], /videos\?part=contentDetails,status&id=v1,v2/);
+  globalThis.fetch = async () => ({ ok: false, status: 403, json: async () => ({ error: { errors: [{ reason: 'quotaExceeded' }] } }) });
+  await assert.rejects(yt.searchYouTube('x'), /kotası doldu/);
+  globalThis.fetch = async () => ({ ok: false, status: 400, json: async () => ({ error: { errors: [{ reason: 'keyInvalid' }] } }) });
+  await assert.rejects(yt.searchYouTube('x'), /geçersiz/);
+});

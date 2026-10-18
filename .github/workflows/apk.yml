@@ -34,7 +34,7 @@ jobs:
           set -o pipefail
           npx --yes create-expo-app@latest app --template blank@sdk-54
           cd app
-          npx --yes expo install expo-font expo-asset expo-build-properties expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
+          npx --yes expo install expo-font expo-asset expo-build-properties react-native-webview expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
           cp ../App.js ../app.json ../eas.json .
           rm -rf src && cp -r ../src src
           npx --yes expo install --fix || true
