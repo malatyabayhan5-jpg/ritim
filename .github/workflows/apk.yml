@@ -29,17 +29,11 @@ jobs:
           set -o pipefail
           npx --yes create-expo-app@latest app --template blank@sdk-54
           cd app
-          npx --yes expo install expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
+          npx --yes expo install expo-font expo-asset expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
           cp ../App.js ../app.json ../eas.json .
           rm -rf src && cp -r ../src src
           npx --yes expo install --fix || true
           npx --yes expo prebuild --platform android --clean
-          deps=$(node -e 'const p=require("./package.json");console.log(Object.entries(p.dependencies).map(e=>e.join("@")).join(" | "))')
-          echo "::notice title=Bagimliliklar::$deps"
-          al=$(npm ls expo-modules-autolinking --all 2>/dev/null | tr '\n' ' ' | sed 's/%/%25/g')
-          echo "::notice title=Autolinking surumleri::$al"
-          m1=$(npx expo-modules-autolinking resolve --platform android --json 2>&1 | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);console.log(JSON.stringify(j.modules.filter(m=>JSON.stringify(m).includes("publication"))).slice(0,3000))}catch(e){console.log("parse: "+d.slice(0,1500))}})' | tr '\n' ' ' | sed 's/%/%25/g')
-          echo "::notice title=Publication modulleri::$m1"
 
       - name: APK derle
         working-directory: app/android
