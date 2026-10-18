@@ -6,6 +6,7 @@
 //   search(query)                -> Promise<MediaItem[]>
 //   resolveDownload(item)        -> Promise<{ url, headers, ext?, mimeType? }>
 //   testConnection()             -> Promise<{ ok, message }>
+//   getDownloadOptions(item)     -> Promise<{ video: DownloadOption[], audio: DownloadOption[] }>
 //
 // MediaItem: { id, title, artist, duration (saniye), thumbnail, license }
 //
@@ -22,10 +23,16 @@
 //        url mutlak ya da baseUrl'e göre göreli olabilir. Dosya isteğine de
 //        aynı Authorization başlığı eklenir.
 //
+//   GET  {baseUrl}/media/{id}/formats            (isteğe bağlı; yoksa /download kullanılır)
+//        200 -> { video: [ { url, height, ext?, size?, label? } ],
+//                 audio: [ { url, ext?, bitrateKbps?, size?, original?, label? } ] }
+//        Yalnızca sunucunun gerçekten sağladığı dosyaları döndür; uygulama bunları olduğu gibi listeler.
+//
 //   token girilmişse her isteğe "Authorization: Bearer <token>" eklenir.
 // ----------------------------------------------------------------------------
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { finalizeOptions, videoLabel } from './formats';
 
 const CONFIG_KEY = 'ritim:mediaService:v1';
 const TIMEOUT_MS = 15000;
@@ -80,6 +87,7 @@ function normalizeItem(raw, index) {
     duration: parseDuration(raw.duration),
     thumbnail: raw.thumbnail || raw.thumbnailUrl || null,
     license: raw.license || null,
+    kind: raw.kind === 'video' ? 'video' : 'audio',
     _index: index,
   };
 }
@@ -120,6 +128,24 @@ async function fetchJson(url) {
 // Mock sağlayıcı: harici servis gerekmeden test için.
 // İndirmeler gerçekten yapılır; SoundHelix'in herkese açık test MP3'leri kullanılır.
 
+// Örnek video: Big Buck Bunny (Blender Foundation, CC BY 3.0), test-videos.co.uk üzerinden 360p/720p/1080p
+const MOCK_VIDEOS = [
+  {
+    id: 'bbb',
+    title: 'Big Buck Bunny (örnek video)',
+    artist: 'Blender Foundation · CC BY 3.0',
+    duration: 10,
+    thumbnail: null,
+    license: 'CC BY 3.0 · Blender Foundation',
+    kind: 'video',
+  },
+];
+
+const BBB_FILES = [360, 720, 1080].map((h) => ({
+  height: h,
+  url: `https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/${h}/Big_Buck_Bunny_${h}_10s_1MB.mp4`,
+}));
+
 const MOCK_LIBRARY = [
   { id: 'sh-1', title: 'Örnek parça 1', artist: 'SoundHelix', duration: 372 },
   { id: 'sh-2', title: 'Örnek parça 2', artist: 'SoundHelix', duration: 425 },
@@ -142,8 +168,10 @@ const mockProvider = {
   async search(query) {
     await wait(350);
     const q = query.toLocaleLowerCase('tr');
-    if (['örnek', 'ornek', 'test', 'hepsi', '*'].includes(q)) return MOCK_LIBRARY.slice();
-    return MOCK_LIBRARY.filter(
+    const all = [...MOCK_VIDEOS, ...MOCK_LIBRARY];
+    if (['örnek', 'ornek', 'test', 'hepsi', '*'].includes(q)) return all;
+    if (q === 'video') return MOCK_VIDEOS.slice();
+    return all.filter(
       (m) => m.title.toLocaleLowerCase('tr').includes(q) || m.artist.toLocaleLowerCase('tr').includes(q)
     );
   },
@@ -151,12 +179,37 @@ const mockProvider = {
     await wait(200);
     return { url: mockFileUrl(item.id), headers: {}, ext: 'mp3', mimeType: 'audio/mpeg' };
   },
+  async options(item) {
+    await wait(150);
+    if (item.id === 'bbb') {
+      return {
+        video: BBB_FILES.map((f) => ({ url: f.url, height: f.height, ext: 'mp4' })),
+        audio: [], // bu kaynak ayrı bir ses dosyası sunmuyor
+      };
+    }
+    return { video: [], audio: [{ url: mockFileUrl(item.id), ext: 'mp3', original: true, label: 'MP3' }] };
+  },
 };
 
 // ---------------------------------------------------------------------------
 // Özel API sağlayıcı
 
 const apiProvider = {
+  async options(item) {
+    if (!config.baseUrl) throw new Error('Sunucu adresi girilmemiş. Ayarlar\'dan ekle.');
+    try {
+      const data = await fetchJson(`${config.baseUrl}/media/${encodeURIComponent(item.id)}/formats`);
+      return {
+        video: Array.isArray(data && data.video) ? data.video : [],
+        audio: Array.isArray(data && data.audio) ? data.audio : [],
+      };
+    } catch (e) {
+      if (!/404/.test(e.message)) throw e;
+      // Sunucuda /formats yoksa eski tek dosyalı uç noktaya dön
+      const one = await this.resolveDownload(item);
+      return { video: [], audio: [{ url: one.url, ext: one.ext, original: true }] };
+    }
+  },
   async search(query) {
     if (!config.baseUrl) throw new Error('Sunucu adresi girilmemiş. Ayarlar\'dan ekle.');
     const data = await fetchJson(`${config.baseUrl}/search?q=${encodeURIComponent(query)}`);
@@ -198,6 +251,64 @@ export async function resolveDownload(item) {
   return { url: res.url, headers: res.headers || {}, ext: res.ext || null, mimeType: res.mimeType || null };
 }
 
+// Dosya boyutunu sunucuya sorar (HEAD). Bilinmiyorsa null; menüde boyut gösterilmez.
+export async function headSize(url, headers = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(url, { method: 'HEAD', headers, signal: controller.signal });
+    if (!res.ok) return null;
+    const len = Number(res.headers.get('content-length'));
+    return isFinite(len) && len > 0 ? len : null;
+  } catch (e) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function normalizeOption(raw, kind, i) {
+  if (!raw || !raw.url) return null;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw.url) && !/^https?:\/\//i.test(raw.url)) return null; // ftp:, intent: vb. kabul edilmez
+  if (!/^https?:\/\//i.test(resolveUrl(raw.url))) return null;
+  const url = resolveUrl(raw.url);
+  const ext = String(raw.ext || (url.split('?')[0].match(/\.([a-z0-9]{2,5})$/i) || [])[1] || (kind === 'video' ? 'mp4' : 'mp3')).toLowerCase();
+  const size = Number(raw.size) > 0 ? Number(raw.size) : null;
+  if (kind === 'video') {
+    const height = Number(raw.height) > 0 ? Math.round(Number(raw.height)) : null;
+    return { key: `video-${height || i}`, kind, label: raw.label || videoLabel(height), detail: ext.toUpperCase(), ext, height, size, url, original: !!raw.original, headers: authHeaders() };
+  }
+  const br = Number(raw.bitrateKbps) > 0 ? Math.round(Number(raw.bitrateKbps)) : null;
+  const base = raw.label || [ext.toUpperCase(), br ? `${br} kbps` : null].filter(Boolean).join(' · ');
+  return {
+    key: `audio-${ext}-${br || 'x'}${raw.original ? '-orig' : ''}`,
+    kind,
+    label: raw.original && !raw.label ? `Orijinal format · ${base}` : base,
+    detail: raw.original ? 'Orijinal dosya' : null,
+    ext,
+    bitrateKbps: br,
+    size,
+    url,
+    original: !!raw.original,
+    headers: authHeaders(),
+  };
+}
+
+export async function getDownloadOptions(item) {
+  const raw = await provider().options(item);
+  const opts = [
+    ...(raw.video || []).map((r, i) => normalizeOption(r, 'video', i)),
+    ...(raw.audio || []).map((r, i) => normalizeOption(r, 'audio', i)),
+  ].filter(Boolean);
+  // Boyutu bilinmeyenler için sunucuya sor (paralel, sınırlı süre)
+  await Promise.all(
+    opts.map(async (o) => {
+      if (!o.size) o.size = await headSize(o.url, o.headers);
+    })
+  );
+  return finalizeOptions(opts);
+}
+
 export async function testConnection() {
   if (config.mode !== 'api') return { ok: true, message: 'Mock modu: harici sunucu gerekmiyor.' };
   try {
@@ -208,4 +319,4 @@ export async function testConnection() {
   }
 }
 
-export const __test = { normalizeItem, mockProvider, MOCK_LIBRARY, mockFileUrl };
+export const __test = { normalizeItem, mockProvider, MOCK_LIBRARY, MOCK_VIDEOS, mockFileUrl, normalizeOption };

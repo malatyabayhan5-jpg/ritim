@@ -1,0 +1,42 @@
+# Yalnızca ses indirme: menü -> "Yalnızca ses indir" -> MP3 -> İndirilen sesler listesinde boyutuyla görünür
+appId: com.ritim.muzik
+---
+- launchApp
+- tapOn:
+    id: "tab-archive"
+- tapOn:
+    id: "archive-input"
+- eraseText: 20
+- inputText: "soundhelix"
+- tapOn:
+    id: "archive-go"
+- extendedWaitUntil:
+    visible:
+      id: "dl-btn-sh-1"
+    timeout: 15000
+- tapOn:
+    id: "dl-btn-sh-1"
+- extendedWaitUntil:
+    visible:
+      id: "dl-audio"
+    timeout: 20000
+- tapOn:
+    id: "dl-audio"
+- takeScreenshot: 6a_ses_bicimleri
+- tapOn:
+    id: "opt-audio-mp3-x-orig"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    notVisible:
+      text: "İptal"
+    timeout: 120000
+- tapOn:
+    id: "tab-library"
+- tapOn:
+    id: "lib-audio"
+- extendedWaitUntil:
+    visible:
+      id: "dl-row-play"
+    timeout: 10000
+- takeScreenshot: 6b_indirilen_sesler

@@ -2,6 +2,8 @@
 // Bir linkin ".mp3" ile bitmesi dosyanın gerçekten MP3 olduğu anlamına gelmez; asıl karar imzaya göre verilir.
 
 export const AUDIO_EXTS = ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'opus', 'flac'];
+export const VIDEO_EXTS = ['mp4', 'webm', 'ogv', 'mov', 'm4v'];
+export const MEDIA_EXTS = [...AUDIO_EXTS, ...VIDEO_EXTS];
 
 const MIME_EXT = {
   'audio/mpeg': 'mp3',
@@ -21,6 +23,11 @@ const MIME_EXT = {
   'audio/opus': 'opus',
   'audio/flac': 'flac',
   'audio/x-flac': 'flac',
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+  'video/ogg': 'ogv',
+  'video/quicktime': 'mov',
+  'video/x-m4v': 'm4v',
 };
 
 export function cleanMime(value) {
@@ -35,7 +42,11 @@ export function extFromUrl(url) {
   const path = String(url || '').split('?')[0].split('#')[0];
   const m = path.match(/\.([a-zA-Z0-9]{2,5})$/);
   const ext = m ? m[1].toLowerCase() : '';
-  return AUDIO_EXTS.includes(ext) ? ext : null;
+  return MEDIA_EXTS.includes(ext) ? ext : null;
+}
+
+export function isVideoExt(ext) {
+  return VIDEO_EXTS.includes(String(ext || '').toLowerCase());
 }
 
 // MIME türü kesin olarak ses değilse (web sayfası, JSON, görsel...) true
@@ -75,6 +86,7 @@ export function sniffFormat(bytes) {
   if (ascii(bytes, 0, 3) === 'ID3') return 'mp3';
   if (bytes.length >= 8 && ascii(bytes, 4, 4) === 'ftyp') return 'm4a';
   if (ascii(bytes, 0, 4) === 'OggS') return 'ogg';
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return 'webm';
   if (ascii(bytes, 0, 4) === 'fLaC') return 'flac';
   if (bytes.length >= 12 && ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 4) === 'WAVE') return 'wav';
   if (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) {
@@ -84,18 +96,31 @@ export function sniffFormat(bytes) {
   return null;
 }
 
-// Nihai karar: imza > MIME > beklenen uzantı. Ses olmadığı anlaşılırsa hata fırlatır.
-export function decideFormat({ sniffed, mime, expected }) {
-  if (sniffed) return sniffed;
-  if (isClearlyNotAudio(mime)) {
-    throw new Error('Bu adres bir ses dosyası değil, bir web sayfası ya da başka bir dosya türü döndürüyor.');
-  }
-  const fromMime = extFromMime(mime);
-  if (fromMime) return fromMime;
+// Nihai karar: imza > MIME > beklenen uzantı. kind: 'audio' | 'video'.
+// Ses olmadığı (ya da video beklenirken video olmadığı) anlaşılırsa hata fırlatır.
+export function decideFormat({ sniffed, mime, expected, kind = 'audio' }) {
   const m = cleanMime(mime);
+  const exp = String(expected || '').toLowerCase();
+  if (isClearlyNotAudio(m)) {
+    throw new Error('Bu adres bir medya dosyası değil, bir web sayfası ya da başka bir dosya türü döndürüyor.');
+  }
+  if (kind === 'video') {
+    if (sniffed === 'm4a') return VIDEO_EXTS.includes(exp) ? exp : 'mp4'; // MP4 kapsayıcı
+    if (sniffed === 'webm') return 'webm';
+    if (sniffed === 'ogg') return 'ogv';
+    if (sniffed) throw new Error('İndirilen dosya bir video değil, yalnızca ses içeriyor.');
+    const fromMime = extFromMime(m);
+    if (fromMime && isVideoExt(fromMime)) return fromMime;
+    if ((!m || m === 'application/octet-stream') && isVideoExt(exp)) return exp;
+    throw new Error('Dosya tanınan bir video biçiminde değil (MP4, WebM).');
+  }
+  if (sniffed === 'webm') return exp === 'opus' ? 'opus' : 'webm';
+  if (sniffed) return sniffed;
+  const fromMime = extFromMime(m);
+  if (fromMime && !isVideoExt(fromMime)) return fromMime;
   if (m && m !== 'application/octet-stream' && !m.startsWith('audio/') && !m.startsWith('video/mp4')) {
     throw new Error(`Desteklenmeyen dosya türü: ${m}`);
   }
-  if (expected && AUDIO_EXTS.includes(expected)) return expected;
+  if (exp && AUDIO_EXTS.includes(exp)) return exp;
   throw new Error('Dosya tanınan bir ses biçiminde değil (MP3, M4A, AAC, WAV, OGG, FLAC).');
 }

@@ -7,6 +7,8 @@ import NamePrompt from './NamePrompt';
 import { colors, radius, space } from '../theme';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
+import { useDownloadOptions } from './DownloadOptions';
+import { canDownload } from '../services/downloadSources';
 
 function toast(msg) {
   if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -27,6 +29,7 @@ export default function TrackActionsSheet({ track, onClose, extraActions = [], s
   const insets = useSafeAreaInsets();
   const lib = useLibrary();
   const { addNext, addToQueue } = usePlayer();
+  const { openDownloadOptions } = useDownloadOptions();
   const [mode, setMode] = useState('main');
   const [naming, setNaming] = useState(false);
 
@@ -101,18 +104,17 @@ export default function TrackActionsSheet({ track, onClose, extraActions = [], s
                     done('İndirme silindi');
                   }}
                 />
-              ) : (
+              ) : null}
+              {canDownload(track) ? (
                 <Action
                   icon="arrow-down-circle-outline"
-                  label={downloading ? 'İndiriliyor…' : 'İndir (çevrimdışı dinle)'}
+                  label={downloading ? 'İndiriliyor…' : 'İndir… (video / yalnızca ses)'}
                   onPress={() => {
-                    if (!downloading) {
-                      lib.downloadTrack(track).then((ok) => toast(ok ? 'İndirildi' : 'İndirme başarısız oldu'));
-                    }
-                    done('İndirme başladı');
+                    onClose();
+                    openDownloadOptions(track);
                   }}
                 />
-              )}
+              ) : null}
               {extraActions.map((a) => (
                 <Action
                   key={a.label}

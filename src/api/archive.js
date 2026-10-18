@@ -1,3 +1,5 @@
+import { iaOptionsFor, iaOriginalOf } from '../services/formats';
+
 // Müzik kaynağı: Internet Archive "netlabels" koleksiyonu.
 // Buradaki parçalar Creative Commons lisanslıdır; dinlemek ve indirmek serbesttir.
 // API anahtarı gerekmez.
@@ -129,6 +131,7 @@ export async function getAlbumTracks(identifier) {
       artwork,
       duration: parseLength(f.length),
       trackNo: parseInt(f.track, 10) || 0,
+      sourceFile: f.name,
       license,
     });
   });
@@ -142,4 +145,26 @@ export async function getAlbumTracks(identifier) {
     album: { id: identifier, title: album, artist: albumArtist, artwork, license },
     tracks,
   };
+}
+
+// --- İndirme seçenekleri ---------------------------------------------------
+
+const metaCache = {};
+
+async function getItemFiles(identifier) {
+  if (metaCache[identifier]) return metaCache[identifier];
+  const data = await getJson(`${BASE}/metadata/${encodeURIComponent(identifier)}`);
+  const files = (data && data.files) || [];
+  metaCache[identifier] = files;
+  return files;
+}
+
+// Bir Internet Archive parçasının, arşivin gerçekten sunduğu tüm biçimleri (orijinal + türevler)
+export async function getTrackOptions(track) {
+  const identifier = track.albumId;
+  if (!identifier) return { video: [], audio: [] };
+  const fileName = track.sourceFile || String(track.id).slice(identifier.length + 1).split('#')[0];
+  const files = await getItemFiles(identifier);
+  const original = iaOriginalOf(files, fileName);
+  return iaOptionsFor(identifier, files, original);
 }

@@ -8,7 +8,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { resolveDownload } from '../services/mediaService';
-import { AUDIO_EXTS, base64ToBytes, decideFormat, extFromMime, extFromUrl, sniffFormat } from '../services/audioFormat';
+import { AUDIO_EXTS, MEDIA_EXTS, base64ToBytes, decideFormat, extFromMime, extFromUrl, isVideoExt, sniffFormat } from '../services/audioFormat';
 
 const STORAGE_KEY = 'ritim:library:v1';
 const DOWNLOAD_DIR = FileSystem.documentDirectory + 'muzik/';
@@ -124,7 +124,7 @@ export function LibraryProvider({ children }) {
         for (const file of files) {
           if (known.has(file)) continue;
           const ext = (file.split('.').pop() || '').toLowerCase();
-          if (!AUDIO_EXTS.includes(ext)) continue;
+          if (!MEDIA_EXTS.includes(ext)) continue;
           // eslint-disable-next-line no-await-in-loop
           const info = await FileSystem.getInfoAsync(DOWNLOAD_DIR + file);
           if (!info.exists || !info.size) continue;
@@ -140,6 +140,7 @@ export function LibraryProvider({ children }) {
               artwork: null,
               duration: 0,
               ext,
+              kind: isVideoExt(ext) ? 'video' : 'audio',
               source: 'local',
             },
             file,
@@ -234,7 +235,7 @@ export function LibraryProvider({ children }) {
 
   // Ortak indirme çekirdeği. Sonuç: { ok, error?, cancelled? }
   // Başarılı sayılması için: HTTP < 400, boş olmayan dosya, tanınan ses biçimi.
-  const runDownload = useCallback(async (track, headers) => {
+  const runDownload = useCallback(async (track, headers, kind = 'audio') => {
     if (jobs.current[track.id]) return { ok: false, error: 'Bu dosya zaten indiriliyor.' };
     const slot = { job: null, cancelled: false };
     jobs.current[track.id] = slot;
@@ -259,17 +260,17 @@ export function LibraryProvider({ children }) {
       }
       const info = await FileSystem.getInfoAsync(tmp);
       if (!info.exists || !info.size) throw new Error('İndirilen dosya boş.');
-      if (info.size < 1024) throw new Error('İndirilen dosya bir ses dosyası olamayacak kadar küçük.');
+      if (info.size < 1024) throw new Error('İndirilen dosya bir medya dosyası olamayacak kadar küçük.');
 
       const mime = headerValue(res.headers, 'content-type');
       const sniffed = sniffFormat(await readHeadBytes(tmp));
-      const ext = decideFormat({ sniffed, mime, expected: track.ext });
+      const ext = decideFormat({ sniffed, mime, expected: track.ext, kind });
 
       const file = `${base}.${ext}`;
       await FileSystem.deleteAsync(DOWNLOAD_DIR + file, { idempotent: true });
       await FileSystem.moveAsync({ from: tmp, to: DOWNLOAD_DIR + file });
 
-      const saved = { ...track, ext };
+      const saved = { ...track, ext, kind };
       setDownloads((d) => ({ ...d, [track.id]: { track: saved, file, size: info.size, at: Date.now() } }));
       return { ok: true, track: saved };
     } catch (e) {
@@ -316,9 +317,10 @@ export function LibraryProvider({ children }) {
         artwork: meta.artwork || null,
         duration: meta.duration || 0,
         ext: extFromUrl(url) || 'mp3',
+        kind: isVideoExt(extFromUrl(url)) ? 'video' : 'audio',
         source: meta.source || 'url',
       };
-      const res = await runDownload(track);
+      const res = await runDownload(track, null, track.kind);
       return { ...res, track: res.track || track };
     },
     [downloads, runDownload]
@@ -358,6 +360,35 @@ export function LibraryProvider({ children }) {
       return { ...res, track: res.track || track };
     },
     [downloads, runDownload]
+  );
+
+  // Kullanıcının menüden seçtiği bir biçimi indir (video ya da yalnızca ses)
+  const downloadOption = useCallback(
+    async (baseTrack, option) => {
+      const baseId = baseTrack.baseId || baseTrack.id;
+      const id = `${baseId}#${option.key === 'video-best' ? `video-${option.height || 'best'}` : option.key}`;
+      if (downloads[id]) return { ok: false, exists: true, error: 'Bu biçim zaten indirilmiş.' };
+      const track = {
+        ...baseTrack,
+        id,
+        baseId,
+        url: option.url,
+        ext: option.ext,
+        kind: option.kind,
+        quality: option.best ? option.detail : option.label,
+        source: baseTrack.source || 'archive',
+      };
+      delete track.headers;
+      const res = await runDownload(track, option.headers, option.kind);
+      return { ...res, track: res.track || track };
+    },
+    [downloads, runDownload]
+  );
+
+  // Bir içeriğin tüm indirilmiş biçimleri
+  const downloadsFor = useCallback(
+    (baseId) => Object.values(downloads).filter((d) => d.track.id === baseId || d.track.baseId === baseId),
+    [downloads]
   );
 
   const updateDownloadInfo = useCallback((id, patch) => {
@@ -412,6 +443,8 @@ export function LibraryProvider({ children }) {
       downloadTrack,
       downloadFromUrl,
       downloadServerItem,
+      downloadOption,
+      downloadsFor,
       cancelDownload,
       updateDownloadInfo,
       removeDownload,
@@ -438,6 +471,8 @@ export function LibraryProvider({ children }) {
       downloadTrack,
       downloadFromUrl,
       downloadServerItem,
+      downloadOption,
+      downloadsFor,
       cancelDownload,
       updateDownloadInfo,
       removeDownload,

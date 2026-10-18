@@ -34,7 +34,7 @@ jobs:
           set -o pipefail
           npx --yes create-expo-app@latest app --template blank@sdk-54
           cd app
-          npx --yes expo install expo-font expo-asset expo-build-properties react-native-webview expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
+          npx --yes expo install expo-font expo-asset expo-build-properties react-native-webview expo-video expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons
           cp ../App.js ../app.json ../eas.json .
           rm -rf src && cp -r ../src src
           npx --yes expo install --fix || true
@@ -44,7 +44,7 @@ jobs:
         working-directory: app/android
         run: |
           set -o pipefail
-          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a 2>&1 | tee ../../gradle.log || {
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a,x86_64 2>&1 | tee ../../gradle.log || {
             msg=$( (grep -n -A25 "What went wrong" ../../gradle.log || tail -60 ../../gradle.log) | head -80 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
             echo "::error title=Gradle hatasi::$msg"
             msg2=$(grep -nE "error:|ERROR:|e: " ../../gradle.log | head -30 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')

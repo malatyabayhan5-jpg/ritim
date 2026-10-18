@@ -1,0 +1,9 @@
+# Çevrimdışı oynatma (ağ run.sh tarafından kapatılır): İndirilen sesler listesinden çal
+appId: com.ritim.muzik
+---
+- tapOn:
+    id: "dl-row-play"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 6000
+- takeScreenshot: 7a_cevrimdisi_ses

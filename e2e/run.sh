@@ -44,15 +44,31 @@ adb shell am force-stop com.ritim.muzik
 
 : > "$OUT/sonuclar.txt"
 ALL_OK=1
-for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu; do
+for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_indir 6_ses_indir 7_cevrimdisi 8_cevrimdisi_video_ve_silme; do
+  if [ "$flow" = "7_cevrimdisi" ]; then
+    adb shell svc wifi disable; adb shell svc data disable; sleep 3
+    echo "Ağ kapatıldı: $(adb shell dumpsys connectivity | grep -m1 -E 'Active default network' | tr -d '\r')" >> "$OUT/sonuclar.txt"
+  fi
   (cd "$OUT" && maestro test "../e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
+  if [ "$flow" = "7_cevrimdisi" ]; then
+    sleep 2
+    if adb shell dumpsys audio | grep -A3 'playback activity' | grep -q 'state:started'; then
+      echo "Çevrimdışı ses çalma: ÇALIYOR (AudioPlaybackConfiguration state:started)" >> "$OUT/sonuclar.txt"
+    else
+      echo "Çevrimdışı ses çalma: çalan ses oturumu bulunamadı" >> "$OUT/sonuclar.txt"
+    fi
+    adb shell dumpsys audio | sed -n '/playback activity/,/^$/p' | head -20 > "$OUT/audio_dumpsys.txt"
+    adb shell dumpsys media_session | grep -E 'package=com.ritim|state=PlaybackState' | head -10 > "$OUT/media_session.txt"
+  fi
   fg="$(foreground)"
   if [ $code -eq 0 ]; then res="GEÇTİ"; else res="KALDI"; ALL_OK=0; fi
   if [ "$fg" != "com.ritim.muzik" ]; then ext=" | DİKKAT: ön planda başka uygulama var"; ALL_OK=0; else ext=""; fi
   echo "$flow: $res | ön plandaki uygulama: ${fg:-bilinmiyor}$ext" | tee -a "$OUT/sonuclar.txt"
   adb exec-out screencap -p > "$OUT/${flow}_son_ekran.png" 2>/dev/null
 done
+
+adb shell svc wifi enable; adb shell svc data enable
 
 # Çökme ve hata kayıtları
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true

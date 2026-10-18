@@ -7,9 +7,10 @@ import NamePrompt from '../components/NamePrompt';
 import { colors, radius, space, type } from '../theme';
 import { useLibrary } from '../context/LibraryContext';
 
-function Row({ icon, iconBg, artwork, title, subtitle, onPress, onLongPress }) {
+function Row({ icon, iconBg, artwork, title, subtitle, onPress, onLongPress, testID }) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       onLongPress={onLongPress}
       style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
@@ -62,11 +63,20 @@ export default function LibraryScreen({ navigation }) {
         onPress={() => navigation.navigate('Playlist', { kind: 'favorites' })}
       />
       <Row
-        icon="arrow-down-circle"
+        icon="musical-notes"
         iconBg="#0E7490"
-        title="İndirilenler"
-        subtitle={`Çevrimdışı · ${downloadList.length} parça`}
+        testID="lib-audio"
+        title="İndirilen sesler"
+        subtitle={`Çevrimdışı · ${downloadList.filter((d) => d.track.kind !== 'video').length} dosya`}
         onPress={() => navigation.navigate('Playlist', { kind: 'downloads' })}
+      />
+      <Row
+        icon="film"
+        iconBg="#7C3AED"
+        testID="lib-video"
+        title="İndirilen videolar"
+        subtitle={`Çevrimdışı · ${downloadList.filter((d) => d.track.kind === 'video').length} video`}
+        onPress={() => navigation.navigate('Playlist', { kind: 'videos' })}
       />
       <Row
         icon="time"

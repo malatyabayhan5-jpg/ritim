@@ -20,6 +20,9 @@ import PlaylistScreen from './src/screens/PlaylistScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
 import YouTubePlayerScreen from './src/screens/YouTubePlayerScreen';
 import YouTubeBrowseScreen from './src/screens/YouTubeBrowseScreen';
+import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
+import { DownloadOptionsProvider } from './src/components/DownloadOptions';
+import { navigationRef } from './src/navigation';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
@@ -81,13 +84,19 @@ export default function App() {
     <SafeAreaProvider>
       <LibraryProvider>
         <PlayerProvider>
-          <NavigationContainer theme={navTheme}>
+          <NavigationContainer ref={navigationRef} theme={navTheme}>
+            <DownloadOptionsProvider>
             <StatusBar style="light" />
             <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
               <Stack.Screen name="Tabs" component={Tabs} />
               <Stack.Screen name="Album" component={AlbumScreen} />
               <Stack.Screen name="Playlist" component={PlaylistScreen} />
               <Stack.Screen name="YouTubeBrowse" component={YouTubeBrowseScreen} />
+              <Stack.Screen
+                name="VideoPlayer"
+                component={VideoPlayerScreen}
+                options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+              />
               <Stack.Screen
                 name="YouTubePlayer"
                 component={YouTubePlayerScreen}
@@ -99,6 +108,7 @@ export default function App() {
                 options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
               />
             </Stack.Navigator>
+            </DownloadOptionsProvider>
           </NavigationContainer>
         </PlayerProvider>
       </LibraryProvider>

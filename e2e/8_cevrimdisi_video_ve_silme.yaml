@@ -1,0 +1,29 @@
+# Çevrimdışı video oynatma ve ses dosyasını silme
+appId: com.ritim.muzik
+---
+- pressKey: back
+- tapOn:
+    id: "lib-video"
+- tapOn:
+    id: "dl-row-play"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "video-player"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 8a_cevrimdisi_video
+- pressKey: back
+- pressKey: back
+- tapOn:
+    id: "lib-audio"
+- tapOn:
+    id: "dl-row-delete"
+    index: 0
+- tapOn: "Sil"
+- extendedWaitUntil:
+    visible:
+      text: "İndirilen ses yok"
+    timeout: 10000
+- takeScreenshot: 8b_silindi

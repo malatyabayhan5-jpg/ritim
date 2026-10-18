@@ -17,7 +17,8 @@ export default function DownloadRow({ entry, onPlay, onMore }) {
   const { removeDownload } = useLibrary();
   const { current, isPlaying, togglePlay } = usePlayer();
   const { track, size } = entry;
-  const active = current && current.id === track.id;
+  const isVideo = track.kind === 'video';
+  const active = !isVideo && current && current.id === track.id;
 
   const onToggle = () => {
     if (active) togglePlay();
@@ -32,7 +33,9 @@ export default function DownloadRow({ entry, onPlay, onMore }) {
   };
 
   const meta = [
-    (track.ext || 'mp3').toUpperCase(),
+    [(track.ext || 'mp3').toUpperCase(), track.quality && !/^(MP3|M4A|OGG|FLAC|WAV)$/i.test(track.quality) ? track.quality.replace(/^Orijinal format · /, '') : null]
+      .filter(Boolean)
+      .join(' · '),
     formatSize(size),
     track.duration ? formatTime(track.duration) : null,
   ].filter(Boolean);
@@ -59,10 +62,14 @@ export default function DownloadRow({ entry, onPlay, onMore }) {
           <Text style={styles.meta}>{meta.slice(1).join(' · ')}</Text>
         </View>
       </View>
-      <Pressable onPress={onToggle} hitSlop={8} style={styles.iconBtn}>
-        <Ionicons name={active && isPlaying ? 'pause-circle' : 'play-circle'} size={34} color={active ? colors.accent : colors.text} />
+      <Pressable testID="dl-row-play" onPress={onToggle} hitSlop={8} style={styles.iconBtn}>
+        <Ionicons
+          name={isVideo ? 'film' : active && isPlaying ? 'pause-circle' : 'play-circle'}
+          size={isVideo ? 26 : 34}
+          color={active ? colors.accent : colors.text}
+        />
       </Pressable>
-      <Pressable onPress={askDelete} hitSlop={8} style={styles.iconBtn}>
+      <Pressable testID="dl-row-delete" onPress={askDelete} hitSlop={8} style={styles.iconBtn}>
         <Ionicons name="trash-outline" size={20} color={colors.textDim} />
       </Pressable>
       {onMore ? (

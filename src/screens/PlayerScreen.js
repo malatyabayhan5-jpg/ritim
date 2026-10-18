@@ -9,6 +9,7 @@ import TrackActionsSheet from '../components/TrackActionsSheet';
 import { colors, space } from '../theme';
 import { usePlayer } from '../context/PlayerContext';
 import { useLibrary } from '../context/LibraryContext';
+import { useDownloadOptions } from '../components/DownloadOptions';
 
 function toast(msg) {
   if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -19,6 +20,7 @@ export default function PlayerScreen({ navigation }) {
   const { width, height } = useWindowDimensions();
   const p = usePlayer();
   const lib = useLibrary();
+  const { openDownloadOptions } = useDownloadOptions();
   const [showQueue, setShowQueue] = useState(false);
   const [sheet, setSheet] = useState(null); // { track, playlists: bool }
 
@@ -36,22 +38,17 @@ export default function PlayerScreen({ navigation }) {
   }
 
   const fav = lib.isFavorite(track.id);
-  const downloaded = lib.isDownloaded(track.id);
+  const downloaded = lib.isDownloaded(track.id) || lib.downloadsFor(track.baseId || track.id).length > 0;
   const dlProgress = lib.progress[track.id];
   const art = Math.min(width - space.xl * 2, height * 0.42);
 
+  // İndirme simgesi: doğrudan indirmez, seçenek menüsünü açar
   const onDownload = () => {
     if (!track.url) {
       toast('Bu dosya zaten telefonda');
       return;
     }
-    if (downloaded) {
-      toast('Bu parça zaten indirildi');
-      return;
-    }
-    if (dlProgress !== undefined) return;
-    toast('İndirme başladı');
-    lib.downloadTrack(track).then((ok) => toast(ok ? 'İndirildi' : 'İndirme başarısız oldu'));
+    openDownloadOptions(track);
   };
 
   return (

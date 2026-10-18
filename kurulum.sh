@@ -5,7 +5,7 @@ set -e
 
 SRC="$(cd "$(dirname "$0")" && pwd)"
 APP="$HOME/ritim"
-PKGS="expo-font expo-asset expo-build-properties react-native-webview expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons"
+PKGS="expo-font expo-asset expo-build-properties react-native-webview expo-video expo-audio expo-file-system expo-status-bar @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context @expo/vector-icons"
 
 say() { printf '\n\033[1;33m>> %s\033[0m\n' "$1"; }
 

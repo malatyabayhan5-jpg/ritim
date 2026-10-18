@@ -8,6 +8,7 @@ import ServiceSettings from '../components/ServiceSettings';
 import { getConfig, loadConfig, search as searchMedia } from '../services/mediaService';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
+import { useDownloadOptions } from '../components/DownloadOptions';
 
 function toast(msg) {
   if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -18,14 +19,21 @@ function durationLabel(d) {
   return d || '';
 }
 
-function ResultRow({ item, state, progress, onPress, onCancel }) {
+function ResultRow({ item, state, progress, onPress, onCancel, onDownloadPress }) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
       android_ripple={{ color: colors.surface2 }}
     >
-      <Artwork uri={item.thumbnail} size={52} radius={6} />
+      <View>
+        <Artwork uri={item.thumbnail} size={52} radius={6} />
+        {item.kind === 'video' ? (
+          <View style={styles.videoBadge}>
+            <Ionicons name="film" size={11} color="#fff" />
+          </View>
+        ) : null}
+      </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={[styles.title, state === 'playing' && { color: colors.accent }]} numberOfLines={1}>
           {item.title}
@@ -47,10 +55,14 @@ function ResultRow({ item, state, progress, onPress, onCancel }) {
           </Pressable>
         ) : state === 'starting' ? (
           <ActivityIndicator color={colors.accent} />
-        ) : state === 'downloaded' || state === 'playing' ? (
-          <Ionicons name={state === 'playing' ? 'volume-high' : 'play-circle'} size={30} color={colors.accent} />
         ) : (
-          <Ionicons name="arrow-down-circle-outline" size={30} color={colors.textDim} />
+          <Pressable testID={`dl-btn-${item.id}`} onPress={onDownloadPress} hitSlop={10}>
+            <Ionicons
+              name={state === 'playing' ? 'volume-high' : state === 'downloaded' ? 'checkmark-circle' : 'arrow-down-circle-outline'}
+              size={30}
+              color={state === 'downloaded' || state === 'playing' ? colors.accent : colors.textDim}
+            />
+          </Pressable>
         )}
       </View>
     </Pressable>
@@ -58,15 +70,15 @@ function ResultRow({ item, state, progress, onPress, onCancel }) {
 }
 
 export default function ArchiveScreen({ navigation }) {
-  const { downloads, downloadList, progress, pending, downloadServerItem, cancelDownload } = useLibrary();
+  const { downloadList, progress, downloadsFor, cancelDownload } = useLibrary();
+  const { openDownloadOptions } = useDownloadOptions();
   const { playQueue, current } = usePlayer();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [starting, setStarting] = useState({});
-  const reqId = useRef(0);
+    const reqId = useRef(0);
   const lastQuery = useRef('');
   const [config, setConfig] = useState(getConfig());
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -77,7 +89,7 @@ export default function ArchiveScreen({ navigation }) {
   }, []);
 
   const archiveTracks = useMemo(
-    () => downloadList.filter((d) => d.track.source === 'server').map((d) => d.track),
+    () => downloadList.filter((d) => d.track.source === 'server' && d.track.kind !== 'video').map((d) => d.track),
     [downloadList]
   );
 
@@ -115,30 +127,45 @@ export default function ArchiveScreen({ navigation }) {
     }
   };
 
+  const baseTrackFor = (item) => ({
+    id: `srv:${item.id}`,
+    itemId: item.id,
+    title: item.title || 'İsimsiz',
+    artist: item.artist || 'Arşivim',
+    album: 'Arşivim',
+    albumId: null,
+    artwork: item.thumbnail || null,
+    duration: item.duration || 0,
+    license: item.license || null,
+    source: 'server',
+    url: null,
+  });
+
+  const progressKey = (item) => Object.keys(progress).find((k) => k.startsWith(`srv:${item.id}#`));
+
   const stateOf = (item) => {
-    const tid = `srv:${item.id}`;
-    if (current && current.id === tid) return 'playing';
-    if (downloads[tid]) return 'downloaded';
-    if (pending[tid]) return 'downloading';
-    if (starting[item.id]) return 'starting';
+    const done = downloadsFor(`srv:${item.id}`);
+    if (current && done.some((d) => d.track.id === current.id)) return 'playing';
+    if (progressKey(item)) return 'downloading';
+    if (done.length) return 'downloaded';
     return 'idle';
   };
 
-  const onPressItem = async (item) => {
-    const tid = `srv:${item.id}`;
-    if (downloads[tid]) {
-      const idx = archiveTracks.findIndex((t) => t.id === tid);
+  // Satıra dokunma: indirilmiş ses varsa çal, yalnızca video varsa videoyu aç, hiçbiri yoksa seçenek menüsü
+  const onPressItem = (item) => {
+    const done = downloadsFor(`srv:${item.id}`);
+    const audio = done.find((d) => d.track.kind !== 'video');
+    if (audio) {
+      const idx = archiveTracks.findIndex((t) => t.id === audio.track.id);
       playQueue(archiveTracks, Math.max(0, idx));
       return;
     }
-    if (pending[tid] || starting[item.id]) return;
-    setStarting((s) => ({ ...s, [item.id]: true }));
-    const job = downloadServerItem(item);
-    const res = await job;
-    setStarting((s) => ({ ...s, [item.id]: false }));
-    if (res.ok && !res.exists) toast(`"${item.title}" indirildi`);
-    else if (res.cancelled) toast('İndirme iptal edildi');
-    else if (!res.ok) setError(res.error);
+    const video = done.find((d) => d.track.kind === 'video');
+    if (video) {
+      navigation.navigate('VideoPlayer', { id: video.track.id });
+      return;
+    }
+    openDownloadOptions(baseTrackFor(item));
   };
 
   const header = (
@@ -160,6 +187,7 @@ export default function ArchiveScreen({ navigation }) {
             value={query}
             onChangeText={setQuery}
             placeholder={isMock ? 'Denemek için "örnek" yaz' : 'Sunucunda ara'}
+            testID="archive-input"
             placeholderTextColor={colors.textFaint}
             style={styles.searchInput}
             returnKeyType="search"
@@ -173,6 +201,7 @@ export default function ArchiveScreen({ navigation }) {
             </Pressable>
           ) : null}
           <Pressable
+            testID="archive-go"
             onPress={() => search()}
             disabled={!query.trim() || loading}
             style={[styles.searchBtn, (!query.trim() || loading) && { opacity: 0.4 }]}
@@ -233,9 +262,10 @@ export default function ArchiveScreen({ navigation }) {
           <ResultRow
             item={item}
             state={stateOf(item)}
-            progress={progress[`srv:${item.id}`]}
+            progress={progressKey(item) ? progress[progressKey(item)] : 0}
             onPress={() => onPressItem(item)}
-            onCancel={() => cancelDownload(`srv:${item.id}`)}
+            onCancel={() => progressKey(item) && cancelDownload(progressKey(item))}
+            onDownloadPress={() => openDownloadOptions(baseTrackFor(item))}
           />
         )}
       />
@@ -298,6 +328,7 @@ const styles = StyleSheet.create({
   bar: { height: 3, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden', marginTop: 6 },
   barFill: { height: 3, backgroundColor: colors.accent },
   stateBox: { width: 44, alignItems: 'center', justifyContent: 'center' },
+  videoBadge: { position: 'absolute', right: 3, bottom: 3, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 4, padding: 2 },
   cancel: { color: colors.textDim, fontSize: 11, fontWeight: '700', marginTop: 2 },
   gear: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   percent: { color: colors.accent, fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'] },

@@ -38,14 +38,18 @@ export default function PlaylistScreen({ route, navigation }) {
     iconBg = '#C2410C';
     emptyTitle = 'Henüz favorin yok';
     emptyText = 'Beğendiğin parçalarda kalbe dokun.';
-  } else if (kind === 'downloads') {
-    title = 'İndirilenler';
-    tracks = lib.downloadList.map((d) => d.track);
-    icon = 'arrow-down-circle';
-    iconBg = '#0E7490';
-    emptyTitle = 'İndirilen parça yok';
-    emptyText = 'İndirdiğin parçalar internet olmadan da çalar.';
-    extra = formatSize(lib.downloadList.reduce((s, d) => s + (d.size || 0), 0));
+  } else if (kind === 'downloads' || kind === 'videos') {
+    const isVideo = kind === 'videos';
+    const list = lib.downloadList.filter((d) => (d.track.kind === 'video') === isVideo);
+    title = isVideo ? 'İndirilen videolar' : 'İndirilen sesler';
+    tracks = list.map((d) => d.track);
+    icon = isVideo ? 'film' : 'musical-notes';
+    iconBg = isVideo ? '#7C3AED' : '#0E7490';
+    emptyTitle = isVideo ? 'İndirilen video yok' : 'İndirilen ses yok';
+    emptyText = isVideo
+      ? 'Arşivim\'de bir videonun indirme simgesine dokun, "Video indir"i seç.'
+      : 'İndirdiğin sesler internet olmadan da çalar.';
+    extra = formatSize(list.reduce((s, d) => s + (d.size || 0), 0));
   } else if (kind === 'recent') {
     title = 'Son çalınanlar';
     tracks = lib.recent;
@@ -92,7 +96,7 @@ export default function PlaylistScreen({ route, navigation }) {
         {tracks.length} parça{total ? ` · ${formatTime(total)}` : ''}
         {extra ? ` · ${extra}` : ''}
       </Text>
-      {tracks.length ? (
+      {tracks.length && kind !== 'videos' ? (
         <View style={styles.actions}>
           <View style={{ flex: 1 }} />
           <Pressable onPress={() => playQueue(tracks, 0, { shuffle: true })} hitSlop={6}>
@@ -120,8 +124,12 @@ export default function PlaylistScreen({ route, navigation }) {
         ListEmptyComponent={<EmptyState title={emptyTitle} text={emptyText} />}
         contentContainerStyle={{ paddingBottom: space.xxl }}
         renderItem={({ item, index }) => (
-          kind === 'downloads' && lib.downloads[item.id] ? (
-            <DownloadRow entry={lib.downloads[item.id]} onPlay={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
+          (kind === 'downloads' || kind === 'videos') && lib.downloads[item.id] ? (
+            <DownloadRow
+              entry={lib.downloads[item.id]}
+              onPlay={() => (kind === 'videos' ? navigation.navigate('VideoPlayer', { id: item.id }) : playQueue(tracks, index))}
+              onMore={kind === 'videos' ? undefined : () => setSheetTrack(item)}
+            />
           ) : (
             <TrackRow track={item} onPress={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
           )

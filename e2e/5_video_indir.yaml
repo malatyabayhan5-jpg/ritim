@@ -1,0 +1,51 @@
+# Video indirme: menü -> "Video indir" -> 360p -> indirildi -> uygulama içinde aç
+appId: com.ritim.muzik
+---
+- launchApp
+- tapOn:
+    id: "tab-archive"
+- tapOn:
+    id: "archive-input"
+- inputText: "video"
+- tapOn:
+    id: "archive-go"
+- extendedWaitUntil:
+    visible:
+      id: "dl-btn-bbb"
+    timeout: 15000
+- tapOn:
+    id: "dl-btn-bbb"
+- extendedWaitUntil:
+    visible:
+      id: "dl-video"
+    timeout: 20000
+- takeScreenshot: 5a_indirme_menusu
+- tapOn:
+    id: "dl-video"
+- extendedWaitUntil:
+    visible:
+      id: "opt-video-360"
+    timeout: 10000
+- takeScreenshot: 5b_video_kaliteleri
+- tapOn:
+    id: "opt-video-360"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    notVisible:
+      text: "İptal"
+    timeout: 90000
+- tapOn:
+    id: "dl-btn-bbb"
+- extendedWaitUntil:
+    visible:
+      text: "Zaten indirildi"
+    timeout: 15000
+- takeScreenshot: 5c_zaten_indirildi
+- tapOn: "Aç"
+- extendedWaitUntil:
+    visible:
+      id: "video-player"
+    timeout: 10000
+- takeScreenshot: 5d_video_oynatici
+- pressKey: back
