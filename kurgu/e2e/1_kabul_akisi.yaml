@@ -184,6 +184,13 @@ appId: app.kurgu.editor
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 16_disa_aktarma_bitti
+# Uygulamanın kendi çıktı denetimi: süre, çözünürlük ve ses beklenenle uyuşmalı
+- assertVisible:
+    id: "check-duration-ok"
+- assertVisible:
+    id: "check-resolution-ok"
+- assertVisible:
+    id: "check-audio-ok"
 - scrollUntilVisible:
     element:
       id: "export-finish"

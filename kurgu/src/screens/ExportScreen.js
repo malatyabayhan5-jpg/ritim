@@ -252,7 +252,7 @@ export default function ExportScreen({ params }) {
           </View>
           <Section title={t('export.verification')}>
             {checks.map((c) => (
-              <View key={c.key} style={[styles.check, { flexDirection: row }]}>
+              <View key={c.key} testID={`check-${c.key}-${c.ok ? 'ok' : 'fail'}`} style={[styles.check, { flexDirection: row }]}>
                 <Icon name={c.ok ? 'checkmark-circle' : 'alert-circle'} size={18} color={c.ok ? colors.success : colors.warning} />
                 <Txt style={{ flex: 1 }}>{t(`export.check.${c.key}`)}</Txt>
                 <Txt dim>{c.value}</Txt>

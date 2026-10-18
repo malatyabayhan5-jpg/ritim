@@ -24,10 +24,11 @@ export function Icon({ name, size = 22, color = colors.text, directional = false
   return <Ionicons name={directional ? flipIcon(name) : name} size={size} color={color} style={style} />;
 }
 
-export function Txt({ style, dim, faint, center, numberOfLines, children, selectable }) {
+export function Txt({ style, dim, faint, center, numberOfLines, children, selectable, testID }) {
   const { textAlign } = useI18n();
   return (
     <Text
+      testID={testID}
       selectable={selectable}
       numberOfLines={numberOfLines}
       style={[
