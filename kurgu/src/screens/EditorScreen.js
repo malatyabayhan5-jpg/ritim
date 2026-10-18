@@ -415,6 +415,7 @@ export default function EditorScreen({ params, focused }) {
         const res = await transcribe(project.media[clip.mediaId], clip.srcIn, clip.srcOut, cap.lang || 'auto', model.id, (phase, v) => step(phase === 'transcribe' ? v : 0));
         results.push({ clipId: clip.id, segments: res.segments || [] });
       }
+      console.log(`[KurguAI] captions segments=${JSON.stringify(results.map((r) => r.segments.map((s) => s.text)))}`);
       let added = 0;
       apply((p) => {
         let q = removeCaptions(p);
@@ -431,6 +432,7 @@ export default function EditorScreen({ params, focused }) {
     } catch (e) {
       setCap((c) => ({ ...c, progress: null }));
       const code = e?.code || '';
+      console.log(`[KurguAI] captions failed: ${code} ${e?.message}`);
       if (code === 'CANCELLED') return toast(t('captions.cancelled'));
       toast(t(`captions.errors.${['MODEL_DOWNLOAD', 'MODEL_CHECKSUM', 'CAPTIONS_UNSUPPORTED', 'NO_AUDIO'].includes(code) ? code : 'CAPTIONS_FAILED'}`), 'error');
     }
@@ -452,6 +454,7 @@ export default function EditorScreen({ params, focused }) {
         const peaks = await speechPeaks(media);
         const ranges = detectSilences(peaks, 50);
         const r = TL.removeSourceRanges(project, clip.id, ranges);
+        console.log(`[KurguAI] silence media=${media?.name} peaks=${peaks.length} ranges=${JSON.stringify(ranges)} removedMs=${r.removedMs}`);
         setBusy(null);
         if (!r.removedMs) return toast(t('ai.noSilence'));
         apply((p) => TL.removeSourceRanges(p, clip.id, ranges).project);
@@ -462,6 +465,7 @@ export default function EditorScreen({ params, focused }) {
         setBusy(t('ai.analyzing'));
         const scores = await sceneScores(media, clip.srcIn, clip.srcOut, 6);
         const cuts = pickSceneCuts(scores);
+        console.log(`[KurguAI] scenes media=${media?.name} scores=${scores.length} max=${Math.max(0, ...scores.map((x) => x.d)).toFixed(3)} cuts=${JSON.stringify(cuts)}`);
         setBusy(null);
         const r = TL.splitMainAtSourceTimes(project, clip.id, cuts);
         if (!r.added) return toast(t('ai.noScenes'));
@@ -492,6 +496,7 @@ export default function EditorScreen({ params, focused }) {
     } catch (e) {
       setBusy(null);
       const code = e?.code || '';
+      console.log(`[KurguAI] ${key} failed: ${code} ${e?.message}`);
       toast(code.startsWith('TTS_') ? t(`ai.errors.${code}`) : t('errors.generic'), 'error');
     }
   };

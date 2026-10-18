@@ -29,6 +29,13 @@ ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lav
   -f lavfi -i "sine=frequency=500:sample_rate=44100:duration=7.5" \
   -filter_complex "[2]trim=duration=2.5,setpts=PTS-STARTPTS[m];[0][1][m]concat=n=3:v=1:a=0,format=yuv420p[v];[3]volume='if(between(t,2,4),0,1)':eval=frame[a]" \
   -map "[v]" -map "[a]" -c:v libx264 -c:a aac -t 7.5 "$M/kurgu_sahne.mp4"
+# Galeri seçicisindeki sıra dosya tarihine göredir (adb push tarihi korur). Sırayı
+# kesinleştir: yeniden eskiye video2, foto, video1, sahne, konusma.
+i=0
+for f in kurgu_konusma.mp4 kurgu_sahne.mp4 kurgu_video1.mp4 kurgu_foto.jpg kurgu_video2.mp4; do
+  [ -f "$M/$f" ] && touch -d "2024-01-01 10:0$i:00" "$M/$f"
+  i=$((i+1))
+done
 ls -l "$M" >> "$OUT/cihaz.txt"
 
 adb shell mkdir -p /sdcard/DCIM/Camera /sdcard/Music
@@ -88,7 +95,7 @@ else
 fi
 
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
-adb logcat -d -s "ReactNativeJS:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
+adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
 [ -s "$OUT/cokme.txt" ] && grep -q "$PKG" "$OUT/cokme.txt" && echo "UYARI: uygulama çökme kaydı var (cokme.txt)" >> "$OUT/sonuclar.txt"
 cat "$OUT/sonuclar.txt"
 
@@ -99,5 +106,7 @@ for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi; do
 done
 echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
+echo "===== AI araçları günlüğü ====="
+grep -E "KurguAI" "$OUT/logcat.txt" 2>/dev/null | cut -c1-600 | head -40
 echo "===== JS / yerel hata satırları ====="
 grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60

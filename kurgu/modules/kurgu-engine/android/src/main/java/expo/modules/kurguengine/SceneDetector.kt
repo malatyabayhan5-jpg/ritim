@@ -5,6 +5,7 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.util.Log
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -40,6 +41,8 @@ object SceneDetector {
       val endUs = if (toMs > fromMs) toMs * 1000 else Long.MAX_VALUE
       var nextUs = fromMs * 1000
       var prev: FloatArray? = null
+      var decoded = 0
+      var imageNull = 0
       val out = ArrayList<Map<String, Double>>()
       val info = MediaCodec.BufferInfo()
       var inputDone = false
@@ -61,9 +64,11 @@ object SceneDetector {
         }
         val outIdx = codec.dequeueOutputBuffer(info, 10_000)
         if (outIdx >= 0) {
+          decoded++
           val t = info.presentationTimeUs
           if (info.size > 0 && t >= nextUs && t <= endUs) {
             val image = codec.getOutputImage(outIdx)
+            if (image == null) imageNull++
             if (image != null) {
               val h = histogram(image)
               image.close()
@@ -76,6 +81,7 @@ object SceneDetector {
           if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 || t > endUs) outputDone = true
         }
       }
+      Log.i("KurguAI", "sceneScores frames=$decoded sampled=${out.size + (if (prev != null) 1 else 0)} imageNull=$imageNull codec=${codec.name}")
       return out
     } finally {
       try { codec?.stop() } catch (e: Exception) {}
