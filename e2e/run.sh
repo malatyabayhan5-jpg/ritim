@@ -29,6 +29,12 @@ export PATH="$PATH:$HOME/.maestro/bin"
 export MAESTRO_CLI_NO_ANALYTICS=1
 maestro --version >> "$OUT/maestro-install.txt" 2>&1
 
+APP_UID=$(adb shell dumpsys package com.ritim.muzik | grep -m1 -oE 'userId=[0-9]+' | cut -d= -f2 | tr -d '\r')
+# Bu uygulamanın (uid) şu anda çalan bir ses oynatıcısı var mı? (geçmiş kayıtları değil, anlık oynatıcı listesi)
+app_playing() {
+  adb shell dumpsys audio | grep 'AudioPlaybackConfiguration' | grep "u/pid:${APP_UID}/" | grep -q 'state:started'
+}
+
 foreground() {
   adb shell dumpsys activity activities | grep -m1 -E 'mResumedActivity|topResumedActivity' | sed -E 's/.* ([a-zA-Z0-9_.]+)\/.*/\1/' | tr -d '\r'
 }
@@ -51,12 +57,18 @@ for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_in
   fi
   (cd "$OUT" && maestro test "../e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
+  if [ "$flow" = "3_video_secme" ]; then
+    sleep 12
+    adb exec-out screencap -p > "$OUT/3b_oynatma_12sn.png" 2>/dev/null
+    if app_playing; then echo "YouTube videosu uygulama içinde ses üretiyor: EVET" >> "$OUT/sonuclar.txt"; else echo "YouTube videosu uygulama içinde ses üretiyor: HAYIR (oynatma doğrulanamadı)" >> "$OUT/sonuclar.txt"; fi
+    adb shell dumpsys audio | grep 'AudioPlaybackConfiguration' | grep "u/pid:${APP_UID}/" > "$OUT/3_audio.txt"
+  fi
   if [ "$flow" = "7_cevrimdisi" ]; then
     sleep 2
-    if adb shell dumpsys audio | grep -A3 'playback activity' | grep -q 'state:started'; then
-      echo "Çevrimdışı ses çalma: ÇALIYOR (AudioPlaybackConfiguration state:started)" >> "$OUT/sonuclar.txt"
+    if app_playing; then
+      echo "Çevrimdışı ses çalma (uygulama uid=$APP_UID): ÇALIYOR" >> "$OUT/sonuclar.txt"
     else
-      echo "Çevrimdışı ses çalma: çalan ses oturumu bulunamadı" >> "$OUT/sonuclar.txt"
+      echo "Çevrimdışı ses çalma (uygulama uid=$APP_UID): çalan oynatıcı bulunamadı" >> "$OUT/sonuclar.txt"
     fi
     adb shell dumpsys audio | sed -n '/playback activity/,/^$/p' | head -20 > "$OUT/audio_dumpsys.txt"
     adb shell dumpsys media_session | grep -E 'package=com.ritim|state=PlaybackState' | head -10 > "$OUT/media_session.txt"

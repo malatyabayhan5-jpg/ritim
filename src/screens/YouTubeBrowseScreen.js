@@ -31,7 +31,10 @@ const INTERCEPT_JS = `
     if (id && id.length === 11) {
       e.preventDefault();
       e.stopPropagation();
-      var title = (a.getAttribute('aria-label') || a.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 200);
+      var box = a.closest('ytm-video-with-context-renderer, ytm-compact-video-renderer, ytm-rich-item-renderer, ytm-media-item, ytm-reel-item-renderer, ytm-video-card-renderer') || a.parentElement;
+      var h = box && box.querySelector('h3, h4, .media-item-headline, .compact-media-item-headline, [class*="headline"], [class*="title"]');
+      var title = ((h && h.textContent) || a.getAttribute('title') || a.getAttribute('aria-label') || '').replace(/\\s+/g, ' ').trim().slice(0, 200);
+      if (/^[\\d:\\s]*$/.test(title)) title = '';
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'video', id: id, title: title }));
     }
   }, true);

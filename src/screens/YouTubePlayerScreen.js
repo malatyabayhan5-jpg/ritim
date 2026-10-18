@@ -1,6 +1,7 @@
-// YouTube videolarını uygulamanın içinde, YouTube'un resmi IFrame oynatıcısıyla açar.
-// Dış uygulamaya yönlendirme yoktur. Video sahibi gömmeyi kapattıysa (hata 101/150/153),
-// video yine uygulama içinde YouTube'un mobil izleme sayfasında açılır.
+// YouTube videolarını uygulamanın içinde açar.
+// Önce YouTube'un resmi IFrame (gömülü) oynatıcısı denenir. Gömülü oynatma reddedilirse
+// (video sahibi gömmeyi kapatmış ya da YouTube oynatıcıyı doğrulayamamışsa), video otomatik olarak
+// YouTube'un kendi mobil izleme sayfasıyla yine bu ekranda oynatılır. Dış uygulamaya yönlendirme yoktur.
 // İndirme yoktur; YouTube'un kuralları gereği gömülü oynatıcı ekran kapalıyken çalmaz.
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -8,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, formatTime, radius, space } from '../theme';
-import { isExternalAppUrl, mobileWatchUrl, parseYouTubeId } from '../services/youtubeService';
+import { isAllowedYouTubeHost, isExternalAppUrl, mobileWatchUrl, parseYouTubeId } from '../services/youtubeService';
 import { usePlayer } from '../context/PlayerContext';
 
 const ORIGIN = 'https://com.ritim.muzik';
@@ -57,6 +58,8 @@ export default function YouTubePlayerScreen({ route, navigation }) {
   const { isPlaying, togglePlay } = usePlayer();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('embed'); // 'embed' | 'watch'
+  const [embedCode, setEmbedCode] = useState(null);
 
   // Yerel müzik çalıyorsa iki ses üst üste binmesin
   useEffect(() => {
@@ -67,12 +70,57 @@ export default function YouTubePlayerScreen({ route, navigation }) {
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setMode('embed');
+    setEmbedCode(null);
   }, [video.id]);
 
   // Gömme kapalıysa: videoyu yine uygulama içinde YouTube'un mobil izleme sayfasında aç
   const watchInApp = useCallback(() => {
     navigation.navigate('YouTubeBrowse', { startUrl: mobileWatchUrl(video.id), query: video.title, watchInline: true });
   }, [navigation, video]);
+
+  if (mode === 'watch') {
+    return (
+      <View testID="yt-player" style={[styles.screen, { paddingTop: insets.top }]}>
+        <View style={styles.topBar}>
+          <Pressable testID="yt-player-back" onPress={() => navigation.goBack()} hitSlop={10} style={styles.back}>
+            <Ionicons name="chevron-down" size={28} color={colors.text} />
+          </Pressable>
+          <Text style={styles.topLabel}>YOUTUBE</Text>
+          <View style={styles.back} />
+        </View>
+        <View testID="yt-watch-mode" style={styles.modeNote}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textDim} />
+          <Text style={styles.modeNoteText}>
+            Bu video gömülü oynatıcıda açılamadı{embedCode ? ` (YouTube kodu ${embedCode})` : ''}; YouTube'un mobil oynatıcısıyla burada oynatılıyor.
+          </Text>
+        </View>
+        <WebView
+          testID="yt-watch-webview"
+          source={{ uri: mobileWatchUrl(video.id) }}
+          style={{ flex: 1, backgroundColor: '#000' }}
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          allowsFullscreenVideo
+          javaScriptEnabled
+          domStorageEnabled
+          setSupportMultipleWindows={false}
+          onLoadEnd={() => setLoading(false)}
+          onShouldStartLoadWithRequest={(req) => {
+            const u = req.url || '';
+            if (isExternalAppUrl(u)) return false; // YouTube uygulamasını açma
+            if (/^(about|data|blob):/i.test(u)) return true;
+            return isAllowedYouTubeHost(u);
+          }}
+        />
+        {loading ? (
+          <View style={[styles.loader, { top: 120 }]} pointerEvents="none">
+            <ActivityIndicator color={colors.accent} />
+          </View>
+        ) : null}
+      </View>
+    );
+  }
 
   const playerHeight = Math.round((width * 9) / 16);
 
@@ -115,8 +163,15 @@ export default function YouTubePlayerScreen({ route, navigation }) {
                 const msg = JSON.parse(e.nativeEvent.data);
                 if (msg.type === 'ready') setLoading(false);
                 if (msg.type === 'error') {
-                  setLoading(false);
-                  setError(EMBED_ERRORS[msg.code] || 'Video bu oynatıcıda açılamadı.');
+                  // Gömülü oynatıcı reddetti: YouTube'un mobil oynatıcısına bu ekranda geç
+                  setEmbedCode(msg.code);
+                  if ([2, 100].includes(msg.code)) {
+                    setLoading(false);
+                    setError(EMBED_ERRORS[msg.code]);
+                  } else {
+                    setLoading(true);
+                    setMode('watch');
+                  }
                 }
               } catch (err) {
                 // yoksay
@@ -183,6 +238,8 @@ const styles = StyleSheet.create({
   ccText: { color: colors.accent, fontSize: 11, fontWeight: '800' },
   ytBtn: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: '#CC0000', borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: space.sm },
   ytBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  modeNote: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, alignItems: 'flex-start' },
+  modeNoteText: { flex: 1, color: colors.textDim, fontSize: 12, lineHeight: 17 },
   note: { flexDirection: 'row', gap: space.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: space.md, marginTop: space.sm },
   noteText: { flex: 1, color: colors.textDim, fontSize: 13, lineHeight: 19 },
 });
