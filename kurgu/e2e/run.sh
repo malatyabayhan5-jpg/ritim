@@ -80,14 +80,3 @@ echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== JS / yerel hata satırları ====="
 grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60
-
-# Ekran görüntülerinin küçültülmüş kopyaları günlüğe base64 olarak yazılır
-# (yapıt indirilemeyen ortamlarda görsel kontrol için).
-for img in "$OUT"/*.png; do
-  [ -f "$img" ] || continue
-  name=$(basename "$img" .png)
-  ffmpeg -v error -y -i "$img" -vf "scale=300:-2" -q:v 7 "/tmp/k_$name.jpg" 2>/dev/null || continue
-  echo "KURGU_IMG_BEGIN $name"
-  base64 -w 0 "/tmp/k_$name.jpg"; echo
-  echo "KURGU_IMG_END $name"
-done

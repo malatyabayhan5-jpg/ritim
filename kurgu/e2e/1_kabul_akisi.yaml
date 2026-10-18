@@ -87,8 +87,7 @@ appId: app.kurgu.editor
 - tapOn:
     id: "tool-effects"
 - tapOn:
-    id: "effect-vignette"
-    optional: true
+    id: "effect-sharpen"
 - tapOn:
     id: "panel-done"
 - tapOn:
@@ -129,6 +128,18 @@ appId: app.kurgu.editor
     optional: true
 - waitForAnimationToEnd:
     timeout: 8000
+# Dosya seçici hâlâ açıksa (dosya listede görünmediyse) kapat
+- runFlow:
+    when:
+      notVisible:
+        id: "play-toggle"
+    commands:
+      - back
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: "tool-back"
+    optional: true
 - takeScreenshot: 11_zaman_cizelgesi
 # Kaydedilmesini bekle, uygulamayı kapat ve yeniden aç
 - extendedWaitUntil:
