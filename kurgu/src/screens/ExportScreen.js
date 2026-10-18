@@ -100,6 +100,7 @@ export default function ExportScreen({ params }) {
       const safe = (project.name || 'kurgu').replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 40) || 'kurgu';
       const out = `${EXPORTS_DIR}${safe}_${Date.now()}.mp4`;
       const spec = buildRenderSpec(project, mediaUri, { rtl });
+      console.log(`[KurguExport] totalMs=${spec.totalMs} effectLayers=${JSON.stringify(spec.effectLayers.map((e) => [e.shader, e.startMs, e.endMs, e.amount]))} clipEffects=${JSON.stringify(spec.main.map((m) => m.effects.map((e) => [e.shader, e.startMs, e.endMs])))}`);
       setPhase('running');
       setProgress(0);
       startedAt.current = Date.now();

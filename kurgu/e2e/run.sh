@@ -63,6 +63,8 @@ adb logcat -c
 for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
+  adb logcat -d -s "ReactNativeJS:*" 2>/dev/null | grep -E "Kurgu(AI|Export)" | cut -c1-700 >> "$OUT/kurgu_gunluk.txt"
+  adb logcat -c
   if [ $code -eq 0 ]; then
     echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"
   else
@@ -86,6 +88,12 @@ if [ -n "$OUTFILE" ]; then
   # Efekt katmanı çıktıya gerçekten işlendi mi? (yalnızca katman aralığında)
   python3 "$(dirname "$0")/fx_check.py" "$OUT/cikti.mp4" > "$OUT/efekt.txt" 2>&1
   tail -1 "$OUT/efekt.txt" >> "$OUT/sonuclar.txt"
+  head -1 "$OUT/efekt.txt" | cut -c1-900 >> "$OUT/sonuclar.txt"
+  # Kare başına ortalama renk (efektlerin görsel izi)
+  for t in 1 3 5 7 9 11 13 15 17; do
+    rgb=$(ffmpeg -v error -ss $t -i "$OUT/cikti.mp4" -frames:v 1 -vf scale=1:1 -f rawvideo -pix_fmt rgb24 - 2>/dev/null | od -An -tu1 | tr -s ' ')
+    echo "  ${t}sn ortalama RGB:$rgb" >> "$OUT/sonuclar.txt"
+  done
   # Örnek kareler (efekt/metin görsel kontrolü)
   for s in 1 3 5 8; do ffmpeg -v error -y -ss $s -i "$OUT/cikti.mp4" -frames:v 1 "$OUT/kare_${s}sn.png" 2>/dev/null; done
   echo "Çıktı: $OUTFILE" >> "$OUT/sonuclar.txt"
@@ -107,6 +115,6 @@ done
 echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== AI araçları günlüğü ====="
-grep -E "KurguAI|KurguExport" "$OUT/logcat.txt" 2>/dev/null | cut -c1-600 | head -40
+cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -40
 echo "===== JS / yerel hata satırları ====="
 grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60
