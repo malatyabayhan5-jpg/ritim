@@ -61,21 +61,31 @@ O4 (kare adımı), O5 (önizlemede ısınma uyarısı), D1–D3.
 | 2 | Böl / kırp | ✅ e2e (böl), birim (kırp) |
 | 3 | Metin ekle | ✅ e2e |
 | 4 | Filtre | ✅ e2e |
-| 5 | Efekt katmanı ekle (çift ton) | e2e'ye eklendi — sonuç aşağıda |
-| 6 | Klibe efekt (parıltı) | e2e'ye eklendi — sonuç aşağıda |
+| 5 | Efekt katmanı ekle (çift ton) | ✅ e2e (oluşturma); çıktıda tespit ❌ inceleniyor |
+| 6 | Klibe efekt (parıltı) | ✅ e2e |
 | 7 | Çoklu efekt yığını | ✅ birim |
 | 8 | Efekt parametresi değiştir + geri al/yinele | ✅ birim |
 | 9 | Geçiş | ✅ e2e |
 | 10 | Müzik/ses | 🟡 e2e (videodan ses ayırma); dosya seçiciden müzik emülatörde otomatikleşmedi |
 | 11 | Kaydet → kapat → aç, efektler korunur | ✅ birim; e2e'de efekt şeridi kontrolü eklendi |
 | 12 | MP4 dışa aktar, ffmpeg ile doğrula | ✅ e2e |
-| 13 | Efektin dışa aktarılan videoda görünmesi | e2e'ye eklendi — sonuç aşağıda |
+| 13 | Efektin dışa aktarılan videoda görünmesi | ❌ inceleniyor |
 | 14 | Dil değiştir (TR/EN/AR), RTL | ✅ e2e |
 | 15 | LUT içe aktar | 🟡 birim + laboratuvar; emülatörde dosya seçici otomasyonu yok |
 
-### Son CI sonucu
+### Son CI sonucu (CI #25, 2026-10-18, Android 14 emülatörü, API 34)
 
-(CI tamamlanınca güncellenir.)
+| Akış | Sonuç |
+|---|---|
+| 3 — AI araçları: sahne algılama (3 sahne), geri al, sessizlik kaldırma, metinden konuşma (ses klibi eklendi) | ✅ GEÇTİ |
+| 4 — Otomatik altyazı: model indirme + SHA-256 doğrulama, cihaz içi tanıma, "hello" içeren altyazı katmanı | ✅ GEÇTİ |
+| 1 — Kabul: proje, içe aktarma, bölme, metin, filtre, efekt katmanı + klip efekti, geçiş, ses, kapat/aç, 720p MP4 dışa aktarma, uygulamanın süre/çözünürlük/ses denetimi | ✅ GEÇTİ |
+| 2 — Dil değişimi TR → AR (RTL) → EN → TR | ✅ GEÇTİ |
+| Dışa aktarılan MP4'ün ffmpeg ile baştan sona çözülmesi | ✅ hatasız |
+| Efekt katmanının (çift ton) dışa aktarılan videoda otomatik tespiti | ❌ iz bulunamadı — inceleniyor (gerçek hata mı, denetim mi) |
+
+Emülatörün GPU'su yazılımsal olduğu için dışa aktarma testi 720p ile yapılır;
+1080p'de efektli dışa aktarma emülatörü kilitledi (gerçek cihazda ölçülmedi).
 
 ## Aşama 7 — Belgeler ✅
 
