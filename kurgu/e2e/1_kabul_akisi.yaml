@@ -33,7 +33,7 @@ appId: app.kurgu.editor
     timeout: 90000
 - extendedWaitUntil:
     visible:
-      id: "clip-2"
+      id: "clip-1"
     timeout: 10000
 - waitForAnimationToEnd:
     timeout: 5000
