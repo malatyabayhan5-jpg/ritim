@@ -12,6 +12,10 @@ metinden konuşma, hareket takibi). Bu listede bulunmayan CapCut özellikleri
 **Test değerleri:** B = birim testi (Node, CI) · D = CI'da derleme · E = emülatör uçtan uca · — = test yok.
 Gerçek cihaz testi bu sürümde **yapılmamıştır** (bkz. README, Kabul testi).
 
+**Son emülatör sonucu (Android 14, API 34, x86_64):** kabul akışı GEÇTİ, dil/RTL akışı GEÇTİ.
+Dışa aktarılan MP4 cihazdan alınıp ffmpeg ile baştan sona hatasız çözüldü (H.264 + AAC, 30 fps);
+uygulamanın kendi süre/çözünürlük/ses denetimi de geçti. Çökme kaydı yok.
+
 Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı henüz yoktur (⏳).
 
 ## Proje ve ana ekran
@@ -110,7 +114,7 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 
 | Özellik | Durum | Sınırlama |
 |---|---|---|
-| Müzik/ses dosyası ekleme | ✅ | Lisanslı müzik kütüphanesi yok (yalnızca kullanıcının dosyaları) |
+| Müzik/ses dosyası ekleme | ✅ | Lisanslı müzik kütüphanesi yok (yalnızca kullanıcının dosyaları). Emülatör testinde dosya seçiciden seçim otomatikleştirilemedi; ses katmanı "videodan ses ayırma" ile test edildi |
 | Çok katmanlı ses miksajı | ✅ | — |
 | Ses düzeyi, yavaşça açılma/kapanma | ✅ | — |
 | Ses kırpma, bölme, taşıma, hız | ✅ | — |
@@ -149,7 +153,7 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 | Türkçe (varsayılan), İngilizce, Arapça — tüm arayüz | ✅ | B (katalog kapsamı), CI denetimi |
 | Cihaz dilini algılama, desteklenmiyorsa Türkçe | ✅ | B |
 | Ayarlardan anında dil değişimi (yeniden başlatma yok, proje açık kalır) | ✅ | E |
-| Arapçada RTL arayüz; zaman çizelgesi LTR | ✅ | E (ekran görüntüsü) |
+| Arapçada RTL arayüz; zaman çizelgesi LTR | ✅ | E (Arapça ekranlar doğrulandı; yerleşimin görsel incelemesi henüz yapılmadı) |
 | Çoğul biçimler (Arapça 6 biçim) | ✅ | B |
 | Tarih/sayı/boyut biçimleri | ✅ | B |
 | Gömülü metin denetimi | ✅ | CI |

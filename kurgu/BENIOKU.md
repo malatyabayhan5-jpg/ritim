@@ -74,6 +74,10 @@ uygulamayı kapatıp açma → projeye devam → MP4 dışa aktarma → dosyayı
 alıp `ffprobe`/`ffmpeg` ile bağımsız olarak çözme. `e2e/2_dil_rtl.yaml` dil
 değişimini ve Arapça RTL ekranları denetler.
 
+**Son sonuç (Android 14 emülatörü):** her iki akış da geçti. Dışa aktarılan MP4 galeriye
+(Movies/Kurgu) kaydedildi, `ffmpeg` ile baştan sona hatasız çözüldü (H.264 + AAC, 30 fps)
+ve uygulamanın süre/çözünürlük/ses denetimi geçti. Uygulama çökmedi, JS hatası yok.
+
 **Gerçek cihaz testi bu sürümde yapılmadı.** Emülatör; donanım kodlayıcıları,
 GPU ve bellek açısından gerçek telefondan farklıdır. Yayın öncesi en az bir düşük
 ve bir üst seviye Android telefonda aynı akış elle denenmelidir.
