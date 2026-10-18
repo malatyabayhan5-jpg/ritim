@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Artwork from '../components/Artwork';
 import TrackRow from '../components/TrackRow';
+import DownloadRow from '../components/DownloadRow';
 import TrackActionsSheet from '../components/TrackActionsSheet';
 import { EmptyState } from '../components/StateView';
 import { colors, formatTime, space } from '../theme';
@@ -119,7 +120,11 @@ export default function PlaylistScreen({ route, navigation }) {
         ListEmptyComponent={<EmptyState title={emptyTitle} text={emptyText} />}
         contentContainerStyle={{ paddingBottom: space.xxl }}
         renderItem={({ item, index }) => (
-          <TrackRow track={item} onPress={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
+          kind === 'downloads' && lib.downloads[item.id] ? (
+            <DownloadRow entry={lib.downloads[item.id]} onPlay={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
+          ) : (
+            <TrackRow track={item} onPress={() => playQueue(tracks, index)} onMore={() => setSheetTrack(item)} />
+          )
         )}
       />
       <TrackActionsSheet

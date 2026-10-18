@@ -15,9 +15,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import TrackRow from '../components/TrackRow';
+import DownloadRow from '../components/DownloadRow';
 import TrackActionsSheet from '../components/TrackActionsSheet';
-import ServerSearch from '../components/ServerSearch';
 import { colors, radius, space, type } from '../theme';
 import { isValidAudioUrl, useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -74,7 +73,7 @@ function EditInfoModal({ track, onClose, onSave }) {
 }
 
 export default function DownloadScreen({ navigation }) {
-  const { downloadList, pending, progress, downloadFromUrl, updateDownloadInfo } = useLibrary();
+  const { downloads, downloadList, pending, progress, downloadFromUrl, updateDownloadInfo, cancelDownload } = useLibrary();
   const { playQueue } = usePlayer();
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -84,7 +83,6 @@ export default function DownloadScreen({ navigation }) {
   const [busy, setBusy] = useState(false);
   const [sheetTrack, setSheetTrack] = useState(null);
   const [editTrack, setEditTrack] = useState(null);
-  const [mode, setMode] = useState('server'); // 'server' | 'link'
 
   const urlDownloads = useMemo(
     () => downloadList.filter((d) => d.track.source === 'url').map((d) => d.track),
@@ -114,6 +112,8 @@ export default function DownloadScreen({ navigation }) {
     const res = await job;
     if (res.ok) {
       toast(`"${res.track.title}" indirildi`);
+    } else if (res.cancelled) {
+      toast('İndirme iptal edildi');
     } else {
       setError(res.error);
     }
@@ -218,6 +218,9 @@ export default function DownloadScreen({ navigation }) {
                   </View>
                 </View>
                 <Text style={styles.percent}>%{Math.round(p * 100)}</Text>
+                <Pressable onPress={() => cancelDownload(t.id)} hitSlop={10}>
+                  <Ionicons name="close-circle" size={22} color={colors.textDim} />
+                </Pressable>
               </View>
             );
           })}
@@ -237,24 +240,7 @@ export default function DownloadScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.titleBar}>
         <Text style={type.h1}>İndir</Text>
-        <View style={styles.segment}>
-          {[
-            ['server', 'Sunucumda ara'],
-            ['link', 'Linkten indir'],
-          ].map(([key, label]) => (
-            <Pressable
-              key={key}
-              onPress={() => setMode(key)}
-              style={[styles.segBtn, mode === key && styles.segBtnOn]}
-            >
-              <Text style={[styles.segText, mode === key && styles.segTextOn]}>{label}</Text>
-            </Pressable>
-          ))}
-        </View>
       </View>
-      {mode === 'server' ? (
-        <ServerSearch />
-      ) : (
       <FlatList
         data={urlDownloads}
         keyExtractor={(t) => t.id}
@@ -268,14 +254,9 @@ export default function DownloadScreen({ navigation }) {
           </View>
         }
         renderItem={({ item, index }) => (
-          <TrackRow
-            track={item}
-            onPress={() => playQueue(urlDownloads, index)}
-            onMore={() => setSheetTrack(item)}
-          />
+          <DownloadRow entry={downloads[item.id]} onPlay={() => playQueue(urlDownloads, index)} onMore={() => setSheetTrack(item)} />
         )}
       />
-      )}
       <TrackActionsSheet
         track={sheetTrack}
         onClose={() => setSheetTrack(null)}

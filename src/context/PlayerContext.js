@@ -7,7 +7,8 @@ const PlayerContext = createContext(null);
 export function PlayerProvider({ children }) {
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
-  const { getLocalUri, addRecent } = useLibrary();
+  const { getLocalUri, addRecent, downloads, updateDownloadInfo } = useLibrary();
+  const [volume, setVolumeState] = useState(1);
 
   const [queue, setQueue] = useState([]);
   const [index, setIndex] = useState(-1);
@@ -31,8 +32,11 @@ export function PlayerProvider({ children }) {
     (track) => {
       if (!track) return;
       const uri = getLocalUri(track.id) || track.url;
+      if (!uri) return;
       finishedRef.current = false;
+      // replace() önceki kaynağı serbest bırakıp yenisini yükler; oynatıcı nesnesi tek ve kalıcıdır
       player.replace({ uri });
+      player.volume = volume;
       player.play();
       // Kilit ekranı / bildirim kontrolleri (destekleyen sürümlerde)
       if (typeof player.setActiveForLockScreen === 'function') {
@@ -49,7 +53,7 @@ export function PlayerProvider({ children }) {
       }
       addRecent(track);
     },
-    [player, getLocalUri, addRecent]
+    [player, getLocalUri, addRecent, volume]
   );
 
   const playQueue = useCallback(
@@ -123,6 +127,19 @@ export function PlayerProvider({ children }) {
 
   const toggleShuffle = useCallback(() => setShuffle((s) => !s), []);
 
+  const setVolume = useCallback(
+    (v) => {
+      const val = Math.max(0, Math.min(1, v));
+      try {
+        player.volume = val;
+      } catch (e) {
+        // yoksay
+      }
+      setVolumeState(val);
+    },
+    [player]
+  );
+
   const cycleRepeat = useCallback(() => {
     setRepeat((r) => (r === 'off' ? 'all' : r === 'all' ? 'one' : 'off'));
   }, []);
@@ -152,6 +169,13 @@ export function PlayerProvider({ children }) {
     },
     [current, playQueue]
   );
+
+  // İndirilmiş dosyanın süresi bilinmiyorsa oynatıcıdan öğrenip kaydet
+  useEffect(() => {
+    if (!current || !status.duration || status.duration <= 0) return;
+    const entry = downloads[current.id];
+    if (entry && !entry.track.duration) updateDownloadInfo(current.id, { duration: status.duration });
+  }, [current, status.duration, downloads, updateDownloadInfo]);
 
   // Parça bittiğinde sıradakine geç
   useEffect(() => {
@@ -186,6 +210,8 @@ export function PlayerProvider({ children }) {
       previous,
       togglePlay,
       seek,
+      volume,
+      setVolume,
       toggleShuffle,
       cycleRepeat,
       addNext,
@@ -207,6 +233,8 @@ export function PlayerProvider({ children }) {
       previous,
       togglePlay,
       seek,
+      volume,
+      setVolume,
       toggleShuffle,
       cycleRepeat,
       addNext,

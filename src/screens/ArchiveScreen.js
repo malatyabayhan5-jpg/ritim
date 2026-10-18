@@ -1,10 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, ToastAndroid, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Artwork from '../components/Artwork';
 import { colors, formatTime, radius, space, type } from '../theme';
-import { IS_MOCK, mockSearchAPI } from '../api/server';
+import ServiceSettings from '../components/ServiceSettings';
+import { getConfig, loadConfig, search as searchMedia } from '../services/mediaService';
 import { useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
 
@@ -17,7 +18,7 @@ function durationLabel(d) {
   return d || '';
 }
 
-function ResultRow({ item, state, progress, onPress }) {
+function ResultRow({ item, state, progress, onPress, onCancel }) {
   return (
     <Pressable
       onPress={onPress}
@@ -40,7 +41,10 @@ function ResultRow({ item, state, progress, onPress }) {
       </View>
       <View style={styles.stateBox}>
         {state === 'downloading' ? (
-          <Text style={styles.percent}>%{Math.round((progress || 0) * 100)}</Text>
+          <Pressable onPress={onCancel} hitSlop={10} style={{ alignItems: 'center' }}>
+            <Text style={styles.percent}>%{Math.round((progress || 0) * 100)}</Text>
+            <Text style={styles.cancel}>İptal</Text>
+          </Pressable>
         ) : state === 'starting' ? (
           <ActivityIndicator color={colors.accent} />
         ) : state === 'downloaded' || state === 'playing' ? (
@@ -54,7 +58,7 @@ function ResultRow({ item, state, progress, onPress }) {
 }
 
 export default function ArchiveScreen({ navigation }) {
-  const { downloads, downloadList, progress, pending, downloadServerItem } = useLibrary();
+  const { downloads, downloadList, progress, pending, downloadServerItem, cancelDownload } = useLibrary();
   const { playQueue, current } = usePlayer();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -63,27 +67,49 @@ export default function ArchiveScreen({ navigation }) {
   const [error, setError] = useState(null);
   const [starting, setStarting] = useState({});
   const reqId = useRef(0);
+  const lastQuery = useRef('');
+  const [config, setConfig] = useState(getConfig());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const isMock = config.mode !== 'api';
+
+  useEffect(() => {
+    loadConfig().then(setConfig);
+  }, []);
 
   const archiveTracks = useMemo(
     () => downloadList.filter((d) => d.track.source === 'server').map((d) => d.track),
     [downloadList]
   );
 
-  const search = async () => {
+  const search = async (force = false) => {
     const q = query.trim();
-    if (!q) return;
+    if (!q) {
+      setError('Aramak için bir şey yaz.');
+      return;
+    }
     Keyboard.dismiss();
+    // Aynı sorgu zaten gösteriliyorsa tekrar istek atma
+    if (!force && q === lastQuery.current && searched && !error && !loading) {
+      toast('Bu aramanın sonuçları zaten gösteriliyor');
+      return;
+    }
+    if (loading && q === lastQuery.current) return;
+    lastQuery.current = q;
     const id = ++reqId.current;
     setLoading(true);
     setError(null);
     try {
-      const list = await mockSearchAPI(q);
+      const list = await searchMedia(q);
       if (id === reqId.current) {
         setResults(Array.isArray(list) ? list : []);
         setSearched(true);
       }
     } catch (e) {
-      if (id === reqId.current) setError((e && e.message) || 'Arama başarısız oldu.');
+      if (id === reqId.current) {
+        setError((e && e.message) || 'Arama başarısız oldu.');
+        setResults([]);
+        lastQuery.current = '';
+      }
     } finally {
       if (id === reqId.current) setLoading(false);
     }
@@ -108,12 +134,11 @@ export default function ArchiveScreen({ navigation }) {
     if (pending[tid] || starting[item.id]) return;
     setStarting((s) => ({ ...s, [item.id]: true }));
     const job = downloadServerItem(item);
-    // mockDownloadAPI yanıt verip dosya indirmesi başlayınca "başlıyor" durumunu kaldır
-    setTimeout(() => setStarting((s) => ({ ...s, [item.id]: false })), 1200);
     const res = await job;
     setStarting((s) => ({ ...s, [item.id]: false }));
     if (res.ok && !res.exists) toast(`"${item.title}" indirildi`);
-    if (!res.ok) setError(res.error);
+    else if (res.cancelled) toast('İndirme iptal edildi');
+    else if (!res.ok) setError(res.error);
   };
 
   const header = (
@@ -121,22 +146,24 @@ export default function ArchiveScreen({ navigation }) {
       <View style={styles.top}>
         <View style={styles.titleRow}>
           <Text style={type.h1}>Arşivim</Text>
-          {IS_MOCK ? (
-            <View style={styles.mockBadge}>
-              <Text style={styles.mockText}>Deneme modu</Text>
-            </View>
-          ) : null}
+          <View style={styles.mockBadge}>
+            <Text style={styles.mockText}>{isMock ? 'Deneme modu' : 'Kendi API\'m'}</Text>
+          </View>
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={() => setSettingsOpen(true)} hitSlop={10} style={styles.gear}>
+            <Ionicons name="settings-outline" size={22} color={colors.text} />
+          </Pressable>
         </View>
         <View style={styles.searchWrap}>
           <Ionicons name="server-outline" size={18} color={colors.textDim} />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={IS_MOCK ? 'Denemek için "test" yaz' : 'Sunucunda ara'}
+            placeholder={isMock ? 'Denemek için "örnek" yaz' : 'Sunucunda ara'}
             placeholderTextColor={colors.textFaint}
             style={styles.searchInput}
             returnKeyType="search"
-            onSubmitEditing={search}
+            onSubmitEditing={() => search()}
             autoCorrect={false}
             selectionColor={colors.accent}
           />
@@ -146,7 +173,7 @@ export default function ArchiveScreen({ navigation }) {
             </Pressable>
           ) : null}
           <Pressable
-            onPress={search}
+            onPress={() => search()}
             disabled={!query.trim() || loading}
             style={[styles.searchBtn, (!query.trim() || loading) && { opacity: 0.4 }]}
           >
@@ -208,8 +235,17 @@ export default function ArchiveScreen({ navigation }) {
             state={stateOf(item)}
             progress={progress[`srv:${item.id}`]}
             onPress={() => onPressItem(item)}
+            onCancel={() => cancelDownload(`srv:${item.id}`)}
           />
         )}
+      />
+      <ServiceSettings
+        visible={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onSaved={(c) => {
+          setConfig(c);
+          lastQuery.current = '';
+        }}
       />
     </SafeAreaView>
   );
@@ -262,6 +298,8 @@ const styles = StyleSheet.create({
   bar: { height: 3, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden', marginTop: 6 },
   barFill: { height: 3, backgroundColor: colors.accent },
   stateBox: { width: 44, alignItems: 'center', justifyContent: 'center' },
+  cancel: { color: colors.textDim, fontSize: 11, fontWeight: '700', marginTop: 2 },
+  gear: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   percent: { color: colors.accent, fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'] },
   empty: { alignItems: 'center', paddingHorizontal: space.xxl, paddingVertical: space.xxl, gap: space.sm },
   emptyTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginTop: space.sm },

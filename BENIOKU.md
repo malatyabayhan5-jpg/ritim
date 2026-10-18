@@ -10,8 +10,9 @@ React Native (Expo SDK 54) ile yazılmış müzik uygulaması.
 - Favoriler
 - İndirme ve çevrimdışı dinleme (tek parça veya tüm albüm)
 - Arşivim: kendi sunucunda arama ve indirme (bağlantı noktası: src/api/server.js, şu an deneme modunda)
+- Arşivim: arama servisi katmanı (src/services/mediaService.js). Mock modu harici servis gerektirmez; "Kendi API'm" modunda sunucu adresi ve erişim anahtarı uygulama içinden ayarlanır
+- İndirmelerde MIME türü ve dosya imzası kontrolü, iptal, uygulama açılışında yerel dosyaları yeniden keşif
 - Linkten indir: herkese açık herhangi bir .mp3/.m4a linkini telefona kaydetme (http ve https)
-- Sunucumda ara: kendi API'ne bağlanacak arama + indirme (src/api/myServer.js içindeki iki fonksiyonu değiştirmen yeterli)
 
 Müzikler Internet Archive'ın Creative Commons lisanslı "netlabels" koleksiyonundan gelir.
 Dinlemek ve indirmek yasaldır, API anahtarı gerekmez.
@@ -35,3 +36,17 @@ src/context/LibraryContext.js  favoriler, listeler, indirmeler
 src/components/                ortak bileşenler
 src/screens/                   ekranlar
 ```
+
+## Özel API sözleşmesi
+
+```
+GET {sunucu}/search?q=<sorgu>
+    -> [ { id, title, artist?, duration?, thumbnail?, license? } ]  veya { results: [...] }
+GET {sunucu}/media/{id}/download
+    -> { url, mimeType?, ext? }    (url göreli olabilir)
+Erişim anahtarı girilmişse: Authorization: Bearer <anahtar>
+```
+
+## Testler
+
+`tests/logic.test.js`: biçim tespiti ve servis katmanı testleri. Her APK derlemesinden önce otomatik çalışır.

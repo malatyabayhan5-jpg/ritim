@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Artwork from '../components/Artwork';
 import SeekBar from '../components/SeekBar';
+import VolumeBar from '../components/VolumeBar';
 import TrackActionsSheet from '../components/TrackActionsSheet';
 import { colors, space } from '../theme';
 import { usePlayer } from '../context/PlayerContext';
@@ -40,6 +41,10 @@ export default function PlayerScreen({ navigation }) {
   const art = Math.min(width - space.xl * 2, height * 0.42);
 
   const onDownload = () => {
+    if (!track.url) {
+      toast('Bu dosya zaten telefonda');
+      return;
+    }
     if (downloaded) {
       toast('Bu parça zaten indirildi');
       return;
@@ -146,6 +151,10 @@ export default function PlayerScreen({ navigation }) {
         </Pressable>
       </View>
 
+      <View style={styles.volume}>
+        <VolumeBar value={p.volume} onChange={p.setVolume} />
+      </View>
+
       <View style={styles.bottomRow}>
         <Pressable onPress={onDownload} hitSlop={10} style={styles.bottomBtn}>
           {dlProgress !== undefined ? (
@@ -203,7 +212,8 @@ const styles = StyleSheet.create({
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.accent, marginTop: 3 },
   repeatOne: { position: 'absolute', top: -6, right: 2, color: colors.accent, fontSize: 10, fontWeight: '800' },
   playBtn: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: space.xl, paddingHorizontal: space.xs },
+  volume: { marginTop: space.lg },
+  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: space.md, paddingHorizontal: space.xs },
   bottomBtn: { minWidth: 40, height: 32, alignItems: 'center', justifyContent: 'center' },
   dlText: { color: colors.accent, fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });
