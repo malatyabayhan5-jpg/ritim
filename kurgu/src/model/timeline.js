@@ -335,8 +335,23 @@ export function assignAudioLanes(audio) {
 
 // --- Metin katmanı ---
 
+/**
+ * Yeni süreli öğenin (metin, efekt katmanı) yerleşimi: oynatma kafasından başlar,
+ * ama videonun dışına taşmaz. Oynatma kafası sondaysa öğe sona hizalanır;
+ * video istenen süreden kısaysa süre videoya eşitlenir. Boş projede dokunulmaz.
+ */
+export function fitToTimeline(project, start, duration) {
+  const total = totalDuration(project);
+  if (!(total > 0)) return { start: Math.max(0, Math.round(start)), duration };
+  const d = Math.max(MIN_CLIP_MS, Math.min(duration, total));
+  const s = Math.max(0, Math.min(start, total - d));
+  return { start: Math.round(s), duration: Math.round(d) };
+}
+
 export function addText(project, start, text, style, extra = {}) {
-  const item = { ...createText(start, text, style), ...extra };
+  const base = createText(start, text, style);
+  const fit = fitToTimeline(project, base.start, base.duration);
+  const item = { ...base, ...fit, ...extra };
   return { project: touch({ ...project, texts: [...project.texts, item] }), newId: item.id };
 }
 
@@ -420,7 +435,8 @@ export function removeClipEffect(project, clipId, instId) {
 // --- Efektler: zaman çizelgesindeki efekt katmanları ---
 
 export function addEffectLayer(project, effectId, start, duration = 3000) {
-  const layer = createEffectLayer(effectId, start, duration);
+  const fit = fitToTimeline(project, start, duration);
+  const layer = createEffectLayer(effectId, fit.start, fit.duration);
   return { project: touch({ ...project, effectLayers: [...(project.effectLayers || []), layer] }), newId: layer.id };
 }
 

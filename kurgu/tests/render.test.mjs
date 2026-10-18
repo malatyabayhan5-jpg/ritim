@@ -41,9 +41,12 @@ test('ses şeritleri: video sonrasındaki klipler atılır, çakışanlar ayrı 
 
 test('metin katmanları video süresiyle sınırlanır, boşlar atılır', () => {
   let p = projectWith([video('v', 5000)]);
-  p = TL.addText(p, 4000, 'Son').project;
+  // Öğeler eklendikten sonra taşınmış/klip kısalmış olabilir: render tanımı yine kırpar
+  p = TL.addText(p, 0, 'Son').project;
+  p = TL.updateText(p, p.texts[0].id, { start: 4000 });
   p = TL.addText(p, 1000, '   ').project;
-  p = TL.addText(p, 6000, 'Dışarıda').project;
+  p = TL.addText(p, 0, 'Dışarıda').project;
+  p = TL.updateText(p, p.texts[2].id, { start: 6000 });
   const s = buildRenderSpec(p, uri, { rtl: true });
   assert.equal(s.texts.length, 1);
   assert.equal(s.texts[0].endMs, 5000);

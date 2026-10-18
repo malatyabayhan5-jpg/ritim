@@ -897,7 +897,7 @@ export default function EditorScreen({ params, focused }) {
               if (selectedEffect) {
                 apply((p) => TL.updateEffectLayer(p, selectedEffect.id, { effectId, values: {}, amount: 1 }));
               } else {
-                const r = TL.addEffectLayer(project, effectId, position, Math.max(500, Math.min(3000, total - position || 3000)));
+                const r = TL.addEffectLayer(project, effectId, position, 3000);
                 apply(r.project);
                 setSelection({ type: 'effect', id: r.newId });
               }

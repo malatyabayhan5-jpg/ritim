@@ -129,9 +129,12 @@ test('render tanımı: klip efekti klibin zaman penceresini, katmanlar toplam s�
   let p = projectWith([video('a', 4000), video('b', 3000)]);
   const second = p.main[1].id;
   p = TL.addClipEffect(p, second, 'glitch').project;
-  p = TL.addEffectLayer(p, 'snow', 6000, 3000).project;
+  // Katmanlar sonradan taşınmış olabilir: render tanımı toplam süreye kırpar
+  p = TL.addEffectLayer(p, 'snow', 0, 3000).project;
+  p = TL.updateEffectLayer(p, p.effectLayers[0].id, { start: 6000 });
   p = TL.addEffectLayer(p, 'rain', 500, 1000).project;
-  p = TL.addEffectLayer(p, 'sparkle', 8000, 1000).project; // tamamen sonda: atlanır
+  p = TL.addEffectLayer(p, 'sparkle', 0, 1000).project;
+  p = TL.updateEffectLayer(p, p.effectLayers[2].id, { start: 8000 }); // tamamen sonda: atlanır
   const s = buildRenderSpec(p, uri);
   assert.equal(s.main[0].effects.length, 0);
   const fx = s.main[1].effects[0];
@@ -206,4 +209,19 @@ test('yeni efekt örneği katalog varsayılanlarıyla oluşur', () => {
   const e = effectById('kaleidoscope');
   e.params.forEach((p) => assert.equal(inst.values[p.key], p.default));
   assert.match(inst.id, /^fx_/);
+});
+
+test('oynatma kafası sondayken eklenen efekt katmanı ve metin videonun içine yerleşir', () => {
+  let p = projectWith([video('a', 10000)]);
+  const atEnd = TL.addEffectLayer(p, 'duotone', 10000, 3000).project.effectLayers[0];
+  assert.deepEqual([atEnd.start, atEnd.duration], [7000, 3000]);
+  const mid = TL.addEffectLayer(p, 'duotone', 2000, 3000).project.effectLayers[0];
+  assert.deepEqual([mid.start, mid.duration], [2000, 3000]);
+  const short = TL.addEffectLayer(projectWith([video('b', 1200)]), 'glow', 1200, 3000).project.effectLayers[0];
+  assert.deepEqual([short.start, short.duration], [0, 1200]);
+  const txt = TL.addText(p, 9990, 'Son').project.texts[0];
+  assert.ok(txt.start + txt.duration <= 10000 && txt.duration === 3000, JSON.stringify([txt.start, txt.duration]));
+  // render tanımında görünür aralıkta kalır
+  const s = buildRenderSpec(TL.addEffectLayer(p, 'duotone', 10000, 3000).project, uri);
+  assert.deepEqual([s.effectLayers[0].startMs, s.effectLayers[0].endMs], [7000, 10000]);
 });

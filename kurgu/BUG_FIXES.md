@@ -115,3 +115,27 @@ akışı (`e2e/1_kabul_akisi.yaml`, `e2e/2_dil_rtl.yaml`).
 
 - **Düzeltme:** Dışa aktarma başlamadan önce `POST_NOTIFICATIONS` izni (yoksa)
   istenir. Reddedilirse dışa aktarma yine çalışır; yalnızca bildirim görünmez.
+
+## Y6 — Oynatma kafası sondayken eklenen efekt katmanı / metin görünmezdi (emülatör testinde bulundu)
+
+- **Yeniden üretme:** CI #26 teşhis günlüğü: dışa aktarma anında efekt katmanı
+  `["duotone", 17545, 17546]` — katman zaman çizelgesinin sonunda başlamış, videodan
+  sonra kaldığı için çıktıda hiç görünmüyordu. Metin eklemede de aynı durum vardı.
+- **Kök neden:** Yeni süreli öğe her zaman oynatma kafasından başlatılıyordu; kafa
+  sondaysa öğe tamamen video dışına düşüyordu.
+- **Düzeltme:** `fitToTimeline`: öğe oynatma kafasından başlar ama videonun içine
+  sığdırılır (sondaysa sona hizalanır, video kısaysa süre videoya eşitlenir).
+  `addText` ve `addEffectLayer` bunu kullanır.
+- **Test:** `oynatma kafası sondayken eklenen efekt katmanı ve metin videonun içine
+  yerleşir`; render tanımının sonradan taşınan öğeleri kırpması ayrı testlerde.
+
+## Y7 — Yavaş cihazda yoğun efektli dışa aktarma "muxer zaman aşımı" ile iptal oluyordu
+
+- **Yeniden üretme:** CI #26: 720p, parıltı + çift ton efektli projede emülatörde
+  `EXPORT_FAILED ERROR_CODE_MUXING_TIMEOUT`.
+- **Kök neden:** Media3 Transformer, iki çıktı örneği arasında 10 sn'den uzun süre
+  geçerse dışa aktarmayı iptal eder; görüntü işleme sesin çok gerisinde kalınca bu
+  sınır aşılıyordu.
+- **Düzeltme:** `setMaxDelayBetweenMuxerSamplesMs(120_000)`: gerçekten takılan iş yine
+  biter, yavaş ama ilerleyen iş tamamlanır.
+- **Test:** Emülatör kabul akışı (dışa aktarma + çıktı denetimi).
