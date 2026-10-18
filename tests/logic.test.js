@@ -144,5 +144,20 @@ test('YouTube: link ayrıştırma ve anahtarsız arama adresi', () => {
   assert.equal(yt.parseYouTubeId('https://music.youtube.com/watch?v=abcdefghijk'), 'abcdefghijk');
   assert.equal(yt.parseYouTubeId('lofi müzik'), null);
   assert.equal(yt.parseYouTubeId('https://evil.com/watch?v=abcdefghijk'), null);
-  assert.equal(yt.searchUrl(' kuş sesi '), 'https://www.youtube.com/results?search_query=ku%C5%9F%20sesi');
+  assert.equal(yt.mobileSearchUrl(' kuş sesi '), 'https://m.youtube.com/results?search_query=ku%C5%9F%20sesi');
+});
+
+test('YouTube: dış uygulamaya yönlendiren adresler engellenir', () => {
+  for (const u of [
+    'intent://www.youtube.com/watch?v=abcdefghijk#Intent;package=com.google.android.youtube;scheme=https;end',
+    'vnd.youtube:abcdefghijk',
+    'youtube://watch?v=abcdefghijk',
+    'market://details?id=com.google.android.youtube',
+  ]) assert.equal(yt.isExternalAppUrl(u), true, u);
+  assert.equal(yt.isExternalAppUrl('https://m.youtube.com/results?search_query=x'), false);
+  assert.equal(yt.isAllowedYouTubeHost('https://m.youtube.com/results?x'), true);
+  assert.equal(yt.isAllowedYouTubeHost('https://consent.youtube.com/m?continue=x'), true);
+  assert.equal(yt.isAllowedYouTubeHost('https://i.ytimg.com/vi/x/hq.jpg'), true);
+  assert.equal(yt.isAllowedYouTubeHost('https://youtube.com.evil.com/'), false);
+  assert.equal(yt.isAllowedYouTubeHost('https://ads.example.com/'), false);
 });

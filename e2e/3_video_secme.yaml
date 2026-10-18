@@ -1,0 +1,12 @@
+# Senaryo 3: Sonuçlardan video seçme -> uygulamanın kendi oynatıcısı açılmalı
+appId: com.ritim.muzik
+---
+- tapOn:
+    point: "50%,32%"
+- extendedWaitUntil:
+    visible:
+      id: "yt-player"
+    timeout: 25000
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 3_oynatici

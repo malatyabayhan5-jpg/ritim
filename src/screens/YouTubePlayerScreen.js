@@ -1,51 +1,85 @@
-// YouTube videolarını YouTube'un resmi gömülü oynatıcısıyla (IFrame) açar.
-// İndirme yoktur; arka planda çalma YouTube'un gömülü oynatıcısında desteklenmez.
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+// YouTube videolarını uygulamanın içinde, YouTube'un resmi IFrame oynatıcısıyla açar.
+// Dış uygulamaya yönlendirme yoktur. Video sahibi gömmeyi kapattıysa (hata 101/150/153),
+// video yine uygulama içinde YouTube'un mobil izleme sayfasında açılır.
+// İndirme yoktur; YouTube'un kuralları gereği gömülü oynatıcı ekran kapalıyken çalmaz.
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, formatTime, radius, space } from '../theme';
-import { watchUrl } from '../services/youtubeService';
+import { isExternalAppUrl, mobileWatchUrl, parseYouTubeId } from '../services/youtubeService';
 import { usePlayer } from '../context/PlayerContext';
 
 const ORIGIN = 'https://com.ritim.muzik';
 
-function embedHtml(videoId) {
-  const id = encodeURIComponent(videoId);
+function playerHtml(videoId) {
+  const id = JSON.stringify(String(videoId));
   return `<!doctype html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <style>html,body{margin:0;padding:0;background:#000;height:100%;overflow:hidden}
-iframe{position:absolute;inset:0;width:100%;height:100%;border:0}</style>
+#p,iframe{position:absolute;inset:0;width:100%;height:100%;border:0}</style>
 </head><body>
-<iframe src="https://www.youtube.com/embed/${id}?playsinline=1&autoplay=1&rel=0&modestbranding=1&origin=${encodeURIComponent(ORIGIN)}"
- referrerpolicy="strict-origin-when-cross-origin"
- allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
+<div id="p"></div>
+<script>
+function post(o){ if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(o)); }
+window.onerror = function(){ post({ type: 'error', code: 'script' }); };
+function onYouTubeIframeAPIReady(){
+  new YT.Player('p', {
+    videoId: ${id},
+    playerVars: { playsinline: 1, autoplay: 1, rel: 0, modestbranding: 1, origin: ${JSON.stringify(ORIGIN)} },
+    events: {
+      onReady: function(e){ post({ type: 'ready' }); try { e.target.playVideo(); } catch (x) {} },
+      onError: function(e){ post({ type: 'error', code: e.data }); },
+      onStateChange: function(e){ post({ type: 'state', state: e.data }); }
+    }
+  });
+}
+</script>
+<script src="https://www.youtube.com/iframe_api" onerror="post({type:'error',code:'api'})"></script>
 </body></html>`;
 }
 
+const EMBED_ERRORS = {
+  2: 'Geçersiz video kimliği.',
+  5: 'Bu video gömülü oynatıcıda oynatılamıyor.',
+  100: 'Video bulunamadı veya kaldırılmış.',
+  101: 'Video sahibi başka uygulamalarda oynatılmasına izin vermiyor.',
+  150: 'Video sahibi başka uygulamalarda oynatılmasına izin vermiyor.',
+  153: 'YouTube bu oynatıcıyı doğrulayamadı.',
+};
+
 export default function YouTubePlayerScreen({ route, navigation }) {
-  const { video } = route.params;
+  const [video, setVideo] = useState(route.params.video);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { isPlaying, togglePlay } = usePlayer();
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Yerel oynatıcı çalıyorsa iki ses üst üste binmesin
+  // Yerel müzik çalıyorsa iki ses üst üste binmesin
   useEffect(() => {
     if (isPlaying) togglePlay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openInYouTube = () => Linking.openURL(watchUrl(video.id)).catch(() => {});
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+  }, [video.id]);
+
+  // Gömme kapalıysa: videoyu yine uygulama içinde YouTube'un mobil izleme sayfasında aç
+  const watchInApp = useCallback(() => {
+    navigation.navigate('YouTubeBrowse', { startUrl: mobileWatchUrl(video.id), query: video.title, watchInline: true });
+  }, [navigation, video]);
+
   const playerHeight = Math.round((width * 9) / 16);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View testID="yt-player" style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.back}>
+        <Pressable testID="yt-player-back" onPress={() => navigation.goBack()} hitSlop={10} style={styles.back}>
           <Ionicons name="chevron-down" size={28} color={colors.text} />
         </Pressable>
         <Text style={styles.topLabel}>YOUTUBE</Text>
@@ -53,18 +87,19 @@ export default function YouTubePlayerScreen({ route, navigation }) {
       </View>
 
       <View style={{ width, height: playerHeight, backgroundColor: '#000' }}>
-        {failed ? (
+        {error ? (
           <View style={styles.failBox}>
             <Ionicons name="alert-circle-outline" size={32} color={colors.textDim} />
-            <Text style={styles.failText}>Video uygulama içinde açılamadı.</Text>
-            <Pressable onPress={openInYouTube} style={styles.ytBtn}>
+            <Text style={styles.failText}>{error}</Text>
+            <Pressable onPress={watchInApp} style={styles.ytBtn}>
               <Ionicons name="logo-youtube" size={18} color="#fff" />
-              <Text style={styles.ytBtnText}>YouTube'da aç</Text>
+              <Text style={styles.ytBtnText}>YouTube sayfasında izle</Text>
             </Pressable>
           </View>
         ) : (
           <WebView
-            source={{ html: embedHtml(video.id), baseUrl: ORIGIN }}
+            key={video.id}
+            source={{ html: playerHtml(video.id), baseUrl: ORIGIN }}
             style={{ backgroundColor: '#000' }}
             allowsInlineMediaPlayback
             mediaPlaybackRequiresUserAction={false}
@@ -74,21 +109,34 @@ export default function YouTubePlayerScreen({ route, navigation }) {
             originWhitelist={['*']}
             setSupportMultipleWindows={false}
             onLoadEnd={() => setLoading(false)}
-            onError={() => setFailed(true)}
-            onHttpError={() => setFailed(true)}
-            onShouldStartLoadWithRequest={(req) => {
-              // Oynatıcı içindeki "YouTube'da izle" gibi bağlantıları dışarıda aç
-              const u = req.url || '';
-              if (u.startsWith(ORIGIN) || u.startsWith('about:') || u.includes('youtube.com/embed') || u.startsWith('data:')) return true;
-              if (u.includes('youtube.com') || u.includes('youtu.be')) {
-                Linking.openURL(u).catch(() => {});
-                return false;
+            onError={() => setError('Oynatıcı yüklenemedi. İnternet bağlantını kontrol et.')}
+            onMessage={(e) => {
+              try {
+                const msg = JSON.parse(e.nativeEvent.data);
+                if (msg.type === 'ready') setLoading(false);
+                if (msg.type === 'error') {
+                  setLoading(false);
+                  setError(EMBED_ERRORS[msg.code] || 'Video bu oynatıcıda açılamadı.');
+                }
+              } catch (err) {
+                // yoksay
               }
-              return true;
+            }}
+            onShouldStartLoadWithRequest={(req) => {
+              const u = req.url || '';
+              if (isExternalAppUrl(u)) return false; // YouTube uygulamasını açma
+              if (u.startsWith(ORIGIN) || /^(about|data|blob):/i.test(u)) return true;
+              if (/youtube(-nocookie)?\.com\/(embed|iframe_api|s\/player)|ytimg\.com|googlevideo\.com|google\.com|gstatic\.com|doubleclick\.net/i.test(u)) {
+                return true;
+              }
+              // Oynatıcıdaki başlık / "YouTube'da izle" gibi bağlantılar: başka video ise burada aç, değilse yok say
+              const id = parseYouTubeId(u);
+              if (id && id !== video.id) setVideo({ id, title: 'YouTube videosu', channel: '', duration: 0 });
+              return false;
             }}
           />
         )}
-        {loading && !failed ? (
+        {loading && !error ? (
           <View style={styles.loader} pointerEvents="none">
             <ActivityIndicator color={colors.accent} />
           </View>
@@ -97,25 +145,22 @@ export default function YouTubePlayerScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.info}>
         <Text style={styles.title}>{video.title}</Text>
-        <Text style={styles.channel}>
-          {[video.channel, video.duration ? formatTime(video.duration) : null].filter(Boolean).join(' · ')}
-        </Text>
+        {video.channel || video.duration ? (
+          <Text style={styles.channel}>
+            {[video.channel, video.duration ? formatTime(video.duration) : null].filter(Boolean).join(' · ')}
+          </Text>
+        ) : null}
         {video.license === 'creativeCommon' ? (
           <View style={styles.ccBadge}>
             <Text style={styles.ccText}>Creative Commons</Text>
           </View>
         ) : null}
 
-        <Pressable onPress={openInYouTube} style={styles.ytBtnWide}>
-          <Ionicons name="logo-youtube" size={20} color="#fff" />
-          <Text style={styles.ytBtnText}>YouTube uygulamasında aç</Text>
-        </Pressable>
-
         <View style={styles.note}>
           <Ionicons name="information-circle-outline" size={18} color={colors.textDim} />
           <Text style={styles.noteText}>
-            YouTube videoları YouTube'un resmi oynatıcısıyla izlenir. YouTube'un kuralları gereği bu videolar indirilemez ve
-            ekran kapalıyken çalmaz. Çevrimdışı dinlemek için Arşivim veya İndir sekmelerini kullanabilirsin.
+            YouTube videoları YouTube'un resmi oynatıcısıyla bu uygulamanın içinde izlenir. YouTube'un kuralları gereği bu
+            videolar indirilemez ve ekran kapalıyken çalmaz. Çevrimdışı dinlemek için Arşivim veya İndir sekmelerini kullanabilirsin.
           </Text>
         </View>
       </ScrollView>
@@ -130,23 +175,13 @@ const styles = StyleSheet.create({
   topLabel: { color: colors.textDim, fontSize: 11, fontWeight: '800', letterSpacing: 1.4 },
   loader: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   failBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm, padding: space.lg },
-  failText: { color: colors.textDim, fontSize: 14 },
+  failText: { color: colors.textDim, fontSize: 14, textAlign: 'center' },
   info: { padding: space.lg, gap: space.md },
   title: { color: colors.text, fontSize: 19, fontWeight: '800', lineHeight: 25 },
   channel: { color: colors.textDim, fontSize: 14 },
   ccBadge: { alignSelf: 'flex-start', backgroundColor: colors.accentDim, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
   ccText: { color: colors.accent, fontSize: 11, fontWeight: '800' },
   ytBtn: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: '#CC0000', borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: space.sm },
-  ytBtnWide: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: space.sm,
-    backgroundColor: '#CC0000',
-    borderRadius: radius.pill,
-    height: 48,
-    marginTop: space.sm,
-  },
   ytBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   note: { flexDirection: 'row', gap: space.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: space.md, marginTop: space.sm },
   noteText: { flex: 1, color: colors.textDim, fontSize: 13, lineHeight: 19 },

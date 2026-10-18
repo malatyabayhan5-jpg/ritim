@@ -1,0 +1,21 @@
+# Senaryo 4: Geri tuşuyla uygulamada kalma ve önceki ekranlara dönme
+appId: com.ritim.muzik
+---
+- pressKey: back
+- extendedWaitUntil:
+    visible:
+      id: "yt-browse"
+    timeout: 10000
+- takeScreenshot: 4a_geri_sonuclar
+- pressKey: back
+- runFlow:
+    when:
+      notVisible:
+        id: "yt-input"
+    commands:
+      - pressKey: back
+- extendedWaitUntil:
+    visible:
+      id: "yt-input"
+    timeout: 10000
+- takeScreenshot: 4b_geri_arama

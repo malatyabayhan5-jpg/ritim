@@ -139,10 +139,39 @@ export async function searchYouTube(query, { pageToken } = {}) {
   return { results, nextPageToken: search.nextPageToken || null };
 }
 
-// Anahtar gerektirmez: YouTube'un kendi arama sayfası (YouTube uygulaması yüklüyse orada açılır)
-export function searchUrl(query) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(String(query || '').trim())}`;
+// Anahtar gerektirmez: YouTube'un mobil arama sayfası. Uygulama içindeki WebView'da açılır (dış uygulamada değil).
+export function mobileSearchUrl(query) {
+  return `https://m.youtube.com/results?search_query=${encodeURIComponent(String(query || '').trim())}`;
 }
+
+export function mobileWatchUrl(videoId) {
+  return `https://m.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+}
+
+// Android'de başka bir uygulamayı açmaya çalışan adresler (YouTube uygulaması, Play Store, intent bağlantıları)
+export function isExternalAppUrl(url) {
+  return /^(intent|vnd\.youtube|youtube|market|android-app|googlechrome):/i.test(String(url || ''));
+}
+
+// Uygulama içi WebView'da açılmasına izin verilen alanlar: YouTube ve oturum/çerez onayı sayfaları
+export function isAllowedYouTubeHost(url) {
+  const m = /^https?:\/\/([^/?#:]+)/i.exec(String(url || ''));
+  if (!m) return false;
+  const host = m[1].toLowerCase();
+  return [
+    'youtube.com',
+    'youtube-nocookie.com',
+    'youtu.be',
+    'ytimg.com',
+    'googlevideo.com',
+    'consent.youtube.com',
+    'consent.google.com',
+    'accounts.google.com',
+    'google.com',
+    'gstatic.com',
+  ].some((d) => host === d || host.endsWith('.' + d));
+}
+
 
 // Yapıştırılan bir YouTube linkinden video kimliğini çıkarır; link değilse null
 export function parseYouTubeId(text) {
@@ -161,10 +190,6 @@ export function parseYouTubeId(text) {
 
 export function hasApiKey() {
   return !!settings.apiKey;
-}
-
-export function watchUrl(videoId) {
-  return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
 }
 
 export const __test = { decodeEntities, apiError };

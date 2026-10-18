@@ -5,7 +5,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Linking,
   Modal,
   Platform,
   Pressable,
@@ -23,7 +22,6 @@ import {
   loadYouTubeSettings,
   parseYouTubeId,
   saveYouTubeSettings,
-  searchUrl,
   searchYouTube,
 } from '../services/youtubeService';
 
@@ -57,8 +55,8 @@ function KeySettings({ visible, onClose, onSaved }) {
             </Pressable>
           </View>
           <Text style={styles.help}>
-            Anahtar isteğe bağlıdır. Anahtar yokken aramalar YouTube uygulamasında açılır; video linki yapıştırırsan video
-            burada oynatılır.
+            Anahtar isteğe bağlıdır. Anahtar yokken arama sonuçları YouTube'un mobil sitesinden, yine bu uygulamanın içinde
+            gösterilir. Anahtar eklersen sonuçlar resmi YouTube Data API ile uygulamanın kendi listesinde gelir.
           </Text>
           <Text style={styles.label}>YouTube Data API anahtarı</Text>
           <View style={styles.keyRow}>
@@ -131,9 +129,10 @@ export default function YouTubeSearch() {
       return;
     }
 
-    // Anahtar yoksa aramayı YouTube'un kendisinde aç
+    // Anahtar yoksa: YouTube'un mobil arama sonuçları uygulama içindeki tarayıcı ekranında gösterilir.
+    // (Daha önce burada Linking.openURL vardı ve Android aramayı YouTube uygulamasına gönderiyordu.)
     if (!settings.apiKey) {
-      Linking.openURL(searchUrl(q)).catch(() => setError('YouTube açılamadı.'));
+      navigation.navigate('YouTubeBrowse', { query: q });
       return;
     }
 
@@ -187,7 +186,8 @@ export default function YouTubeSearch() {
               setQuery(t);
               if (error) setError(null);
             }}
-            placeholder={settings.apiKey ? "YouTube'da ara veya link yapıştır" : 'Ara (YouTube\'da açılır) veya link yapıştır'}
+            placeholder="YouTube'da ara veya link yapıştır"
+            testID="yt-input"
             placeholderTextColor={colors.textFaint}
             style={styles.input}
             returnKeyType="search"
@@ -200,7 +200,7 @@ export default function YouTubeSearch() {
               <Ionicons name="close-circle" size={18} color={colors.textFaint} />
             </Pressable>
           ) : null}
-          <Pressable onPress={run} disabled={loading} style={[styles.goBtn, (!query.trim() || loading) && { opacity: 0.4 }]}>
+          <Pressable testID="yt-go" onPress={run} disabled={loading} style={[styles.goBtn, (!query.trim() || loading) && { opacity: 0.4 }]}>
             {loading ? <ActivityIndicator size="small" color={colors.onAccent} /> : <Text style={styles.goText}>Ara</Text>}
           </Pressable>
         </View>
@@ -238,7 +238,7 @@ export default function YouTubeSearch() {
                   ? 'Başka bir kelime dene.'
                   : settings.apiKey
                   ? 'Videolar YouTube\'un resmi oynatıcısıyla açılır.'
-                  : 'Yazdığın aramayı YouTube uygulamasında açarım. Bir video linki yapıştırırsan burada oynatırım. Sonuçları uygulama içinde görmek için ⚙ menüsünden ücretsiz bir API anahtarı ekleyebilirsin.'}
+                  : 'Sonuçlar bu uygulamanın içinde açılır, bir videoya dokununca burada oynatılır. Video linki de yapıştırabilirsin.'}
               </Text>
             </View>
           )

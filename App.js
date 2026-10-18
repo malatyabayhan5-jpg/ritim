@@ -19,6 +19,7 @@ import AlbumScreen from './src/screens/AlbumScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
 import YouTubePlayerScreen from './src/screens/YouTubePlayerScreen';
+import YouTubeBrowseScreen from './src/screens/YouTubeBrowseScreen';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
@@ -66,11 +67,11 @@ function Tabs() {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Ana sayfa' }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Ara' }} />
-      <Tab.Screen name="Archive" component={ArchiveScreen} options={{ title: 'Arşivim' }} />
-      <Tab.Screen name="Download" component={DownloadScreen} options={{ title: 'İndir' }} />
-      <Tab.Screen name="Library" component={LibraryScreen} options={{ title: 'Kütüphane' }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Ana sayfa', tabBarButtonTestID: 'tab-home' }} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Ara', tabBarButtonTestID: 'tab-search' }} />
+      <Tab.Screen name="Archive" component={ArchiveScreen} options={{ title: 'Arşivim', tabBarButtonTestID: 'tab-archive' }} />
+      <Tab.Screen name="Download" component={DownloadScreen} options={{ title: 'İndir', tabBarButtonTestID: 'tab-download' }} />
+      <Tab.Screen name="Library" component={LibraryScreen} options={{ title: 'Kütüphane', tabBarButtonTestID: 'tab-library' }} />
     </Tab.Navigator>
   );
 }
@@ -86,6 +87,7 @@ export default function App() {
               <Stack.Screen name="Tabs" component={Tabs} />
               <Stack.Screen name="Album" component={AlbumScreen} />
               <Stack.Screen name="Playlist" component={PlaylistScreen} />
+              <Stack.Screen name="YouTubeBrowse" component={YouTubeBrowseScreen} />
               <Stack.Screen
                 name="YouTubePlayer"
                 component={YouTubePlayerScreen}

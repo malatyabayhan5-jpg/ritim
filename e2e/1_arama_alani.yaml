@@ -1,0 +1,18 @@
+# Senaryo 1: YouTube arama alanını açma (uygulama içinde kalmalı)
+appId: com.ritim.muzik
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "tab-search"
+    timeout: 60000
+- tapOn:
+    id: "tab-search"
+- tapOn:
+    id: "seg-youtube"
+- tapOn:
+    id: "yt-input"
+- assertVisible:
+    id: "yt-input"
+- takeScreenshot: 1_arama_alani

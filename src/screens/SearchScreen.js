@@ -84,7 +84,12 @@ export default function SearchScreen({ navigation }) {
             ['music', 'Açık müzik arşivi'],
             ['youtube', 'YouTube'],
           ].map(([key, label]) => (
-            <Pressable key={key} onPress={() => setSource(key)} style={[styles.segBtn, source === key && styles.segBtnOn]}>
+            <Pressable
+              key={key}
+              testID={`seg-${key}`}
+              onPress={() => setSource(key)}
+              style={[styles.segBtn, source === key && styles.segBtnOn]}
+            >
               <Text style={[styles.segText, source === key && styles.segTextOn]}>{label}</Text>
             </Pressable>
           ))}
