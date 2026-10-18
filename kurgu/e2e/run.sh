@@ -21,8 +21,8 @@ ffmpeg -loglevel error -y -f lavfi -i "sine=frequency=330:sample_rate=44100" -t 
 # Otomatik altyazı testi: sentezlenmiş İngilizce konuşma (espeak-ng) + düz arka plan
 if command -v espeak-ng > /dev/null; then
   espeak-ng -v en-us -s 135 -w "$M/konusma.wav" "Hello world. This is an automatic caption test for the video editor." 2> /dev/null
-  ffmpeg -loglevel error -y -f lavfi -i "color=c=0x203040:size=640x360:rate=30" -i "$M/konusma.wav" -af "adelay=600|600,apad=pad_dur=0.8" \
-    -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac -ar 44100 "$M/kurgu_konusma.mp4"
+  ffmpeg -loglevel error -y -f lavfi -i "color=c=0x203040:size=640x360:rate=30" -i "$M/konusma.wav" -af "adelay=600|600,apad" \
+    -t 10 -c:v libx264 -pix_fmt yuv420p -c:a aac -ar 44100 "$M/kurgu_konusma.mp4"
 fi
 # AI testi: 3 belirgin sahne (2,5 sn) ve 2.–4. saniyeler arası sessiz ses
 ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lavfi -i smptebars=size=640x360:rate=30:d=2.5 -f lavfi -i "mandelbrot=size=640x360:rate=30" \
@@ -32,21 +32,17 @@ ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lav
 ls -l "$M" >> "$OUT/cihaz.txt"
 adb shell mkdir -p /sdcard/DCIM/Camera /sdcard/Music
 
-# Her akıştan önce galeriye yalnızca o akışın medyası konur: seçicideki sıra
-# tahmin edilmez. Sıra (yeniden eskiye) push sırasının tersidir.
-gallery() {
-  adb shell rm -f /sdcard/DCIM/Camera/kurgu_* /sdcard/Music/kurgu_* > /dev/null 2>&1
-  adb shell content delete --uri content://media/external/file --where "_display_name\ LIKE\ \'kurgu_%\'" > /dev/null 2>&1 || true
-  for f in "$@"; do
-    case "$f" in *.mp3) dir=Music ;; *) dir=DCIM/Camera ;; esac
-    adb push "$M/$f" "/sdcard/$dir/" > /dev/null
-    adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/$dir/$f" > /dev/null 2>&1 || true
-    sleep 1.2
-  done
-  adb shell content call --uri content://media --method scan_volume --arg external_primary > /dev/null 2>&1 || true
-  sleep 4
-  adb shell content query --uri content://media/external/file --projection _display_name --where "_display_name\ LIKE\ \'kurgu_%\'" 2>/dev/null | sed 's/^/    galeri: /' >> "$OUT/cihaz.txt"
-}
+# Tüm test medyası bir kez yüklenir. Kabul akışı seçicideki ilk üç öğeyi seçer;
+# AI akışları videolarını benzersiz sürelerinden bulur (sahne 00:07, konuşma 00:10).
+for f in kurgu_konusma.mp4 kurgu_sahne.mp4 kurgu_video1.mp4 kurgu_foto.jpg kurgu_video2.mp4 kurgu_muzik.mp3; do
+  [ -f "$M/$f" ] || continue
+  case "$f" in *.mp3) dir=Music ;; *) dir=DCIM/Camera ;; esac
+  adb push "$M/$f" "/sdcard/$dir/" > /dev/null
+  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/$dir/$f" > /dev/null 2>&1 || true
+  sleep 1.2
+done
+adb shell content call --uri content://media --method scan_volume --arg external_primary > /dev/null 2>&1 || true
+sleep 5
 
 # Akış başarısız olursa ekrandaki metinleri günlüğe yaz (hata iletisini görmek için)
 screen_texts() {
@@ -65,11 +61,6 @@ adb logcat -c
 : > "$OUT/sonuclar.txt"
 # AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
 for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
-  case "$flow" in
-    3_ai_araclari) gallery kurgu_sahne.mp4 ;;
-    4_otomatik_altyazi) [ -f "$M/kurgu_konusma.mp4" ] && gallery kurgu_konusma.mp4 ;;
-    1_kabul_akisi) gallery kurgu_video1.mp4 kurgu_foto.jpg kurgu_video2.mp4 kurgu_muzik.mp3 ;;
-  esac
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   if [ $code -eq 0 ]; then

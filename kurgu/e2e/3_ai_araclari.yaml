@@ -11,10 +11,9 @@ appId: app.kurgu.editor
     id: "new-project"
 - waitForAnimationToEnd:
     timeout: 5000
-# Galeride yalnızca sahne test videosu var (run.sh gallery)
+# Sahne test videosu seçicide süresinden bulunur (7,5 sn)
 - tapOn:
-    text: "(Video|Photo|Fotoğraf).*"
-    index: 0
+    text: "00:0[78]"
 - tapOn:
     text: "(Add|Ekle).*"
 - extendedWaitUntil:
