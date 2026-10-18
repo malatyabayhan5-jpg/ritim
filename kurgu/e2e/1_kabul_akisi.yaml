@@ -208,6 +208,10 @@ appId: app.kurgu.editor
 - takeScreenshot: 14_disa_aktarma_ayarlari
 - tapOn:
     id: "export-start"
+# Android 13+: dışa aktarma bildirimi için sistem izin penceresi (veriler sıfırlandığı için yeniden sorulur)
+- tapOn:
+    text: "(Allow|ALLOW|İzin ver|İZİN VER)"
+    optional: true
 - extendedWaitUntil:
     visible:
       id: "export-progress"

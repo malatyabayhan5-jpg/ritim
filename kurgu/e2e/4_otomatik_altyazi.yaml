@@ -41,7 +41,7 @@ appId: app.kurgu.editor
     id: "caption-start"
 # Model indirme onayı
 - tapOn:
-    text: "(İndir|Download)"
+    text: "(İndir|İNDİR|Download|DOWNLOAD)"
 - extendedWaitUntil:
     visible:
       id: "caption-progress"
