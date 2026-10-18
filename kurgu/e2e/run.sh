@@ -70,3 +70,13 @@ adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
 adb logcat -d -s "ReactNativeJS:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
 [ -s "$OUT/cokme.txt" ] && grep -q "$PKG" "$OUT/cokme.txt" && echo "UYARI: uygulama çökme kaydı var (cokme.txt)" >> "$OUT/sonuclar.txt"
 cat "$OUT/sonuclar.txt"
+
+# Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
+for flow in 1_kabul_akisi 2_dil_rtl; do
+  echo "===== $flow (son 40 satır) ====="
+  tail -40 "$OUT/$flow.log" 2>/dev/null
+done
+echo "===== çökme kayıtları ====="
+grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
+echo "===== JS / yerel hata satırları ====="
+grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60

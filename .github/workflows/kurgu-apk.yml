@@ -32,6 +32,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Yalnızca test/belge değiştiyse APK yeniden derlenmez (emülatör testleri hızlı yinelenir)
+      - name: APK önbelleği
+        id: apkcache
+        uses: actions/cache@v4
+        with:
+          path: Kurgu.apk
+          key: kurgu-apk-${{ hashFiles('kurgu/package-lock.json', 'kurgu/app.json', 'kurgu/App.js', 'kurgu/index.js', 'kurgu/src/**', 'kurgu/modules/**', 'kurgu/assets/**') }}
+
       - name: Bağımlılıklar
         run: npm ci
 
@@ -41,12 +49,15 @@ jobs:
           npm run i18n:check
 
       - name: JS paketini doğrula
+        if: steps.apkcache.outputs.cache-hit != 'true'
         run: npx expo export --platform android --output-dir /tmp/kurgu-bundle > /dev/null
 
       - name: Yerel projeyi üret
+        if: steps.apkcache.outputs.cache-hit != 'true'
         run: npx expo prebuild --platform android --clean --no-install
 
       - name: APK derle
+        if: steps.apkcache.outputs.cache-hit != 'true'
         working-directory: kurgu/android
         run: |
           set -o pipefail
@@ -59,6 +70,7 @@ jobs:
           }
 
       - name: APK'yı adlandır
+        if: steps.apkcache.outputs.cache-hit != 'true'
         run: cp android/app/build/outputs/apk/release/app-release.apk ../Kurgu.apk
 
       - uses: actions/upload-artifact@v4
