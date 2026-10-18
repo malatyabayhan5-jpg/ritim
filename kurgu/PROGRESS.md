@@ -35,15 +35,15 @@ O4 (kare adımı), O5 (önizlemede ısınma uyarısı), D1–D3.
 | Gerçek çapraz geçişler (A/B klip karışımı) | ⏳ | Aynı |
 | Metin animasyon ön ayarları genişletme, ses efektleri | ⏳ | — |
 
-## Aşama 4b — Cihaz içi AI araçları 🟡
+## Aşama 4b — Cihaz içi AI araçları ✅ (5 araç; arka plan kaldırma ve çeviri ⏳)
 
 | Araç | Durum | Kanıt |
 |---|---|---|
-| Sessizlik kaldırma | ✅ kod + birim | Gerçek test videosundan ölçülmüş verilerle testler; e2e akışı 3 (sonuç aşağıda) |
-| Sahne algılama | 🟡 | Birim testleri geçiyor; ilk emülatör çalıştırmasında klip bölünmedi — teşhis günlüğü eklendi, galeri sırası kesinleştirildi |
+| Sessizlik kaldırma | ✅ | Birim testleri + emülatör (CI #29: 2190–3850 ms kaldırıldı) |
+| Sahne algılama | ✅ | Birim testleri + emülatör (CI #29: kesmeler 2500/5000 ms) |
 | Gürültü azaltma | ✅ | `tools/dsp-test` (CI'da): duraklamada 9–18 dB düşüş, konuşma kaybı < 0,1 dB, SNR +5–9 dB, gecikme 0 |
-| Metinden konuşma | 🟡 | Kod hazır; emülatörde yüklü ses motoruna bağlı |
-| Otomatik altyazı | 🟡 | JNI köprüsü masaüstünde whisper.cpp ile çalıştırıldı; Android için derlendi (CI #17); model özetleri sabitlendi; espeak-ng konuşmasıyla e2e akışı 4 (sonuç aşağıda) |
+| Metinden konuşma | ✅ | Emülatörde ses klibi eklendi (CI #29); ses kalitesi cihazın TTS motoruna bağlı |
+| Otomatik altyazı | ✅ | Emülatörde konuşma kelimesi kelimesine doğru tanındı (CI #29); 64 bit cihaz gerekir |
 | Arka plan kaldırma, altyazı çevirisi | ⏳ | Sonraki tur |
 
 ## Aşama 5 — Performans 🟡
@@ -61,31 +61,35 @@ O4 (kare adımı), O5 (önizlemede ısınma uyarısı), D1–D3.
 | 2 | Böl / kırp | ✅ e2e (böl), birim (kırp) |
 | 3 | Metin ekle | ✅ e2e |
 | 4 | Filtre | ✅ e2e |
-| 5 | Efekt katmanı ekle (çift ton) | ✅ e2e (oluşturma); çıktıda tespit ❌ inceleniyor |
+| 5 | Efekt katmanı ekle (çift ton) | ✅ e2e |
 | 6 | Klibe efekt (parıltı) | ✅ e2e |
 | 7 | Çoklu efekt yığını | ✅ birim |
 | 8 | Efekt parametresi değiştir + geri al/yinele | ✅ birim |
 | 9 | Geçiş | ✅ e2e |
-| 10 | Müzik/ses | 🟡 e2e (videodan ses ayırma); dosya seçiciden müzik emülatörde otomatikleşmedi |
+| 10 | Müzik/ses | 🟡 e2e (videodan ses ayırma, metinden konuşma); dosya seçiciden müzik emülatörde otomatikleşmedi |
 | 11 | Kaydet → kapat → aç, efektler korunur | ✅ birim; e2e'de efekt şeridi kontrolü eklendi |
 | 12 | MP4 dışa aktar, ffmpeg ile doğrula | ✅ e2e |
-| 13 | Efektin dışa aktarılan videoda görünmesi | ❌ inceleniyor |
+| 13 | Efektin dışa aktarılan videoda görünmesi | ✅ e2e (`fx_check.py`) |
 | 14 | Dil değiştir (TR/EN/AR), RTL | ✅ e2e |
 | 15 | LUT içe aktar | 🟡 birim + laboratuvar; emülatörde dosya seçici otomasyonu yok |
 
-### Son CI sonucu (CI #25, 2026-10-18, Android 14 emülatörü, API 34)
+### Son CI sonucu (CI #29, 2026-10-18, Android 14 emülatörü, API 34) — 4/4 GEÇTİ
 
 | Akış | Sonuç |
 |---|---|
-| 3 — AI araçları: sahne algılama (3 sahne), geri al, sessizlik kaldırma, metinden konuşma (ses klibi eklendi) | ✅ GEÇTİ |
-| 4 — Otomatik altyazı: model indirme + SHA-256 doğrulama, cihaz içi tanıma, "hello" içeren altyazı katmanı | ✅ GEÇTİ |
+| 3 — AI araçları: sahne algılama (kesmeler 2500/5000 ms), geri al, sessizlik kaldırma (2190–3850 ms), metinden konuşma (ses klibi eklendi) | ✅ GEÇTİ |
+| 4 — Otomatik altyazı: model indirme + SHA-256 doğrulama, cihaz içi tanıma: "Hello world! This is an automatic caption test for the video editor." | ✅ GEÇTİ |
 | 1 — Kabul: proje, içe aktarma, bölme, metin, filtre, efekt katmanı + klip efekti, geçiş, ses, kapat/aç, 720p MP4 dışa aktarma, uygulamanın süre/çözünürlük/ses denetimi | ✅ GEÇTİ |
 | 2 — Dil değişimi TR → AR (RTL) → EN → TR | ✅ GEÇTİ |
-| Dışa aktarılan MP4'ün ffmpeg ile baştan sona çözülmesi | ✅ hatasız |
-| Efekt katmanının (çift ton) dışa aktarılan videoda otomatik tespiti | ❌ iz bulunamadı — inceleniyor (gerçek hata mı, denetim mi) |
+| Dışa aktarılan MP4'ün ffmpeg ile baştan sona çözülmesi | ✅ hatasız (1280×720, 30 fps, 17,47 sn, H.264 + AAC) |
+| Efekt katmanının (çift ton) çıktıda yalnızca kendi aralığında görünmesi | ✅ 14,50–17,25 sn karelerinde palet oranı 0,97–0,99; diğer tüm karelerde 0,00 |
 
-Emülatörün GPU'su yazılımsal olduğu için dışa aktarma testi 720p ile yapılır;
-1080p'de efektli dışa aktarma emülatörü kilitledi (gerçek cihazda ölçülmedi).
+Notlar:
+- Emülatörün GPU'su yazılımsal (SwiftShader) olduğu için dışa aktarma testi 720p ile
+  yapılır; parıltı efektli bölüm kare başına ~4 sn sürdü. Gerçek cihazda performans
+  ölçülmedi.
+- Bu turda bulunan iki gerçek hata (Y6 yerleşim, Y7 muxer zaman aşımı) düzeltildi ve
+  bu çalıştırmayla doğrulandı.
 
 ## Aşama 7 — Belgeler ✅
 
