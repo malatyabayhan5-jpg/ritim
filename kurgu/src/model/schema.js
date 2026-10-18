@@ -67,6 +67,7 @@ export function createProject({ name, ratio = '9:16', resolution = 1080, fps = 3
     main: [],
     audio: [],
     texts: [],
+    effectLayers: [],
     markers: [],
     unsupported: [],
   };
@@ -90,6 +91,7 @@ export function createMainClip(media, { imageDurationMs = 3000 } = {}) {
     fx: { ...DEFAULT_FX },
     transform: { rotation: 0, flipH: false, flipV: false, scale: 1, x: 0, y: 0, fit: null },
     blur: 0,
+    effects: [],
     transition: { type: 'none', durationMs: 500 },
   };
 }
@@ -142,6 +144,28 @@ export function createText(start, text, style = {}) {
   };
 }
 
+// Eski sürümlerdeki tek efekt alanı (clip.fx) yeni efekt yığınına taşınır.
+// Karşılığı olmayan eski efektler (bulanıklık, vinyet, gren, keskinlik) eski yolla çizilmeye devam eder.
+const LEGACY_FX = {
+  glitch: ['glitch', {}],
+  rgbSplit: ['chromatic', {}],
+  vhs: ['vhs', {}],
+  oldFilm: ['oldFilm', {}],
+  pixelate: ['mosaic', { cellSize: 0.35, grout: 0, bevel: 0 }],
+  mosaic: ['mosaic', { cellSize: 0.8, grout: 0, bevel: 0 }],
+  dream: ['glow', { warmth: 0.6 }],
+};
+function migrateClipEffects(c) {
+  const effects = Array.isArray(c.effects) ? c.effects : [];
+  const target = LEGACY_FX[c.fx?.id];
+  if (!target) return { ...c, effects };
+  return {
+    ...c,
+    effects: [...effects, { id: `${c.id}_legacyfx`, effectId: target[0], amount: c.fx.intensity ?? 1, values: { ...target[1] } }],
+    fx: { ...DEFAULT_FX },
+  };
+}
+
 /** Eski veya kısmen bozuk projeleri güncel biçime getirir. */
 export function migrateProject(raw) {
   if (!raw || typeof raw !== 'object') throw new Error('PROJECT_INVALID');
@@ -150,7 +174,7 @@ export function migrateProject(raw) {
   const p = { ...createProject(), ...raw, format: PROJECT_FORMAT, version: PROJECT_VERSION };
   p.canvas = { ...createProject().canvas, ...(raw.canvas || {}) };
   p.media = raw.media || {};
-  p.main = (raw.main || []).map((c) => ({
+  p.main = (raw.main || []).map((c) => migrateClipEffects({
     ...createMainClip({ id: c.mediaId, kind: c.kind, durationMs: c.srcOut }),
     ...c,
     adjust: { ...DEFAULT_ADJUST, ...(c.adjust || {}) },
@@ -165,6 +189,7 @@ export function migrateProject(raw) {
     ...t,
     style: { ...DEFAULT_TEXT_STYLE, ...(t.style || {}) },
   }));
+  p.effectLayers = (raw.effectLayers || []).filter((e) => e && e.effectId && e.duration > 0);
   p.markers = raw.markers || [];
   p.unsupported = raw.unsupported || [];
   return p;

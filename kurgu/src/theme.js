@@ -19,6 +19,7 @@ export const colors = {
   audio: '#1F7A5C',
   audioMusic: '#1E6E8C',
   text2: '#B8862B',
+  effect: '#7A4FD6',
   marker: '#FFB547',
   playhead: '#FFFFFF',
   overlay: 'rgba(0,0,0,0.6)',

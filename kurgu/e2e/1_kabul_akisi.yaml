@@ -1,5 +1,5 @@
 # Kabul akışı (emülatör): yeni proje -> galeriden çoklu seçim -> oynatma -> bölme ->
-# metin -> filtre -> geçiş -> ses -> uygulamayı kapat/aç -> projeye devam -> MP4 dışa aktarma.
+# metin -> filtre -> efekt katmanı + klip efekti -> geçiş -> ses -> uygulamayı kapat/aç -> projeye devam -> MP4 dışa aktarma.
 appId: app.kurgu.editor
 ---
 - launchApp:
@@ -83,11 +83,44 @@ appId: app.kurgu.editor
     id: "panel-done"
 - tapOn:
     id: "tool-back"
-# Efekt
+# Efekt katmanı (zaman çizelgesinde ayrı şerit): çift ton, oynatma kafasından itibaren
+- tapOn:
+    id: "tool-effects"
+- extendedWaitUntil:
+    visible:
+      id: "fx-tiles"
+    timeout: 10000
+- repeat:
+    while:
+      notVisible:
+        id: "fx-tile-duotone"
+    times: 8
+    commands:
+      - swipe:
+          from:
+            id: "fx-tiles"
+          direction: LEFT
+- tapOn:
+    id: "fx-tile-duotone"
+- assertVisible:
+    id: "fx-params"
+- assertVisible:
+    id: "effect-item-.*"
+- takeScreenshot: 08b_efekt_katmani
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+# Klip efekti: ilk klibe parıltı (yığına eklenir, yoğunluk ayarlanabilir)
+- tapOn:
+    id: "clip-0"
 - tapOn:
     id: "tool-effects"
 - tapOn:
-    id: "effect-sharpen"
+    id: "fx-tile-glow"
+- assertVisible:
+    id: "fx-applied-glow"
+- takeScreenshot: 08c_klip_efekti
 - tapOn:
     id: "panel-done"
 - tapOn:
@@ -162,6 +195,9 @@ appId: app.kurgu.editor
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 13_projeye_devam
+# Efekt katmanı kaydedilip geri yüklendi mi?
+- assertVisible:
+    id: "effect-item-.*"
 # Dışa aktarma
 - tapOn:
     id: "export-open"

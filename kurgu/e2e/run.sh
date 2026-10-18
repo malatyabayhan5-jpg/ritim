@@ -58,6 +58,9 @@ if [ -n "$OUTFILE" ]; then
   else
     echo "Dışa aktarılan MP4 çözülürken hata: $(head -3 "$OUT/cozme.txt")" >> "$OUT/sonuclar.txt"
   fi
+  # Efekt katmanı çıktıya gerçekten işlendi mi? (yalnızca katman aralığında)
+  python3 "$(dirname "$0")/fx_check.py" "$OUT/cikti.mp4" > "$OUT/efekt.txt" 2>&1
+  tail -1 "$OUT/efekt.txt" >> "$OUT/sonuclar.txt"
   # Örnek kareler (efekt/metin görsel kontrolü)
   for s in 1 3 5 8; do ffmpeg -v error -y -ss $s -i "$OUT/cikti.mp4" -frames:v 1 "$OUT/kare_${s}sn.png" 2>/dev/null; done
   echo "Çıktı: $OUTFILE" >> "$OUT/sonuclar.txt"

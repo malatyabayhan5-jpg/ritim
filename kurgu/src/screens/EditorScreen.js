@@ -11,7 +11,6 @@ import { colors, radius, space } from '../theme';
 import Timeline, { MAX_PX_PER_MS, MIN_PX_PER_MS } from '../editor/Timeline';
 import {
   AdjustPanel,
-  EffectsPanel,
   FilterPanel,
   ImageDurationPanel,
   RatioPanel,
@@ -22,6 +21,8 @@ import {
   VolumePanel,
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
+import FxPanel from '../editor/FxPanel';
+import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { thumbnails } from '../engine/engine';
@@ -58,6 +59,7 @@ export default function EditorScreen({ params, focused }) {
   const [renaming, setRenaming] = useState(false);
   const [saveState, setSaveState] = useState('saved');
   const [previewError, setPreviewError] = useState(null);
+  const [fxSel, setFxSel] = useState(null);
   const settings = useRef({ haptics: true, previewQuality: 'medium', imageDurationMs: 3000 });
   const previewRef = useRef(null);
   const trimBase = useRef(null);
@@ -188,14 +190,15 @@ export default function EditorScreen({ params, focused }) {
   const selectedMain = selection?.type === 'main' ? project?.main.find((c) => c.id === selection.id) : null;
   const selectedAudio = selection?.type === 'audio' ? project?.audio.find((a) => a.id === selection.id) : null;
   const selectedText = selection?.type === 'text' ? project?.texts.find((x) => x.id === selection.id) : null;
+  const selectedEffect = selection?.type === 'effect' ? (project?.effectLayers || []).find((x) => x.id === selection.id) : null;
 
   useEffect(() => {
     // Silinen öğe seçili kalmasın
-    if (selection && !selectedMain && !selectedAudio && !selectedText) {
+    if (selection && !selectedMain && !selectedAudio && !selectedText && !selectedEffect) {
       setSelection(null);
       setPanel(null);
     }
-  }, [selection, selectedMain, selectedAudio, selectedText]);
+  }, [selection, selectedMain, selectedAudio, selectedText, selectedEffect]);
 
   const clipAtPlayhead = () => (project ? TL.clipAt(project, position)?.clip : null);
 
@@ -238,6 +241,10 @@ export default function EditorScreen({ params, focused }) {
       const r = TL.splitTextAt(project, selectedText.id, position);
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
+    } else if (selectedEffect) {
+      const r = TL.splitEffectLayerAt(project, selectedEffect.id, position);
+      if (r.changed) apply(r.project);
+      else toast(t('editor.cannotSplit'));
     } else {
       const r = TL.splitMainAt(project, position);
       if (r.changed) {
@@ -252,6 +259,7 @@ export default function EditorScreen({ params, focused }) {
     if (selectedMain) apply((p) => TL.deleteMain(p, selectedMain.id));
     else if (selectedAudio) apply((p) => TL.deleteAudio(p, selectedAudio.id));
     else if (selectedText) apply((p) => TL.deleteText(p, selectedText.id));
+    else if (selectedEffect) apply((p) => TL.deleteEffectLayer(p, selectedEffect.id));
     setSelection(null);
     setPanel(null);
     haptic();
@@ -262,6 +270,7 @@ export default function EditorScreen({ params, focused }) {
     if (selectedMain) r = TL.duplicateMain(project, selectedMain.id);
     else if (selectedAudio) r = TL.duplicateAudio(project, selectedAudio.id);
     else if (selectedText) r = TL.duplicateText(project, selectedText.id);
+    else if (selectedEffect) r = TL.duplicateEffectLayer(project, selectedEffect.id);
     if (r?.newId) {
       apply(r.project);
       setSelection({ type: selection.type, id: r.newId });
@@ -342,6 +351,7 @@ export default function EditorScreen({ params, focused }) {
       if (media[0] && selectedMain) apply((p) => TL.replaceMedia(p, selectedMain.id, media[0]));
     } catch {
       setBusy(null);
+      toast(t('errors.generic'), 'error');
     }
   };
 
@@ -360,6 +370,7 @@ export default function EditorScreen({ params, focused }) {
       toast(t('editor.relinked'));
     } catch {
       setBusy(null);
+      toast(t('errors.generic'), 'error');
     }
   };
 
@@ -372,7 +383,7 @@ export default function EditorScreen({ params, focused }) {
     }
     const base = trimBase.current;
     if (!base) return;
-    const fn = kind === 'main' ? TL.trimMain : kind === 'audio' ? TL.trimAudio : TL.trimText;
+    const fn = { main: TL.trimMain, audio: TL.trimAudio, text: TL.trimText, effect: TL.trimEffectLayer }[kind];
     const next = fn(base, id, edge, deltaMs);
     if (phase === 'move') {
       setHist((h) => ({ ...h, present: next }));
@@ -516,6 +527,8 @@ export default function EditorScreen({ params, focused }) {
           }}
           onMoveAudio={(id, start) => apply((p) => TL.updateAudio(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
           onMoveText={(id, start) => apply((p) => TL.updateText(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
+          onMoveEffect={(id, start) => apply((p) => TL.updateEffectLayer(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
+          effectName={(effectId) => t(`fx.${effectId}.name`)}
           onZoom={zoom}
           onTransitionPress={(clipId) => {
             setSelection({ type: 'main', id: clipId });
@@ -590,7 +603,10 @@ export default function EditorScreen({ params, focused }) {
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
         T('filters', 'color-filter-outline', () => openPanel('filters')),
         T('adjust', 'options-outline', () => openPanel('adjust')),
-        T('effects', 'sparkles-outline', () => openPanel('effects')),
+        T('effects', 'sparkles-outline', () => {
+          setFxSel(selectedMain.effects?.[selectedMain.effects.length - 1]?.id || null);
+          openPanel('fxClip');
+        }, { badge: !!selectedMain.effects?.length }),
         T('transform', 'crop-outline', () => openPanel('transform')),
         index > 0 ? T('transition', 'git-compare-outline', () => openPanel('transition')) : null,
         !isImage ? T('freeze', 'snow-outline', freeze) : null,
@@ -613,6 +629,15 @@ export default function EditorScreen({ params, focused }) {
         T('delete', 'trash-outline', remove),
       ];
     }
+    if (selectedEffect) {
+      return [
+        T('adjust', 'options-outline', () => openPanel('fxLayer')),
+        T('replace', 'swap-horizontal-outline', () => openPanel('fxLayer')),
+        T('split', 'cut-outline', split),
+        T('duplicate', 'copy-outline', duplicate),
+        T('delete', 'trash-outline', remove),
+      ];
+    }
     if (selectedText) {
       return [
         T('editText', 'create-outline', () => openPanel('text')),
@@ -626,7 +651,10 @@ export default function EditorScreen({ params, focused }) {
       T('edit', 'cut-outline', () => ensureClipSelected()),
       T('audio', 'musical-notes-outline', () => setSub('audio')),
       T('text', 'text-outline', () => setSub('text')),
-      T('effects', 'sparkles-outline', () => ensureClipSelected() && openPanel('effects')),
+      T('effects', 'sparkles-outline', () => {
+        setSelection(null);
+        openPanel('fxLayer');
+      }),
       T('filters', 'color-filter-outline', () => ensureClipSelected() && openPanel('filters')),
       T('adjust', 'options-outline', () => ensureClipSelected() && openPanel('adjust')),
       T('ratio', 'tablet-portrait-outline', () => openPanel('ratio')),
@@ -653,8 +681,56 @@ export default function EditorScreen({ params, focused }) {
         return target && <FilterPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
       case 'adjust':
         return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
-      case 'effects':
-        return target && <EffectsPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
+      case 'fxClip': {
+        if (!selectedMain) return null;
+        const list = selectedMain.effects || [];
+        return (
+          <FxPanel
+            mode="clip"
+            instances={list}
+            selectedId={fxSel}
+            maxReached={list.length >= MAX_CLIP_EFFECTS}
+            onPick={(effectId) => {
+              const r = TL.addClipEffect(project, selectedMain.id, effectId);
+              if (!r.newId) return toast(t('fx.maxReached'));
+              apply(r.project);
+              setFxSel(r.newId);
+            }}
+            onSelect={setFxSel}
+            onUpdate={(instId, patch, key) => apply((p) => TL.updateClipEffect(p, selectedMain.id, instId, patch), key)}
+            onRemove={(instId) => {
+              apply((p) => TL.removeClipEffect(p, selectedMain.id, instId));
+              setFxSel(null);
+            }}
+            onClose={close}
+          />
+        );
+      }
+      case 'fxLayer':
+        return (
+          <FxPanel
+            mode="layer"
+            instances={selectedEffect ? [selectedEffect] : []}
+            selectedId={selectedEffect?.id}
+            onPick={(effectId) => {
+              if (selectedEffect) {
+                apply((p) => TL.updateEffectLayer(p, selectedEffect.id, { effectId, values: {}, amount: 1 }));
+              } else {
+                const r = TL.addEffectLayer(project, effectId, position, Math.max(500, Math.min(3000, total - position || 3000)));
+                apply(r.project);
+                setSelection({ type: 'effect', id: r.newId });
+              }
+            }}
+            onSelect={() => {}}
+            onUpdate={(id, patch, key) => apply((p) => TL.updateEffectLayer(p, id, patch), key)}
+            onRemove={(id) => {
+              apply((p) => TL.deleteEffectLayer(p, id));
+              setSelection(null);
+              setPanel(null);
+            }}
+            onClose={close}
+          />
+        );
       case 'transform':
         return selectedMain && <TransformPanel clip={selectedMain} canvasFit={project.canvas.fit} onChange={updMain} onClose={close} />;
       case 'transition': {

@@ -7,7 +7,7 @@ import { formatTimecode, ltr } from '../i18n/core';
 import { useBackHandler, useNav } from '../navigation';
 import { Button, Chip, Icon, IconButton, Loading, Row, Txt, useToast } from '../ui';
 import { colors, font, radius, space } from '../theme';
-import { EXPORTS_DIR, ensureDirs, freeDisk, loadProject, mediaUri, saveProject } from '../storage/library';
+import { EXPORTS_DIR, ensureDirs, freeDisk, loadProject, mediaUri, pruneExports, saveProject } from '../storage/library';
 import { buildRenderSpec, estimateSize, exportSize, suggestBitrate } from '../engine/renderSpec';
 import { cancelExport, deviceStatus, encoderCapabilities, exportVideo, saveToGallery } from '../engine/engine';
 import { totalDuration } from '../model/timeline';
@@ -95,6 +95,8 @@ export default function ExportScreen({ params }) {
     }
     try {
       await ensureDirs();
+      await pruneExports(2);
+      await requestNotificationPermission();
       const safe = (project.name || 'kurgu').replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 40) || 'kurgu';
       const out = `${EXPORTS_DIR}${safe}_${Date.now()}.mp4`;
       const spec = buildRenderSpec(project, mediaUri, { rtl });
@@ -129,6 +131,18 @@ export default function ExportScreen({ params }) {
       }
       setErr({ code: e?.code || 'EXPORT_FAILED', message: e?.message });
       setPhase('error');
+    }
+  };
+
+  // Android 13+: arka plandaki dışa aktarma ilerlemesi bildirimde görünsün diye
+  // izin istenir. Reddedilirse dışa aktarma yine çalışır, yalnızca bildirim görünmez.
+  const requestNotificationPermission = async () => {
+    if (Platform.OS !== 'android' || Platform.Version < 33) return;
+    try {
+      const perm = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+      if (perm && !(await PermissionsAndroid.check(perm))) await PermissionsAndroid.request(perm);
+    } catch {
+      // izin penceresi açılamazsa sessizce devam
     }
   };
 

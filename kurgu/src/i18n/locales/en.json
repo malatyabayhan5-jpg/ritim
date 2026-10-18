@@ -487,5 +487,183 @@
       "name": "Memories",
       "desc": "Vintage-toned 4:5 edit with credits"
     }
+  },
+  "fx": {
+    "titleLayer": "Effect layer",
+    "titleClip": "Clip effects",
+    "amount": "Intensity",
+    "remove": "Remove",
+    "maxReached": "A clip can have at most 4 effects.",
+    "perf": {
+      "light": "Light",
+      "medium": "Medium",
+      "heavy": "Heavy processing: preview may slow down on older devices"
+    },
+    "category": {
+      "all": "All",
+      "light": "Light",
+      "glitch": "Glitch",
+      "retro": "Retro",
+      "motion": "Motion",
+      "blur": "Blur",
+      "stylize": "Stylize",
+      "creative": "Creative",
+      "distort": "Distort",
+      "atmosphere": "Atmosphere",
+      "cinematic": "Cinematic"
+    },
+    "glow": {
+      "name": "Glow",
+      "desc": "Soft light halo around bright areas."
+    },
+    "lightLeak": {
+      "name": "Light leak",
+      "desc": "Warm film light bleeding in from the edges."
+    },
+    "glitch": {
+      "name": "Digital glitch",
+      "desc": "Block shifts, tearing and color channel splits."
+    },
+    "vhs": {
+      "name": "VHS tape",
+      "desc": "Chroma bleed, tracking band and analog noise."
+    },
+    "chromatic": {
+      "name": "Chromatic aberration",
+      "desc": "Lens-style red/blue edge fringing."
+    },
+    "shake": {
+      "name": "Camera shake",
+      "desc": "Natural handheld jitter and impact shake."
+    },
+    "tiltShift": {
+      "name": "Miniature (tilt-shift)",
+      "desc": "Blurs outside the focus band for a model-world look."
+    },
+    "oldFilm": {
+      "name": "Old film",
+      "desc": "Grain, dust, scratches and flickering exposure."
+    },
+    "crt": {
+      "name": "CRT screen",
+      "desc": "Curved tube screen, scanlines and phosphor mask."
+    },
+    "neonEdge": {
+      "name": "Neon outline",
+      "desc": "Turns edges into color-flowing neon lines."
+    },
+    "comic": {
+      "name": "Comic",
+      "desc": "Pop-art color steps, ink outline and halftone dots."
+    },
+    "kaleidoscope": {
+      "name": "Kaleidoscope",
+      "desc": "Splits the image into rotating mirror slices."
+    },
+    "ripple": {
+      "name": "Water ripple",
+      "desc": "Ring waves spreading from the center."
+    },
+    "zoomBlur": {
+      "name": "Zoom blur",
+      "desc": "Radial speed blur with a beat pulse."
+    },
+    "motionBlur": {
+      "name": "Motion blur",
+      "desc": "Directional speed trail with highlight smear."
+    },
+    "snow": {
+      "name": "Snow",
+      "desc": "Layered snowflakes drifting in the wind."
+    },
+    "rain": {
+      "name": "Rain",
+      "desc": "Slanted rain streaks and a darker sky."
+    },
+    "sparkle": {
+      "name": "Sparkle",
+      "desc": "Bokeh lights and twinkling stars."
+    },
+    "anamorphic": {
+      "name": "Anamorphic flare",
+      "desc": "Horizontal cinema streaks from light sources."
+    },
+    "duotone": {
+      "name": "Duotone",
+      "desc": "Paints the image with a two-color poster palette."
+    },
+    "mosaic": {
+      "name": "Mosaic",
+      "desc": "Breaks the image into square or hexagonal tiles, with optional bevel and grout."
+    },
+    "param": {
+      "radius": "Radius",
+      "threshold": "Threshold",
+      "warmth": "Warmth",
+      "halo": "Halo",
+      "speed": "Speed",
+      "hue": "Hue",
+      "size": "Size",
+      "flash": "Flash",
+      "blockSize": "Block size",
+      "rgbSplit": "RGB split",
+      "colorDamage": "Color damage",
+      "wobble": "Wobble",
+      "chromaBleed": "Chroma bleed",
+      "noise": "Noise",
+      "analogColor": "Analog color",
+      "strength": "Strength",
+      "barrel": "Barrel",
+      "pulse": "Pulse",
+      "direction": "Direction",
+      "frequency": "Frequency",
+      "rotation": "Rotation",
+      "motionBlur": "Motion blur",
+      "focusPosition": "Focus position",
+      "focusWidth": "Focus width",
+      "blur": "Blur",
+      "saturation": "Saturation",
+      "grain": "Grain",
+      "dust": "Dust",
+      "flicker": "Flicker",
+      "aging": "Aging",
+      "curvature": "Curvature",
+      "scanlines": "Scanlines",
+      "phosphorMask": "Phosphor mask",
+      "bloom": "Bloom",
+      "lineWidth": "Line width",
+      "darken": "Darken",
+      "colorFlow": "Color flow",
+      "glow": "Glow",
+      "dotSize": "Dot size",
+      "inkOutline": "Ink outline",
+      "colorSteps": "Color steps",
+      "paperTone": "Paper tone",
+      "segments": "Segments",
+      "spin": "Spin",
+      "zoom": "Zoom",
+      "wavelength": "Wavelength",
+      "centerY": "Center (vertical)",
+      "clearCenter": "Clear center",
+      "beat": "Beat",
+      "length": "Length",
+      "angle": "Angle",
+      "whip": "Whip",
+      "highlightTrail": "Highlight trail",
+      "density": "Density",
+      "flakeSize": "Flake size",
+      "wind": "Wind",
+      "slant": "Slant",
+      "color": "Color",
+      "stars": "Stars",
+      "streakLength": "Streak length",
+      "contrast": "Contrast",
+      "palette": "Palette",
+      "originalColor": "Original color",
+      "cellSize": "Cell size",
+      "hexagon": "Hexagon",
+      "bevel": "Bevel",
+      "grout": "Grout"
+    }
   }
 }

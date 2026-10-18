@@ -102,6 +102,8 @@ export default function Timeline({
   onMoveMain,
   onMoveAudio,
   onMoveText,
+  onMoveEffect,
+  effectName,
   onZoom,
   onTransitionPress,
   onAddMedia,
@@ -175,120 +177,158 @@ export default function Timeline({
   const layout = mainLayout(project);
   const audioLanes = useMemo(() => assignAudioLanes(project.audio), [project.audio]);
   const textLanes = useMemo(() => laneOf(project.texts, (t) => t.start, (t) => t.duration), [project.texts]);
+  const effectLayers = project.effectLayers || [];
+  const fxLanes = useMemo(() => laneOf(effectLayers, (e) => e.start, (e) => e.duration), [effectLayers]);
   const visible = { from: scrollX - screenW, to: scrollX + screenW * 1.5 };
   const lockScroll = (locked) => setScrollEnabled(!locked);
 
-  const tracksH = RULER_H + MAIN_H + 12 + audioLanes.length * (AUDIO_H + 4) + textLanes.count * (TEXT_H + 4) + 8;
+  const textTop = RULER_H + MAIN_H + 12 + audioLanes.length * (AUDIO_H + 4);
+  const fxTop = textTop + textLanes.count * (TEXT_H + 4);
+  const tracksH = fxTop + fxLanes.count * (TEXT_H + 4) + 8;
 
   return (
     <View style={styles.wrap} {...pinchResponder.panHandlers}>
+      {/* Şerit sayısı alanı aşınca dikey kaydırma; zaman ekseni yatay kaydırmada kalır. */}
       <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
         scrollEnabled={scrollEnabled}
-        scrollEventThrottle={16}
-        onScroll={onScroll}
-        onScrollBeginDrag={() => {
-          userScroll.current = true;
-        }}
-        onScrollEndDrag={(e) => {
-          if (Math.abs(e.nativeEvent.velocity?.x || 0) < 0.05) endScroll();
-        }}
-        onMomentumScrollEnd={endScroll}
+        showsVerticalScrollIndicator={false}
         style={{ direction: 'ltr' }}
-        contentContainerStyle={{ width: contentW, height: Math.max(tracksH, 120) }}
-        testID="timeline-scroll"
+        contentContainerStyle={{ height: Math.max(tracksH, 120) }}
+        testID="timeline-vscroll"
       >
-        <Ruler total={total} pxPerMs={pxPerMs} left={half} visible={visible} markers={project.markers} />
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={scrollEnabled}
+          scrollEventThrottle={16}
+          onScroll={onScroll}
+          onScrollBeginDrag={() => {
+            userScroll.current = true;
+          }}
+          onScrollEndDrag={(e) => {
+            if (Math.abs(e.nativeEvent.velocity?.x || 0) < 0.05) endScroll();
+          }}
+          onMomentumScrollEnd={endScroll}
+          style={{ direction: 'ltr' }}
+          contentContainerStyle={{ width: contentW, height: Math.max(tracksH, 120) }}
+          testID="timeline-scroll"
+        >
+          <Ruler total={total} pxPerMs={pxPerMs} left={half} visible={visible} markers={project.markers} />
 
-        {/* Ana iz */}
-        <View style={[styles.mainTrack, { left: half, top: RULER_H + 4 }]}>
-          {layout.map(({ clip, index, start }) => (
-            <MainClip
-              key={clip.id}
-              clip={clip}
-              index={index}
-              media={project.media[clip.mediaId]}
-              x={start * pxPerMs}
-              pxPerMs={pxPerMs}
-              visible={visible}
-              left={half}
-              selected={selection?.type === 'main' && selection.id === clip.id}
-              onSelect={() => onSelect({ type: 'main', id: clip.id })}
-              onTrim={onTrim}
-              onReorder={(dxMs) => {
-                const center = start + clipDuration(clip) / 2 + dxMs;
-                const others = layout.filter((l) => l.clip.id !== clip.id);
-                const to = others.filter((l) => (l.start + l.end) / 2 < center).length;
-                if (to !== index) onMoveMain(index, to);
-              }}
-              lockScroll={lockScroll}
-              labels={labels}
-            />
-          ))}
-          {layout.slice(1).map(({ clip, start }) => (
-            <Pressable
-              key={`tr_${clip.id}`}
-              testID={`transition-${clip.id}`}
-              onPress={() => onTransitionPress(clip.id)}
-              hitSlop={8}
-              style={[styles.transitionBtn, { left: start * pxPerMs - 11 }, clip.transition?.type !== 'none' && styles.transitionOn]}
-            >
-              <Ionicons name={clip.transition?.type !== 'none' ? 'git-compare' : 'remove'} size={12} color={clip.transition?.type !== 'none' ? colors.bg : colors.text} />
-            </Pressable>
-          ))}
-        </View>
+          {/* Ana iz */}
+          <View style={[styles.mainTrack, { left: half, top: RULER_H + 4 }]}>
+            {layout.map(({ clip, index, start }) => (
+              <MainClip
+                key={clip.id}
+                clip={clip}
+                index={index}
+                media={project.media[clip.mediaId]}
+                x={start * pxPerMs}
+                pxPerMs={pxPerMs}
+                visible={visible}
+                left={half}
+                selected={selection?.type === 'main' && selection.id === clip.id}
+                onSelect={() => onSelect({ type: 'main', id: clip.id })}
+                onTrim={onTrim}
+                onReorder={(dxMs) => {
+                  const center = start + clipDuration(clip) / 2 + dxMs;
+                  const others = layout.filter((l) => l.clip.id !== clip.id);
+                  const to = others.filter((l) => (l.start + l.end) / 2 < center).length;
+                  if (to !== index) onMoveMain(index, to);
+                }}
+                lockScroll={lockScroll}
+                labels={labels}
+              />
+            ))}
+            {layout.slice(1).map(({ clip, start }) => (
+              <Pressable
+                key={`tr_${clip.id}`}
+                testID={`transition-${clip.id}`}
+                onPress={() => onTransitionPress(clip.id)}
+                hitSlop={8}
+                style={[styles.transitionBtn, { left: start * pxPerMs - 11 }, clip.transition?.type !== 'none' && styles.transitionOn]}
+              >
+                <Ionicons name={clip.transition?.type !== 'none' ? 'git-compare' : 'remove'} size={12} color={clip.transition?.type !== 'none' ? colors.bg : colors.text} />
+              </Pressable>
+            ))}
+          </View>
 
-        {/* Ses şeritleri */}
-        {audioLanes.map((lane, li) =>
-          lane.map((a) => (
+          {/* Ses şeritleri */}
+          {audioLanes.map((lane, li) =>
+            lane.map((a) => (
+              <FreeItem
+                key={a.id}
+                kind="audio"
+                item={a}
+                top={RULER_H + MAIN_H + 12 + li * (AUDIO_H + 4)}
+                height={AUDIO_H}
+                left={half}
+                start={a.start}
+                duration={audioDuration(a)}
+                pxPerMs={pxPerMs}
+                color={a.role === 'extracted' ? colors.audio : colors.audioMusic}
+                label={project.media[a.mediaId]?.name || ''}
+                media={project.media[a.mediaId]}
+                visible={visible}
+                selected={selection?.type === 'audio' && selection.id === a.id}
+                onSelect={() => onSelect({ type: 'audio', id: a.id })}
+                onTrim={onTrim}
+                onMove={(newStart) => onMoveAudio(a.id, newStart)}
+                lockScroll={lockScroll}
+              />
+            )),
+          )}
+
+          {/* Metin şeritleri */}
+          {project.texts.map((tx) => (
             <FreeItem
-              key={a.id}
-              kind="audio"
-              item={a}
-              top={RULER_H + MAIN_H + 12 + li * (AUDIO_H + 4)}
-              height={AUDIO_H}
+              key={tx.id}
+              kind="text"
+              item={tx}
+              top={textTop + (textLanes.lanes.get(tx.id) || 0) * (TEXT_H + 4)}
+              height={TEXT_H}
               left={half}
-              start={a.start}
-              duration={audioDuration(a)}
+              start={tx.start}
+              duration={tx.duration}
               pxPerMs={pxPerMs}
-              color={a.role === 'extracted' ? colors.audio : colors.audioMusic}
-              label={project.media[a.mediaId]?.name || ''}
-              media={project.media[a.mediaId]}
+              color={colors.text2}
+              label={tx.text}
+              icon="text"
               visible={visible}
-              selected={selection?.type === 'audio' && selection.id === a.id}
-              onSelect={() => onSelect({ type: 'audio', id: a.id })}
+              selected={selection?.type === 'text' && selection.id === tx.id}
+              onSelect={() => onSelect({ type: 'text', id: tx.id })}
               onTrim={onTrim}
-              onMove={(newStart) => onMoveAudio(a.id, newStart)}
+              onMove={(newStart) => onMoveText(tx.id, newStart)}
               lockScroll={lockScroll}
             />
-          )),
-        )}
+          ))}
 
-        {/* Metin şeritleri */}
-        {project.texts.map((tx) => (
-          <FreeItem
-            key={tx.id}
-            kind="text"
-            item={tx}
-            top={RULER_H + MAIN_H + 12 + audioLanes.length * (AUDIO_H + 4) + (textLanes.lanes.get(tx.id) || 0) * (TEXT_H + 4)}
-            height={TEXT_H}
-            left={half}
-            start={tx.start}
-            duration={tx.duration}
-            pxPerMs={pxPerMs}
-            color={colors.text2}
-            label={tx.text}
-            icon="text"
-            visible={visible}
-            selected={selection?.type === 'text' && selection.id === tx.id}
-            onSelect={() => onSelect({ type: 'text', id: tx.id })}
-            onTrim={onTrim}
-            onMove={(newStart) => onMoveText(tx.id, newStart)}
-            lockScroll={lockScroll}
-          />
-        ))}
+          {/* Efekt katmanları */}
+          {effectLayers.map((fx) => (
+            <FreeItem
+              key={fx.id}
+              kind="effect"
+              item={fx}
+              top={fxTop + (fxLanes.lanes.get(fx.id) || 0) * (TEXT_H + 4)}
+              height={TEXT_H}
+              left={half}
+              start={fx.start}
+              duration={fx.duration}
+              pxPerMs={pxPerMs}
+              color={colors.effect}
+              label={effectName ? effectName(fx.effectId) : fx.effectId}
+              icon="sparkles"
+              visible={visible}
+              selected={selection?.type === 'effect' && selection.id === fx.id}
+              onSelect={() => onSelect({ type: 'effect', id: fx.id })}
+              onTrim={onTrim}
+              onMove={(newStart) => onMoveEffect(fx.id, newStart)}
+              lockScroll={lockScroll}
+            />
+          ))}
+        </ScrollView>
       </ScrollView>
 
       {/* Sabit oynatma kafası */}

@@ -7,7 +7,7 @@ import { ScrollView, Pressable, StyleSheet, Text, TextInput, View } from 'react-
 import { useI18n } from '../i18n';
 import { Button, Chip, Icon, Panel, Row, Slider, Txt } from '../ui';
 import { colors, radius, space } from '../theme';
-import { ADJUSTMENTS, EFFECTS, EFFECT_CATEGORIES, FILTERS, FILTER_CATEGORIES } from '../model/color';
+import { ADJUSTMENTS, FILTERS, FILTER_CATEGORIES } from '../model/color';
 import {
   ASPECT_OPTIONS,
   FONTS,
@@ -177,50 +177,6 @@ export function AdjustPanel({ clip, onChange, onApplyAll, onClose }) {
     </Panel>
   );
 }
-
-export function EffectsPanel({ clip, onChange, onApplyAll, onClose }) {
-  const { t, fmt } = useI18n();
-  const [cat, setCat] = useState(EFFECTS.find((f) => f.id === clip.fx.id)?.category || 'basic');
-  return (
-    <Panel title={t('tools.effects')} onClose={onClose} testID="panel-effects">
-      <View style={styles.body}>
-        <Hscroll>
-          {EFFECT_CATEGORIES.map((c) => (
-            <Chip key={c} label={t(`effects.category.${c}`)} active={cat === c} onPress={() => setCat(c)} />
-          ))}
-        </Hscroll>
-        <Hscroll>
-          {EFFECTS.filter((f) => f.category === cat || f.id === 'none').map((f) => (
-            <Tile key={f.id} testID={`effect-${f.id}`} label={t(`effects.${f.id}`)} icon={EFFECT_ICONS[f.id] || 'sparkles-outline'} active={clip.fx.id === f.id} onPress={() => onChange({ fx: { id: f.id, intensity: clip.fx.id === f.id ? clip.fx.intensity : 1 } })} />
-          ))}
-        </Hscroll>
-        {clip.fx.id !== 'none' ? (
-          <Labeled label={t('panels.intensity')}>
-            <Slider value={clip.fx.intensity} min={0} max={1} onChange={(v) => onChange({ fx: { id: clip.fx.id, intensity: v } }, 'fxIntensity')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
-          </Labeled>
-        ) : null}
-        <Row>
-          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ fx: clip.fx })} />
-        </Row>
-      </View>
-    </Panel>
-  );
-}
-
-const EFFECT_ICONS = {
-  none: 'ban-outline',
-  glitch: 'pulse-outline',
-  rgbSplit: 'color-filter-outline',
-  pixelate: 'grid-outline',
-  mosaic: 'apps-outline',
-  blur: 'water-outline',
-  dream: 'cloud-outline',
-  vignette: 'aperture-outline',
-  filmGrain: 'film-outline',
-  oldFilm: 'film',
-  vhs: 'tv-outline',
-  sharpen: 'diamond-outline',
-};
 
 export function TransformPanel({ clip, canvasFit, onChange, onClose }) {
   const { t, fmt } = useI18n();

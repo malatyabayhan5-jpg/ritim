@@ -4,6 +4,7 @@
 // serbest konumludur.
 
 import { createAudioClip, createMainClip, createText, newId } from './schema';
+import { createEffectInstance, createEffectLayer } from './effects';
 
 export const MIN_CLIP_MS = 100;
 export const MAX_IMAGE_MS = 60 * 60 * 1000;
@@ -310,6 +311,77 @@ export function trimText(project, id, edge, delta) {
     return updateText(project, id, { start: Math.round(x.start + d), duration: Math.round(x.duration - d) });
   }
   return updateText(project, id, { duration: Math.round(Math.max(MIN_CLIP_MS, x.duration + delta)) });
+}
+
+// --- Efektler: klip efekt yığını ---
+
+export const MAX_CLIP_EFFECTS = 4;
+
+export function addClipEffect(project, clipId, effectId) {
+  const clip = project.main.find((c) => c.id === clipId);
+  if (!clip) return { project, newId: null };
+  if ((clip.effects || []).length >= MAX_CLIP_EFFECTS) return { project, newId: null };
+  const inst = createEffectInstance(effectId);
+  const effects = [...(clip.effects || []), inst];
+  return { project: updateMain(project, clipId, { effects }), newId: inst.id };
+}
+
+export function updateClipEffect(project, clipId, instId, patch) {
+  const clip = project.main.find((c) => c.id === clipId);
+  if (!clip) return project;
+  const effects = (clip.effects || []).map((e) => (e.id === instId ? { ...e, ...patch, values: patch.values ? { ...e.values, ...patch.values } : e.values } : e));
+  return updateMain(project, clipId, { effects });
+}
+
+export function removeClipEffect(project, clipId, instId) {
+  const clip = project.main.find((c) => c.id === clipId);
+  if (!clip) return project;
+  return updateMain(project, clipId, { effects: (clip.effects || []).filter((e) => e.id !== instId) });
+}
+
+// --- Efektler: zaman çizelgesindeki efekt katmanları ---
+
+export function addEffectLayer(project, effectId, start, duration = 3000) {
+  const layer = createEffectLayer(effectId, start, duration);
+  return { project: touch({ ...project, effectLayers: [...(project.effectLayers || []), layer] }), newId: layer.id };
+}
+
+export function updateEffectLayer(project, id, patch) {
+  return touch({
+    ...project,
+    effectLayers: (project.effectLayers || []).map((e) => (e.id === id ? { ...e, ...patch, values: patch.values ? { ...e.values, ...patch.values } : e.values } : e)),
+  });
+}
+
+export function deleteEffectLayer(project, id) {
+  return touch({ ...project, effectLayers: (project.effectLayers || []).filter((e) => e.id !== id) });
+}
+
+export function duplicateEffectLayer(project, id) {
+  const e = (project.effectLayers || []).find((x) => x.id === id);
+  if (!e) return { project, newId: null };
+  const copy = { ...e, id: newId('fx'), start: e.start + e.duration };
+  return { project: touch({ ...project, effectLayers: [...project.effectLayers, copy] }), newId: copy.id };
+}
+
+export function trimEffectLayer(project, id, edge, delta) {
+  const e = (project.effectLayers || []).find((x) => x.id === id);
+  if (!e) return project;
+  if (edge === 'start') {
+    const d = Math.max(-e.start, Math.min(e.duration - MIN_CLIP_MS, delta));
+    return updateEffectLayer(project, id, { start: Math.round(e.start + d), duration: Math.round(e.duration - d) });
+  }
+  return updateEffectLayer(project, id, { duration: Math.round(Math.max(MIN_CLIP_MS, e.duration + delta)) });
+}
+
+export function splitEffectLayerAt(project, id, t) {
+  const e = (project.effectLayers || []).find((x) => x.id === id);
+  if (!e) return { project, changed: false };
+  const offset = t - e.start;
+  if (offset < MIN_CLIP_MS || e.duration - offset < MIN_CLIP_MS) return { project, changed: false };
+  const a = { ...e, duration: Math.round(offset) };
+  const b = { ...e, id: newId('fx'), start: Math.round(t), duration: Math.round(e.duration - offset) };
+  return { project: touch({ ...project, effectLayers: project.effectLayers.flatMap((x) => (x.id === id ? [a, b] : [x])) }), changed: true, newId: b.id };
 }
 
 // --- İşaretçiler ---

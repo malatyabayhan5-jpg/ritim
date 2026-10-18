@@ -7,15 +7,19 @@ export function createHistory(present) {
   return { past: [], present, future: [] };
 }
 
+// Aynı anahtarla gelen değişiklikler yalnızca bu süre içinde birleşir; böylece
+// aynı kaydırıcıyla saniyeler arayla yapılan iki ayrı ayar iki ayrı adım olur.
+export const COALESCE_MS = 800;
+
 /** Yeni durum ekler. `coalesceKey` aynıysa (ör. kaydırıcı sürüklenirken) tek adımda birleştirir. */
-export function pushHistory(h, next, coalesceKey = null) {
+export function pushHistory(h, next, coalesceKey = null, now = Date.now()) {
   if (next === h.present) return h;
-  if (coalesceKey && h.lastKey === coalesceKey) {
-    return { ...h, present: next, future: [] };
+  if (coalesceKey && h.lastKey === coalesceKey && now - (h.lastTime || 0) <= COALESCE_MS) {
+    return { ...h, present: next, future: [], lastTime: now };
   }
   const past = [...h.past, h.present];
   if (past.length > HISTORY_LIMIT) past.shift();
-  return { past, present: next, future: [], lastKey: coalesceKey };
+  return { past, present: next, future: [], lastKey: coalesceKey, lastTime: now };
 }
 
 export function undo(h) {

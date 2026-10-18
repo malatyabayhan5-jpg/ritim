@@ -242,6 +242,19 @@ export async function storageUsage() {
   return { media, exports, cache, free };
 }
 
+/**
+ * Uygulama içindeki dışa aktarma kopyalarını sınırlar: galeriye kaydedilen
+ * videoların uygulama içi kopyaları en yeni `keep` tanesi dışında silinir.
+ * Proje paketleri (.kurgu.json) dokunulmadan kalır.
+ */
+export async function pruneExports(keep = 2) {
+  const names = (await FS.readDirectoryAsync(EXPORTS_DIR).catch(() => [])).filter((n) => n.toLowerCase().endsWith('.mp4'));
+  const infos = await Promise.all(names.map((n) => FS.getInfoAsync(EXPORTS_DIR + n).then((i) => ({ uri: EXPORTS_DIR + n, time: i.modificationTime || 0 })).catch(() => null)));
+  const old = infos.filter(Boolean).sort((a, b) => b.time - a.time).slice(keep);
+  await Promise.all(old.map((f) => FS.deleteAsync(f.uri, { idempotent: true }).catch(() => {})));
+  return old.length;
+}
+
 export async function clearCache() {
   await FS.deleteAsync(CACHE_DIR, { idempotent: true });
   await FS.deleteAsync(EXPORTS_DIR, { idempotent: true });

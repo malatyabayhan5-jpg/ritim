@@ -4,6 +4,7 @@
 import { assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
 import { clipVisuals } from '../model/color';
 import { TRANSITION_MIN_MS } from '../model/catalog';
+import { effectRenderSpec } from '../model/effects';
 
 const DEFAULT_IMAGE_SOURCE_MS = 3000;
 
@@ -17,7 +18,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
   const totalMs = Math.round(totalDuration(project));
   const fit = project.canvas.fit || 'fit';
 
-  const main = layout.map(({ clip }) => {
+  const main = layout.map(({ clip, start, end }) => {
     const media = project.media[clip.mediaId] || {};
     const visuals = clipVisuals(clip);
     const isImage = clip.kind === 'image';
@@ -41,6 +42,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       offsetY: clip.transform?.y || 0,
       blur: visuals.blur,
       fx: visuals.fx,
+      effects: (clip.effects || []).map((e) => effectRenderSpec(e, start, end)).filter(Boolean),
     };
   });
 
@@ -100,6 +102,12 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       rtl: !!options.rtl,
     }));
 
+  const effectLayers = (project.effectLayers || [])
+    .filter((e) => e.start < totalMs && e.duration > 0)
+    .sort((a, b) => a.start - b.start)
+    .map((e) => effectRenderSpec(e, e.start, Math.min(totalMs, e.start + e.duration)))
+    .filter(Boolean);
+
   return {
     width: project.canvas.width,
     height: project.canvas.height,
@@ -109,6 +117,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     audioLanes,
     transitions,
     texts,
+    effectLayers,
     globalFx: {},
   };
 }

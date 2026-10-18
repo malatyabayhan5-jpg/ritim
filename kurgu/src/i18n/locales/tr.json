@@ -487,5 +487,183 @@
       "name": "Anılar",
       "desc": "Vintage tonlu, jenerikli 4:5 kurgu"
     }
+  },
+  "fx": {
+    "titleLayer": "Efekt katmanı",
+    "titleClip": "Klip efektleri",
+    "amount": "Yoğunluk",
+    "remove": "Kaldır",
+    "maxReached": "Bir klibe en fazla 4 efekt eklenebilir.",
+    "perf": {
+      "light": "Hafif",
+      "medium": "Orta",
+      "heavy": "Yoğun işlem: eski cihazlarda önizleme yavaşlayabilir"
+    },
+    "category": {
+      "all": "Tümü",
+      "light": "Işık",
+      "glitch": "Glitch",
+      "retro": "Retro",
+      "motion": "Hareket",
+      "blur": "Bulanıklık",
+      "stylize": "Stil",
+      "creative": "Yaratıcı",
+      "distort": "Bozulma",
+      "atmosphere": "Atmosfer",
+      "cinematic": "Sinematik"
+    },
+    "glow": {
+      "name": "Parıltı",
+      "desc": "Parlak alanların çevresine yumuşak ışık hâlesi yayar."
+    },
+    "lightLeak": {
+      "name": "Işık sızıntısı",
+      "desc": "Kenarlardan süzülen sıcak film ışığı."
+    },
+    "glitch": {
+      "name": "Dijital bozulma",
+      "desc": "Blok kaymaları, yırtılma ve renk kanalı ayrışması."
+    },
+    "vhs": {
+      "name": "VHS kaset",
+      "desc": "Renk taşması, takip bandı ve analog parazit."
+    },
+    "chromatic": {
+      "name": "Renk sapması",
+      "desc": "Lens kaynaklı kırmızı-mavi kenar ayrışması."
+    },
+    "shake": {
+      "name": "Kamera sarsıntısı",
+      "desc": "Doğal el titremesi ve darbe sarsıntısı."
+    },
+    "tiltShift": {
+      "name": "Minyatür (tilt-shift)",
+      "desc": "Odak bandı dışını bulanıklaştırır, maket görünümü verir."
+    },
+    "oldFilm": {
+      "name": "Eski film",
+      "desc": "Gren, toz, çizik ve titreyen pozlama."
+    },
+    "crt": {
+      "name": "CRT ekran",
+      "desc": "Kavisli tüp ekran, tarama çizgileri ve fosfor maskesi."
+    },
+    "neonEdge": {
+      "name": "Neon kontur",
+      "desc": "Kenarları renk akışlı neon çizgilere dönüştürür."
+    },
+    "comic": {
+      "name": "Çizgi roman",
+      "desc": "Pop-art renk basamakları, mürekkep kontur ve nokta tram."
+    },
+    "kaleidoscope": {
+      "name": "Kaleydoskop",
+      "desc": "Görüntüyü dönen ayna dilimlerine böler."
+    },
+    "ripple": {
+      "name": "Su dalgası",
+      "desc": "Merkezden yayılan halka dalgalar."
+    },
+    "zoomBlur": {
+      "name": "Zoom bulanıklığı",
+      "desc": "Merkeze doğru hız bulanıklığı ve ritim vuruşu."
+    },
+    "motionBlur": {
+      "name": "Hareket bulanıklığı",
+      "desc": "Yönlü hız izi ve parlak iz uzaması."
+    },
+    "snow": {
+      "name": "Kar",
+      "desc": "Derinlikli, rüzgârla savrulan kar taneleri."
+    },
+    "rain": {
+      "name": "Yağmur",
+      "desc": "Eğik yağmur çizgileri ve kararan gökyüzü."
+    },
+    "sparkle": {
+      "name": "Işıltı",
+      "desc": "Bokeh ışıkları ve parlayan yıldızcıklar."
+    },
+    "anamorphic": {
+      "name": "Anamorfik parlama",
+      "desc": "Işık kaynaklarından yatay sinema çizgileri."
+    },
+    "duotone": {
+      "name": "Çift ton",
+      "desc": "Görüntüyü iki renkli posterlik paletle boyar."
+    },
+    "mosaic": {
+      "name": "Mozaik",
+      "desc": "Görüntüyü kare ya da altıgen karolara böler; kabartma ve derz seçenekli."
+    },
+    "param": {
+      "radius": "Yarıçap",
+      "threshold": "Eşik",
+      "warmth": "Sıcaklık",
+      "halo": "Hâle",
+      "speed": "Hız",
+      "hue": "Renk tonu",
+      "size": "Boyut",
+      "flash": "Parlama",
+      "blockSize": "Blok boyutu",
+      "rgbSplit": "RGB ayrışması",
+      "colorDamage": "Renk bozulması",
+      "wobble": "Salınım",
+      "chromaBleed": "Renk taşması",
+      "noise": "Parazit",
+      "analogColor": "Analog renk",
+      "strength": "Güç",
+      "barrel": "Fıçı",
+      "pulse": "Nabız",
+      "direction": "Yön",
+      "frequency": "Sıklık",
+      "rotation": "Dönüş",
+      "motionBlur": "Hareket bulanıklığı",
+      "focusPosition": "Odak konumu",
+      "focusWidth": "Odak genişliği",
+      "blur": "Bulanıklık",
+      "saturation": "Doygunluk",
+      "grain": "Gren",
+      "dust": "Toz",
+      "flicker": "Titreme",
+      "aging": "Yaşlanma",
+      "curvature": "Kavis",
+      "scanlines": "Tarama çizgileri",
+      "phosphorMask": "Fosfor maskesi",
+      "bloom": "Işıma",
+      "lineWidth": "Çizgi kalınlığı",
+      "darken": "Karartma",
+      "colorFlow": "Renk akışı",
+      "glow": "Parıltı",
+      "dotSize": "Nokta boyutu",
+      "inkOutline": "Mürekkep kontur",
+      "colorSteps": "Renk basamakları",
+      "paperTone": "Kâğıt tonu",
+      "segments": "Dilim",
+      "spin": "Dönme",
+      "zoom": "Yakınlaştırma",
+      "wavelength": "Dalga boyu",
+      "centerY": "Merkez (dikey)",
+      "clearCenter": "Net merkez",
+      "beat": "Ritim",
+      "length": "Uzunluk",
+      "angle": "Açı",
+      "whip": "Savurma",
+      "highlightTrail": "Parlak iz",
+      "density": "Yoğunluk",
+      "flakeSize": "Tane boyutu",
+      "wind": "Rüzgâr",
+      "slant": "Eğim",
+      "color": "Renk",
+      "stars": "Yıldızlar",
+      "streakLength": "Çizgi uzunluğu",
+      "contrast": "Kontrast",
+      "palette": "Palet",
+      "originalColor": "Özgün renk",
+      "cellSize": "Hücre boyutu",
+      "hexagon": "Altıgen",
+      "bevel": "Kabartma",
+      "grout": "Derz"
+    }
   }
 }

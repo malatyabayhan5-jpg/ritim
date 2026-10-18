@@ -84,12 +84,17 @@ object CompositionFactory {
     if (!spec.globalFx.isNoOp || glitchTransitions.isNotEmpty()) {
       compositionEffects.add(FxEffect(spec.globalFx, glitchTransitions))
     }
+    // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
+    spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it)) }
     val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it) }
     if (overlays.isNotEmpty()) compositionEffects.add(OverlayEffect(overlays))
     if (forExport) compositionEffects.add(FrameDropEffect.createDefaultFrameDropEffect(spec.fps.toFloat()))
 
+    // HDR kaynaklar OpenGL ile SDR'ye ton eşlenir: efekt shader'ları SDR aralığında
+    // çalışır, önizleme ile H.264 çıktısı aynı renkleri verir.
     return Composition.Builder(sequences)
       .setEffects(Effects(emptyList(), compositionEffects))
+      .setHdrMode(Composition.HDR_MODE_TONE_MAP_HDR_TO_SDR_USING_OPEN_GL)
       .build()
   }
 
@@ -129,6 +134,7 @@ object CompositionFactory {
     clip.colorMatrix?.let { video.add(StaticColorMatrix(it)) }
     if (clip.blur > 0.01f) video.add(GaussianBlur(max(0.5f, clip.blur * h * 0.02f)))
     if (!clip.fx.isNoOp) video.add(FxEffect(clip.fx))
+    clip.effects.forEach { video.add(ShaderFx(it)) }
 
     val audio = mutableListOf<AudioProcessor>()
     val outUs = clipOutUs(clip.srcInMs, clip.srcOutMs, clip.speed)

@@ -42,6 +42,7 @@ data class MainClip(
   val offsetY: Float,
   val blur: Float,
   val fx: FxParams,
+  val effects: List<ShaderFxSpec>,
 )
 
 data class AudioClip(
@@ -99,6 +100,7 @@ data class RenderSpec(
   val transitions: List<TransitionSpec>,
   val texts: List<TextSpec>,
   val globalFx: FxParams,
+  val effectLayers: List<ShaderFxSpec>,
 ) {
   companion object {
     fun parse(json: String): RenderSpec = parse(JSONObject(json))
@@ -120,6 +122,19 @@ data class RenderSpec(
         transitions = transitions,
         texts = texts,
         globalFx = parseFx(o.optJSONObject("globalFx")),
+        effectLayers = o.optJSONArray("effectLayers").objects().map { parseShaderFx(it) },
+      )
+    }
+
+    private fun parseShaderFx(o: JSONObject): ShaderFxSpec {
+      val arr = o.optJSONArray("params")
+      return ShaderFxSpec(
+        shader = o.getString("shader"),
+        amount = o.optDouble("amount", 1.0).toFloat().coerceIn(0f, 1f),
+        params = FloatArray(8) { i -> arr?.optDouble(i, 0.0)?.toFloat() ?: 0f },
+        seed = o.optDouble("seed", 0.37).toFloat(),
+        startMs = o.optLong("startMs"),
+        endMs = o.optLong("endMs"),
       )
     }
 
@@ -161,6 +176,7 @@ data class RenderSpec(
         offsetY = o.optDouble("offsetY", 0.0).toFloat(),
         blur = o.optDouble("blur", 0.0).toFloat(),
         fx = parseFx(o.optJSONObject("fx")),
+        effects = o.optJSONArray("effects").objects().map { parseShaderFx(it) },
       )
     }
 
