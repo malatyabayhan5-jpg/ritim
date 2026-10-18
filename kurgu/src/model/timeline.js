@@ -98,6 +98,73 @@ export function splitMainAt(project, t) {
   return { project: replaceMain(project, main), changed: true, newId: b.id };
 }
 
+/**
+ * Klibi kaynak zamanındaki noktalardan böler (sahne algılama). Klibin dışındaki
+ * ya da kenara MIN_CLIP_MS'den yakın noktalar atlanır.
+ */
+export function splitMainAtSourceTimes(project, clipId, timesMs) {
+  const i = project.main.findIndex((c) => c.id === clipId);
+  if (i < 0) return { project, added: 0 };
+  const clip = project.main[i];
+  const minSrc = MIN_CLIP_MS * clip.speed;
+  const cuts = [...new Set(timesMs.map(Math.round))]
+    .filter((t) => t > clip.srcIn + minSrc && t < clip.srcOut - minSrc)
+    .sort((a, b) => a - b)
+    .filter((t, k, arr) => k === 0 || t - arr[k - 1] >= minSrc);
+  if (!cuts.length) return { project, added: 0 };
+  const bounds = [clip.srcIn, ...cuts, clip.srcOut];
+  const pieces = bounds.slice(0, -1).map((srcIn, k) => ({
+    ...clip,
+    id: k === 0 ? clip.id : newId('clip'),
+    srcIn,
+    srcOut: bounds[k + 1],
+    fadeIn: k === 0 ? clip.fadeIn : 0,
+    fadeOut: k === bounds.length - 2 ? clip.fadeOut : 0,
+    transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
+  }));
+  const main = [...project.main];
+  main.splice(i, 1, ...pieces);
+  return { project: replaceMain(project, main), added: pieces.length - 1 };
+}
+
+/**
+ * Klipten kaynak zamanı aralıklarını çıkarır (sessizlik kaldırma). Kalan parçalar
+ * sırayla ana ize yerleşir; MIN_CLIP_MS'den kısa parçalar atılır.
+ * @returns {{ project, removedMs: number, pieces: number }}
+ */
+export function removeSourceRanges(project, clipId, ranges) {
+  const i = project.main.findIndex((c) => c.id === clipId);
+  if (i < 0) return { project, removedMs: 0, pieces: 0 };
+  const clip = project.main[i];
+  const minSrc = MIN_CLIP_MS * clip.speed;
+  const keep = [];
+  let cursor = clip.srcIn;
+  for (const r of [...ranges].sort((a, b) => a.start - b.start)) {
+    const s = Math.max(clip.srcIn, r.start);
+    const e = Math.min(clip.srcOut, r.end);
+    if (e <= s) continue;
+    if (s - cursor >= minSrc) keep.push([cursor, s]);
+    cursor = Math.max(cursor, e);
+  }
+  if (clip.srcOut - cursor >= minSrc) keep.push([cursor, clip.srcOut]);
+  if (!keep.length) return { project, removedMs: 0, pieces: 1 };
+  const before = clipDuration(clip);
+  const pieces = keep.map(([srcIn, srcOut], k) => ({
+    ...clip,
+    id: k === 0 ? clip.id : newId('clip'),
+    srcIn: Math.round(srcIn),
+    srcOut: Math.round(srcOut),
+    fadeIn: k === 0 ? clip.fadeIn : 0,
+    fadeOut: k === keep.length - 1 ? clip.fadeOut : 0,
+    transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
+  }));
+  const after = pieces.reduce((sum, c) => sum + clipDuration(c), 0);
+  if (before - after < 1) return { project, removedMs: 0, pieces: 1 };
+  const main = [...project.main];
+  main.splice(i, 1, ...pieces);
+  return { project: replaceMain(project, main), removedMs: Math.round(before - after), pieces: pieces.length };
+}
+
 export function deleteMain(project, clipId) {
   return replaceMain(project, project.main.filter((c) => c.id !== clipId));
 }

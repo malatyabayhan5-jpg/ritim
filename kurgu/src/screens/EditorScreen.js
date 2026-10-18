@@ -22,10 +22,12 @@ import {
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
 import FxPanel from '../editor/FxPanel';
+import AiPanel from '../editor/AiPanel';
+import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
 import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
-import { thumbnails } from '../engine/engine';
+import { sceneScores, speechPeaks, synthesizeSpeech, thumbnails } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -39,7 +41,7 @@ const SPEC_DEBOUNCE_MS = 180;
 const SAVE_DEBOUNCE_MS = 700;
 
 export default function EditorScreen({ params, focused }) {
-  const { t, fmt, rtl, row } = useI18n();
+  const { t, fmt, rtl, row, lang } = useI18n();
   const nav = useNav();
   const toast = useToast();
   const insets = useSafeAreaInsets();
@@ -352,6 +354,64 @@ export default function EditorScreen({ params, focused }) {
     } catch {
       setBusy(null);
       toast(t('errors.generic'), 'error');
+    }
+  };
+
+  // --- Cihaz içi AI araçları ---
+  const textAtPlayhead = () => project?.texts.find((x) => position >= x.start && position < x.start + x.duration) || null;
+  const aiTargets = () => {
+    const clip = selectedMain || clipAtPlayhead();
+    const text = selectedText || textAtPlayhead();
+    const clipLabel = clip ? t('ai.target.clip', { n: project.main.findIndex((c) => c.id === clip.id) + 1 }) : t('ai.target.noClip');
+    return {
+      silenceRemoval: clipLabel,
+      sceneDetect: clipLabel,
+      textToSpeech: text ? t('ai.target.text', { text: text.text.slice(0, 40) }) : t('ai.target.noText'),
+    };
+  };
+
+  const runAi = async (key) => {
+    const clip = selectedMain || clipAtPlayhead();
+    const media = clip ? project.media[clip.mediaId] : null;
+    try {
+      if (key === 'silenceRemoval') {
+        if (!clip || clip.kind !== 'video' || media?.hasAudio === false) return toast(t('ai.needAudioClip'));
+        setBusy(t('ai.analyzing'));
+        const peaks = await speechPeaks(media);
+        const ranges = detectSilences(peaks, 50);
+        const r = TL.removeSourceRanges(project, clip.id, ranges);
+        setBusy(null);
+        if (!r.removedMs) return toast(t('ai.noSilence'));
+        apply((p) => TL.removeSourceRanges(p, clip.id, ranges).project);
+        setSelection(null);
+        toast(t('ai.silenceRemoved', { seconds: fmt.number(Math.round(r.removedMs / 100) / 10), parts: r.pieces }));
+      } else if (key === 'sceneDetect') {
+        if (!clip || clip.kind !== 'video') return toast(t('ai.needVideoClip'));
+        setBusy(t('ai.analyzing'));
+        const scores = await sceneScores(media, clip.srcIn, clip.srcOut, 6);
+        const cuts = pickSceneCuts(scores);
+        setBusy(null);
+        const r = TL.splitMainAtSourceTimes(project, clip.id, cuts);
+        if (!r.added) return toast(t('ai.noScenes'));
+        apply((p) => TL.splitMainAtSourceTimes(p, clip.id, cuts).project);
+        setSelection(null);
+        toast(t('ai.scenesFound', { count: r.added + 1 }));
+      } else if (key === 'textToSpeech') {
+        const text = selectedText || textAtPlayhead();
+        if (!text?.text.trim()) return toast(t('ai.needText'));
+        setBusy(t('ai.speaking'));
+        const out = `${CACHE_DIR}tts_${Date.now()}.wav`;
+        await synthesizeSpeech(text.text, speechLanguage(text.text, lang), out);
+        const { media: imported, errors } = await importPicked([{ uri: out, name: `${text.text.slice(0, 24).trim() || 'voice'}.wav`, mimeType: 'audio/wav', kind: 'audio' }]);
+        setBusy(null);
+        if (!imported[0] || errors.length) return toast(t('errors.generic'), 'error');
+        apply((p) => TL.addAudio(p, imported[0], text.start, 'voice').project);
+        toast(t('ai.voiceAdded'));
+      }
+    } catch (e) {
+      setBusy(null);
+      const code = e?.code || '';
+      toast(code.startsWith('TTS_') ? t(`ai.errors.${code}`) : t('errors.generic'), 'error');
     }
   };
 
@@ -669,7 +729,7 @@ export default function EditorScreen({ params, focused }) {
       T('filters', 'color-filter-outline', () => ensureClipSelected() && openPanel('filters')),
       T('adjust', 'options-outline', () => ensureClipSelected() && openPanel('adjust')),
       T('ratio', 'tablet-portrait-outline', () => openPanel('ratio')),
-      T('captions', 'chatbox-ellipses-outline', () => nav.push('ai')),
+      T('ai', 'sparkles', () => openPanel('ai')),
     ];
   }
 
@@ -717,6 +777,8 @@ export default function EditorScreen({ params, focused }) {
           />
         );
       }
+      case 'ai':
+        return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
       case 'fxLayer':
         return (
           <FxPanel

@@ -112,3 +112,24 @@ export function cancelExport() {
 export function saveToGallery(path, displayName) {
   return requireEngine().saveToGallery(path, displayName);
 }
+
+// --- Cihaz içi AI araçları (ham ölçüm yerelde, karar src/model/ai.js'de) ---
+
+/** Sessizlik analizi için yüksek çözünürlüklü tepe değerleri (saniyede 50). */
+export async function speechPeaks(media) {
+  return requireEngine().waveform(mediaUri(media), 50, 200000);
+}
+
+/** Video kareleri arasındaki histogram farkları [{ t (ms), d (0..1) }]. */
+export async function sceneScores(media, fromMs, toMs, samplesPerSecond = 6) {
+  return requireEngine().sceneScores(mediaUri(media), fromMs, toMs, samplesPerSecond);
+}
+
+/** Cihazın TTS motoruyla WAV üretir; çıktı yolunu döndürür. */
+export async function synthesizeSpeech(text, lang, outPath, { rate = 1, pitch = 1 } = {}) {
+  try {
+    return await requireEngine().synthesizeSpeech(text, lang, outPath, rate, pitch);
+  } catch (e) {
+    throw new EngineError(e?.code || 'TTS_FAILED', e?.message);
+  }
+}

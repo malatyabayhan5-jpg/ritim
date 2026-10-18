@@ -33,6 +33,14 @@ class KurguEngineModule : Module() {
       MediaTools.waveform(context, uri, peaksPerSecond, maxPeaks)
     }
 
+    AsyncFunction("sceneScores") { uri: String, fromMs: Double, toMs: Double, samplesPerSecond: Int ->
+      SceneDetector.scores(context, uri, fromMs.toLong(), toMs.toLong(), samplesPerSecond)
+    }
+
+    AsyncFunction("synthesizeSpeech") { text: String, lang: String, outPath: String, rate: Double, pitch: Double, promise: Promise ->
+      Speech.synthesize(context, text, lang, outPath.removePrefix("file://"), rate.toFloat(), pitch.toFloat(), promise)
+    }
+
     AsyncFunction("encoderCapabilities") {
       MediaTools.encoderCapabilities()
     }

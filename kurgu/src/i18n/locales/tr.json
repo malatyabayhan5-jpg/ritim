@@ -110,7 +110,7 @@
     "filters": "Filtreler",
     "adjust": "Ayarla",
     "ratio": "Format",
-    "captions": "Altyazı",
+    "ai": "AI",
     "split": "Böl",
     "speed": "Hız",
     "volume": "Ses düzeyi",
@@ -426,10 +426,11 @@
   "ai": {
     "title": "AI araçları",
     "planned": "Planlandı",
-    "notice": "Bu araçlar henüz bir modele veya servise bağlanmadı, bu yüzden kullanılamaz. Her birinin cihazda mı yoksa bulutta mı çalışacağı aşağıda belirtilmiştir. Bulut araçları yalnızca açık izninizle veri gönderecek.",
+    "notice": "\"Kullanılabilir\" araçlar cihazınızda çalışır; videonuz veya metniniz hiçbir sunucuya gönderilmez. Bir projeyi açıp alttaki \"AI\" aracına dokunun. \"Planlandı\" araçlar henüz çalışmıyor.",
     "mode": {
       "onDevice": "Cihaz içi model (indirme gerekir, internet gerekmez)",
-      "cloud": "Bulut servisi (internet, hesap ve izin gerekir)"
+      "cloud": "Bulut servisi (internet, hesap ve izin gerekir)",
+      "system": "Cihazın kendi ses motoru (internet gerekmez)"
     },
     "tools": {
       "autoCaptions": {
@@ -446,15 +447,15 @@
       },
       "silenceRemoval": {
         "title": "Sessizlik kaldırma",
-        "desc": "Sessiz bölümleri bulur ve kesmeyi önerir."
+        "desc": "Konuşmadaki sessiz bölümleri bulur ve klipten çıkarır."
       },
       "sceneDetect": {
         "title": "Sahne algılama",
-        "desc": "Uzun videoyu sahne değişimlerinden otomatik böler."
+        "desc": "Videoyu sahne değişimlerinden otomatik olarak böler."
       },
       "textToSpeech": {
         "title": "Metinden konuşma",
-        "desc": "Metin katmanlarından seslendirme üretir."
+        "desc": "Seçili metni cihazın kendi ses motoruyla seslendirir ve ses izine ekler."
       },
       "autoCut": {
         "title": "Otomatik kurgu",
@@ -466,9 +467,33 @@
       },
       "translate": {
         "title": "Altyazı çevirisi",
-        "desc": "Altyazıları başka dillere çevirir."
+        "desc": "Altyazıları cihaz içi çeviri modeliyle başka dillere çevirir."
       }
-    }
+    },
+    "ready": "Kullanılabilir",
+    "target": {
+      "clip": "Hedef: {n}. klip",
+      "noClip": "Önce bir klip seçin",
+      "text": "Hedef: \"{text}\"",
+      "noText": "Önce bir metin seçin"
+    },
+    "needAudioClip": "Sesi olan bir video klibi seçin.",
+    "needVideoClip": "Bir video klibi seçin.",
+    "needText": "Önce seslendirilecek bir metin katmanı seçin.",
+    "analyzing": "Analiz ediliyor…",
+    "speaking": "Seslendiriliyor…",
+    "noSilence": "Kaldırılacak sessiz bölüm bulunamadı.",
+    "silenceRemoved": "{seconds} sn sessizlik kaldırıldı. Kalan bölüm sayısı: {parts}",
+    "noScenes": "Sahne değişimi bulunamadı.",
+    "voiceAdded": "Seslendirme ses izine eklendi.",
+    "errors": {
+      "TTS_UNAVAILABLE": "Cihazda metin okuma motoru bulunamadı.",
+      "TTS_LANG": "Bu dil için cihazda ses yüklü değil. Ayarlar > Metin okuma çıktısı bölümünden yükleyebilirsiniz.",
+      "TTS_FAILED": "Seslendirme oluşturulamadı.",
+      "TTS_TIMEOUT": "Metin okuma motoru yanıt vermedi."
+    },
+    "scenesFound_one": "Klip {n} sahneye bölündü.",
+    "scenesFound_other": "Klip {n} sahneye bölündü."
   },
   "templates": {
     "title": "Şablonlar",

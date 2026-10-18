@@ -110,7 +110,7 @@
     "filters": "Filters",
     "adjust": "Adjust",
     "ratio": "Format",
-    "captions": "Captions",
+    "ai": "AI",
     "split": "Split",
     "speed": "Speed",
     "volume": "Volume",
@@ -426,10 +426,11 @@
   "ai": {
     "title": "AI tools",
     "planned": "Planned",
-    "notice": "These tools are not yet connected to a model or service, so they cannot be used. Below you can see whether each will run on the device or in the cloud. Cloud tools will only send data with your explicit permission.",
+    "notice": "\"Available\" tools run on your device; your video or text is never sent to a server. Open a project and tap the \"AI\" tool at the bottom. \"Planned\" tools do not work yet.",
     "mode": {
       "onDevice": "On-device model (download required, no internet needed)",
-      "cloud": "Cloud service (internet, account and permission required)"
+      "cloud": "Cloud service (internet, account and permission required)",
+      "system": "Device's own speech engine (no internet needed)"
     },
     "tools": {
       "autoCaptions": {
@@ -446,15 +447,15 @@
       },
       "silenceRemoval": {
         "title": "Remove silences",
-        "desc": "Finds silent parts and suggests cuts."
+        "desc": "Finds silent parts in speech and removes them from the clip."
       },
       "sceneDetect": {
         "title": "Scene detection",
-        "desc": "Automatically splits long videos at scene changes."
+        "desc": "Automatically splits the video at scene changes."
       },
       "textToSpeech": {
         "title": "Text to speech",
-        "desc": "Generates voice-overs from text layers."
+        "desc": "Voices the selected text with the device's own speech engine and adds it to the audio track."
       },
       "autoCut": {
         "title": "Auto edit",
@@ -466,9 +467,33 @@
       },
       "translate": {
         "title": "Caption translation",
-        "desc": "Translates captions into other languages."
+        "desc": "Translates captions into other languages with an on-device model."
       }
-    }
+    },
+    "ready": "Available",
+    "target": {
+      "clip": "Target: clip {n}",
+      "noClip": "Select a clip first",
+      "text": "Target: \"{text}\"",
+      "noText": "Select a text first"
+    },
+    "needAudioClip": "Select a video clip that has sound.",
+    "needVideoClip": "Select a video clip.",
+    "needText": "Select a text layer to voice first.",
+    "analyzing": "Analyzing…",
+    "speaking": "Generating voice…",
+    "noSilence": "No silent parts to remove were found.",
+    "silenceRemoved": "Removed {seconds} s of silence. Remaining segments: {parts}",
+    "noScenes": "No scene changes were found.",
+    "voiceAdded": "Voice-over added to the audio track.",
+    "errors": {
+      "TTS_UNAVAILABLE": "No text-to-speech engine was found on this device.",
+      "TTS_LANG": "No voice is installed for this language. You can install one in Settings > Text-to-speech output.",
+      "TTS_FAILED": "Could not create the voice-over.",
+      "TTS_TIMEOUT": "The text-to-speech engine did not respond."
+    },
+    "scenesFound_one": "Split the clip into {n} scene.",
+    "scenesFound_other": "Split the clip into {n} scenes."
   },
   "templates": {
     "title": "Templates",

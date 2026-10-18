@@ -1,0 +1,90 @@
+# Cihaz içi AI araçları: sahne algılama (3 sahneli test videosu), geri al,
+# sessizlik kaldırma (2 sn sessiz bölüm), metinden konuşma (cihaz TTS motoru).
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "new-project"
+    timeout: 30000
+- tapOn:
+    id: "new-project"
+- waitForAnimationToEnd:
+    timeout: 5000
+# Sahne test videosu galeriye ilk yüklendiği için listede en sonda (4. öğe)
+- tapOn:
+    text: "(Video|Photo|Fotoğraf).*"
+    index: 3
+- tapOn:
+    text: "(Add|Ekle).*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 90000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: "tool-back"
+    optional: true
+# Sahne algılama
+- tapOn:
+    id: "tool-ai"
+- extendedWaitUntil:
+    visible:
+      id: "panel-ai"
+    timeout: 5000
+- takeScreenshot: 30_ai_paneli
+- tapOn:
+    id: "ai-run-sceneDetect"
+- extendedWaitUntil:
+    visible:
+      id: "clip-2"
+    timeout: 90000
+- takeScreenshot: 31_sahneler
+- tapOn:
+    id: "undo"
+- extendedWaitUntil:
+    notVisible:
+      id: "clip-1"
+    timeout: 5000
+# Sessizlik kaldırma
+- tapOn:
+    id: "tool-ai"
+- tapOn:
+    id: "ai-run-silenceRemoval"
+- extendedWaitUntil:
+    visible:
+      id: "clip-1"
+    timeout: 90000
+- takeScreenshot: 32_sessizlik_kaldirildi
+# Metinden konuşma (emülatörde yüklü ses yoksa uygulama açıklayıcı hata gösterir)
+- tapOn:
+    id: "tool-text"
+- tapOn:
+    id: "tool-addText"
+- tapOn:
+    id: "text-input"
+- eraseText: 20
+- inputText: "Hello from Kurgu"
+- hideKeyboard
+- tapOn:
+    id: "panel-done"
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-ai"
+- tapOn:
+    id: "ai-run-textToSpeech"
+- waitForAnimationToEnd:
+    timeout: 20000
+- takeScreenshot: 33_seslendirme
+- runFlow:
+    when:
+      visible:
+        id: "audio-item-.*"
+    commands:
+      - takeScreenshot: 34_seslendirme_eklendi

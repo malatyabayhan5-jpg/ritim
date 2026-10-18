@@ -18,15 +18,24 @@ ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i
 ffmpeg -loglevel error -y -f lavfi -i testsrc=size=720x1280:rate=30 -f lavfi -i sine=frequency=660:sample_rate=44100 -t 5 -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$M/kurgu_video2.mp4"
 ffmpeg -loglevel error -y -f lavfi -i "color=c=0x8B6CFF:size=1080x1350,drawgrid=w=135:h=135:t=4:c=white" -frames:v 1 "$M/kurgu_foto.jpg"
 ffmpeg -loglevel error -y -f lavfi -i "sine=frequency=330:sample_rate=44100" -t 12 -c:a libmp3lame -b:a 128k "$M/kurgu_muzik.mp3"
+# AI testi: 3 belirgin sahne (2,5 sn) ve 2.–4. saniyeler arası sessiz ses
+ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lavfi -i smptebars=size=640x360:rate=30:d=2.5 -f lavfi -i "mandelbrot=size=640x360:rate=30" \
+  -f lavfi -i "sine=frequency=500:sample_rate=44100:duration=7.5" \
+  -filter_complex "[2]trim=duration=2.5,setpts=PTS-STARTPTS[m];[0][1][m]concat=n=3:v=1:a=0,format=yuv420p[v];[3]volume='if(between(t,2,4),0,1)':eval=frame[a]" \
+  -map "[v]" -map "[a]" -c:v libx264 -c:a aac -t 7.5 "$M/kurgu_sahne.mp4"
 ls -l "$M" >> "$OUT/cihaz.txt"
 
 adb shell mkdir -p /sdcard/DCIM/Camera /sdcard/Music
+# Sahne videosu önce yüklenir: seçicide en sonda kalır, kabul akışının seçimi değişmez
+adb push "$M/kurgu_sahne.mp4" /sdcard/DCIM/Camera/ > /dev/null
+adb shell touch -d "2024-01-01 00:00:00" /sdcard/DCIM/Camera/kurgu_sahne.mp4 > /dev/null 2>&1 || true
+sleep 2
 adb push "$M/kurgu_video1.mp4" /sdcard/DCIM/Camera/ > /dev/null
 adb push "$M/kurgu_foto.jpg" /sdcard/DCIM/Camera/ > /dev/null
 adb push "$M/kurgu_video2.mp4" /sdcard/DCIM/Camera/ > /dev/null
 adb push "$M/kurgu_muzik.mp3" /sdcard/Music/ > /dev/null
 adb shell content call --uri content://media --method scan_volume --arg external_primary > /dev/null 2>&1 || true
-for f in DCIM/Camera/kurgu_video1.mp4 DCIM/Camera/kurgu_foto.jpg DCIM/Camera/kurgu_video2.mp4 Music/kurgu_muzik.mp3; do
+for f in DCIM/Camera/kurgu_sahne.mp4 DCIM/Camera/kurgu_video1.mp4 DCIM/Camera/kurgu_foto.jpg DCIM/Camera/kurgu_video2.mp4 Music/kurgu_muzik.mp3; do
   adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/$f" > /dev/null 2>&1 || true
 done
 sleep 5
@@ -40,7 +49,7 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 
 adb logcat -c
 : > "$OUT/sonuclar.txt"
-for flow in 1_kabul_akisi 2_dil_rtl; do
+for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari; do
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   if [ $code -eq 0 ]; then echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"; else echo "$flow: BAŞARISIZ (çıkış $code)" >> "$OUT/sonuclar.txt"; adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null; fi
@@ -75,7 +84,7 @@ adb logcat -d -s "ReactNativeJS:*" "AndroidRuntime:*" "CompositionPlayer:*" "Tra
 cat "$OUT/sonuclar.txt"
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
-for flow in 1_kabul_akisi 2_dil_rtl; do
+for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari; do
   echo "===== $flow (son 40 satır) ====="
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done

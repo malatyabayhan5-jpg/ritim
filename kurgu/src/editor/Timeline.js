@@ -268,7 +268,7 @@ export default function Timeline({
                 start={a.start}
                 duration={audioDuration(a)}
                 pxPerMs={pxPerMs}
-                color={a.role === 'extracted' ? colors.audio : colors.audioMusic}
+                color={a.role === 'extracted' ? colors.audio : a.role === 'voice' ? colors.voice : colors.audioMusic}
                 label={project.media[a.mediaId]?.name || ''}
                 media={project.media[a.mediaId]}
                 visible={visible}
