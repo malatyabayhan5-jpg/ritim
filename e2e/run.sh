@@ -77,18 +77,22 @@ for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_in
     adb shell dumpsys media_session | grep -E 'package=com.ritim|state=PlaybackState' | head -10 > "$OUT/media_session.txt"
   fi
   fg="$(foreground)"
+  pid="$(adb shell pidof com.ritim.muzik | tr -d '\r')"
   if [ $code -eq 0 ]; then res="GEÇTİ"; else res="KALDI"; ALL_OK=0; fi
   if [ "$fg" != "com.ritim.muzik" ]; then ext=" | DİKKAT: ön planda başka uygulama var"; ALL_OK=0; else ext=""; fi
-  echo "$flow: $res | ön plandaki uygulama: ${fg:-bilinmiyor}$ext" | tee -a "$OUT/sonuclar.txt"
+  echo "$flow: $res | ön plandaki uygulama: ${fg:-bilinmiyor} | süreç: ${pid:-YOK}$ext" | tee -a "$OUT/sonuclar.txt"
   adb exec-out screencap -p > "$OUT/${flow}_son_ekran.png" 2>/dev/null
 done
 
 adb shell svc wifi enable; adb shell svc data enable
 
-# Çökme ve hata kayıtları
+# Çökme ve hata kayıtları (test aracının kendi mesajları hariç)
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
 adb logcat -d -v time AndroidRuntime:E ReactNativeJS:V ReactNative:V ReactNativeJNI:V '*:F' '*:S' > "$OUT/rn_log.txt" 2>&1 || true
-adb logcat -d -v time | grep -i -E 'com.ritim.muzik|FATAL|ReactNative|Hermes|SoLoader|expo' | tail -400 > "$OUT/uygulama_log.txt" || true
+adb logcat -d -v time '*:W' | grep -v -E 'Maestro|maestro' | grep -i -E 'ritim|FATAL|ReactNativeJS|lowmemory|lmkd|Kill|died|ANR|ExoPlayer|AudioTrack' | tail -300 > "$OUT/uygulama_log.txt" || true
+adb logcat -d -b events | grep -E 'am_proc_died|am_kill|am_crash|am_anr|am_low_memory' | grep -i ritim > "$OUT/surec_olaylari.txt" || true
+# Android 11+: uygulama süreçlerinin neden kapandığı (CRASH, LOW_MEMORY, ANR, SIGNALED...)
+adb shell dumpsys activity exit-info com.ritim.muzik | head -80 > "$OUT/cikis_nedenleri.txt" 2>&1 || true
 cp -r "$HOME/.maestro/tests" "$OUT/maestro-debug" 2>/dev/null || true
 
 # Uygulama dışına açılmaya çalışılan intent kayıtları (YouTube uygulamasına gönderim olursa burada görünür)
