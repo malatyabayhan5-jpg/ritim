@@ -1,0 +1,46 @@
+# İndirme iptali: 8 MB'lık MP3 indirmesi başlatılır ve hemen iptal edilir; dosya listeye eklenmemeli
+appId: com.ritim.muzik
+---
+- launchApp
+- tapOn:
+    id: "tab-archive"
+- tapOn:
+    id: "archive-input"
+- eraseText: 30
+- inputText: "soundhelix"
+- tapOn:
+    id: "archive-go"
+- extendedWaitUntil:
+    visible:
+      id: "dl-btn-sh-7"
+    timeout: 15000
+- tapOn:
+    id: "dl-btn-sh-7"
+- extendedWaitUntil:
+    visible:
+      id: "dl-audio"
+    timeout: 20000
+- tapOn:
+    id: "dl-audio"
+- tapOn:
+    id: "opt-audio-mp3-x-orig"
+- extendedWaitUntil:
+    visible: "İptal"
+    timeout: 10000
+- takeScreenshot: 10a_indiriliyor
+- tapOn: "İptal"
+- extendedWaitUntil:
+    visible:
+      id: "dl-btn-sh-7"
+    timeout: 10000
+- takeScreenshot: 10b_iptal_edildi
+- tapOn:
+    id: "dl-btn-sh-7"
+- extendedWaitUntil:
+    visible:
+      id: "dl-audio"
+    timeout: 20000
+- assertNotVisible: "Zaten indirildi"
+- takeScreenshot: 10c_kayit_yok
+- tapOn:
+    id: "dl-cancel"

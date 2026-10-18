@@ -50,13 +50,16 @@ adb shell am force-stop com.ritim.muzik
 
 : > "$OUT/sonuclar.txt"
 ALL_OK=1
-for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_indir 6_ses_indir 7_cevrimdisi 8_cevrimdisi_video_ve_silme 9_youtube_favori_liste; do
+for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu 5_video_indir 6_ses_indir 7_cevrimdisi 8_cevrimdisi_video_ve_silme 9_youtube_favori_liste 10_iptal 11_hata_yonetimi; do
   if [ "$flow" = "7_cevrimdisi" ]; then
     adb shell svc wifi disable; adb shell svc data disable; sleep 3
     echo "Ağ kapatıldı: $(adb shell dumpsys connectivity | grep -m1 -E 'Active default network' | tr -d '\r')" >> "$OUT/sonuclar.txt"
   fi
+  # İptal testinde indirme hemen bitmesin diye emülatör ağı EDGE hızına düşürülür
+  [ "$flow" = "10_iptal" ] && adb emu network speed edge > /dev/null 2>&1
   (cd "$OUT" && maestro test "../e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
+  [ "$flow" = "10_iptal" ] && adb emu network speed full > /dev/null 2>&1
   if [ "$flow" = "3_video_secme" ]; then
     sleep 12
     adb exec-out screencap -p > "$OUT/3b_oynatma_12sn.png" 2>/dev/null

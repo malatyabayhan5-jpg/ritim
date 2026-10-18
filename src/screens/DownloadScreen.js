@@ -137,6 +137,7 @@ export default function DownloadScreen({ navigation }) {
               if (error) setError(null);
             }}
             placeholder="https://ornek.com/sarki.mp3"
+            testID="link-input"
             placeholderTextColor={colors.textFaint}
             style={styles.urlInput}
             autoCapitalize="none"
@@ -187,6 +188,7 @@ export default function DownloadScreen({ navigation }) {
         ) : null}
 
         <Pressable
+          testID="link-go"
           onPress={start}
           disabled={busy || !url.trim()}
           style={({ pressed }) => [styles.primary, (!url.trim() || busy) && { opacity: 0.4 }, pressed && { opacity: 0.8 }]}

@@ -1,0 +1,25 @@
+# Hata yönetimi: geçersiz link ve ses yerine web sayfası döndüren link başarı sayılmamalı
+appId: com.ritim.muzik
+---
+- launchApp
+- tapOn:
+    id: "tab-download"
+- tapOn:
+    id: "link-input"
+- inputText: "bu bir link degil"
+- tapOn:
+    id: "link-go"
+- extendedWaitUntil:
+    visible: "Geçerli bir link gir.*"
+    timeout: 5000
+- takeScreenshot: 11a_gecersiz_link
+- tapOn:
+    id: "link-input"
+- eraseText: 40
+- inputText: "https://example.com/sarki.mp3"
+- tapOn:
+    id: "link-go"
+- extendedWaitUntil:
+    visible: ".*(web sayfası|404 hatası|hatası döndürdü).*"
+    timeout: 30000
+- takeScreenshot: 11b_html_link_reddedildi
