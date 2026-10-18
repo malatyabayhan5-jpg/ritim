@@ -35,6 +35,17 @@ O4 (kare adımı), O5 (önizlemede ısınma uyarısı), D1–D3.
 | Gerçek çapraz geçişler (A/B klip karışımı) | ⏳ | Aynı |
 | Metin animasyon ön ayarları genişletme, ses efektleri | ⏳ | — |
 
+## Aşama 4b — Cihaz içi AI araçları 🟡
+
+| Araç | Durum | Kanıt |
+|---|---|---|
+| Sessizlik kaldırma | ✅ kod + birim | Gerçek test videosundan ölçülmüş verilerle testler; e2e akışı 3 (sonuç aşağıda) |
+| Sahne algılama | 🟡 | Birim testleri geçiyor; ilk emülatör çalıştırmasında klip bölünmedi — teşhis günlüğü eklendi, galeri sırası kesinleştirildi |
+| Gürültü azaltma | ✅ | `tools/dsp-test` (CI'da): duraklamada 9–18 dB düşüş, konuşma kaybı < 0,1 dB, SNR +5–9 dB, gecikme 0 |
+| Metinden konuşma | 🟡 | Kod hazır; emülatörde yüklü ses motoruna bağlı |
+| Otomatik altyazı | 🟡 | JNI köprüsü masaüstünde whisper.cpp ile çalıştırıldı; Android için derlendi (CI #17); model özetleri sabitlendi; espeak-ng konuşmasıyla e2e akışı 4 (sonuç aşağıda) |
+| Arka plan kaldırma, altyazı çevirisi | ⏳ | Sonraki tur |
+
 ## Aşama 5 — Performans 🟡
 
 - Efekt başına performans sınıfı katalogda (`light/medium/heavy`), yoğun efektler
