@@ -44,6 +44,7 @@ data class MainClip(
   val fx: FxParams,
   val effects: List<ShaderFxSpec>,
   val lut: LutSpec?,
+  val denoise: Float,
 )
 
 data class AudioClip(
@@ -56,6 +57,7 @@ data class AudioClip(
   val volume: Float,
   val fadeInMs: Long,
   val fadeOutMs: Long,
+  val denoise: Float,
 )
 
 data class TransitionSpec(
@@ -167,6 +169,7 @@ data class RenderSpec(
         volume = o.optDouble("volume", 1.0).toFloat(),
         fadeInMs = o.optLong("fadeInMs"),
         fadeOutMs = o.optLong("fadeOutMs"),
+        denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
         colorMatrix = matrix,
         fit = o.optString("fit", "fit"),
         rotation = o.optDouble("rotation", 0.0).toFloat(),
@@ -192,6 +195,7 @@ data class RenderSpec(
       volume = o.optDouble("volume", 1.0).toFloat(),
       fadeInMs = o.optLong("fadeInMs"),
       fadeOutMs = o.optLong("fadeOutMs"),
+      denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
     )
 
     private fun parseText(o: JSONObject) = TextSpec(

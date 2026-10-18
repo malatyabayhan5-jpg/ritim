@@ -100,3 +100,15 @@ test('seslendirme dili metnin yazı sisteminden seçilir', () => {
   assert.equal(speechLanguage('Hello world', 'en'), 'en');
   assert.equal(speechLanguage('Hello world', 'ar'), 'en');
 });
+
+test('gürültü azaltma render tanımına klip ve ses klibi için girer', () => {
+  let p = projectWith([video('a', 3000)]);
+  p = TL.updateMain(p, p.main[0].id, { denoise: 0.7 });
+  p = TL.addAudio(p, { id: 'm', kind: 'audio', path: 'media/m.mp3', durationMs: 2000 }, 0, 'voice').project;
+  p = TL.updateAudio(p, p.audio[0].id, { denoise: 1.4 });
+  const s = buildRenderSpec(p, uri);
+  assert.equal(s.main[0].denoise, 0.7);
+  assert.equal(s.audioLanes[0][0].denoise, 1);
+  const q = projectWith([video('b', 1000)]);
+  assert.equal(buildRenderSpec(q, uri).main[0].denoise, 0);
+});

@@ -149,7 +149,8 @@
     "positionY": "Dikey konum",
     "duration": "Süre",
     "canvasFit": "Klip yerleşimi",
-    "ratioHint": "Format değişikliği tüm projeye uygulanır; klipler seçilen yerleşime göre sığdırılır veya doldurulur."
+    "ratioHint": "Format değişikliği tüm projeye uygulanır; klipler seçilen yerleşime göre sığdırılır veya doldurulur.",
+    "denoise": "Gürültü azaltma"
   },
   "adjust": {
     "brightness": "Parlaklık",
@@ -443,7 +444,7 @@
       },
       "noiseReduction": {
         "title": "Gürültü azaltma",
-        "desc": "Konuşmadaki arka plan gürültüsünü azaltır."
+        "desc": "Konuşmadaki sabit arka plan gürültüsünü (uğultu, fan, rüzgâr hışırtısı) azaltır. İnternet gerekmez."
       },
       "silenceRemoval": {
         "title": "Sessizlik kaldırma",
@@ -475,7 +476,8 @@
       "clip": "Hedef: {n}. klip",
       "noClip": "Önce bir klip seçin",
       "text": "Hedef: \"{text}\"",
-      "noText": "Önce bir metin seçin"
+      "noText": "Önce bir metin seçin",
+      "audio": "Ses dosyası seçili"
     },
     "needAudioClip": "Sesi olan bir video klibi seçin.",
     "needVideoClip": "Bir video klibi seçin.",
@@ -493,7 +495,9 @@
       "TTS_TIMEOUT": "Metin okuma motoru yanıt vermedi."
     },
     "scenesFound_one": "Klip {n} sahneye bölündü.",
-    "scenesFound_other": "Klip {n} sahneye bölündü."
+    "scenesFound_other": "Klip {n} sahneye bölündü.",
+    "denoiseOn": "Gürültü azaltma açıldı. Gücünü Ses panelinden ayarlayabilirsiniz.",
+    "denoiseOff": "Gürültü azaltma kapatıldı."
   },
   "templates": {
     "title": "Şablonlar",

@@ -32,6 +32,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       volume: clip.muted || media.hasAudio === false ? 0 : clamp(clip.volume, 0, 1),
       fadeInMs: Math.round(clip.fadeIn || 0),
       fadeOutMs: Math.round(clip.fadeOut || 0),
+      denoise: clamp(clip.denoise || 0, 0, 1),
       colorMatrix: visuals.colorMatrix,
       fit: clip.transform?.fit || fit,
       rotation: clip.transform?.rotation || 0,
@@ -69,6 +70,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
         volume: clamp(a.volume ?? 1, 0, 1),
         fadeInMs: Math.round(a.fadeIn || 0),
         fadeOutMs: Math.round(a.fadeOut || 0),
+        denoise: clamp(a.denoise || 0, 0, 1),
         _endMs: Math.round(a.start + audioDuration(a)),
       };
     }).map(({ _endMs, ...rest }) => rest),

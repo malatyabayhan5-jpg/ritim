@@ -87,6 +87,7 @@ export function createMainClip(media, { imageDurationMs = 3000 } = {}) {
     muted: false,
     fadeIn: 0,
     fadeOut: 0,
+    denoise: 0,
     filter: { id: 'none', intensity: 1 },
     adjust: { ...DEFAULT_ADJUST },
     fx: { ...DEFAULT_FX },
@@ -110,6 +111,7 @@ export function createAudioClip(media, start, role = 'music') {
     volume: 1,
     fadeIn: 0,
     fadeOut: 0,
+    denoise: 0,
   };
 }
 

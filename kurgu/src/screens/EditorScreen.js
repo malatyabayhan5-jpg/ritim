@@ -366,6 +366,7 @@ export default function EditorScreen({ params, focused }) {
     return {
       silenceRemoval: clipLabel,
       sceneDetect: clipLabel,
+      noiseReduction: selectedAudio ? t('ai.target.audio') : clipLabel,
       textToSpeech: text ? t('ai.target.text', { text: text.text.slice(0, 40) }) : t('ai.target.noText'),
     };
   };
@@ -396,6 +397,15 @@ export default function EditorScreen({ params, focused }) {
         apply((p) => TL.splitMainAtSourceTimes(p, clip.id, cuts).project);
         setSelection(null);
         toast(t('ai.scenesFound', { count: r.added + 1 }));
+      } else if (key === 'noiseReduction') {
+        if (selectedAudio) {
+          apply((p) => TL.updateAudio(p, selectedAudio.id, { denoise: selectedAudio.denoise ? 0 : 0.7 }));
+          toast(t(selectedAudio.denoise ? 'ai.denoiseOff' : 'ai.denoiseOn'));
+        } else {
+          if (!clip || clip.kind !== 'video' || media?.hasAudio === false) return toast(t('ai.needAudioClip'));
+          apply((p) => TL.updateMain(p, clip.id, { denoise: clip.denoise ? 0 : 0.7 }));
+          toast(t(clip.denoise ? 'ai.denoiseOff' : 'ai.denoiseOn'));
+        }
       } else if (key === 'textToSpeech') {
         const text = selectedText || textAtPlayhead();
         if (!text?.text.trim()) return toast(t('ai.needText'));

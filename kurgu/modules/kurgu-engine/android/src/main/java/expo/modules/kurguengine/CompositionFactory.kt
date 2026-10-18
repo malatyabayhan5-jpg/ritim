@@ -140,6 +140,7 @@ object CompositionFactory {
 
     val audio = mutableListOf<AudioProcessor>()
     val outUs = clipOutUs(clip.srcInMs, clip.srcOutMs, clip.speed)
+    if (clip.denoise > 0.01f && clip.volume > 0f) audio.add(DenoiseProcessor(clip.denoise))
     if (VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
       audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs)))
     }
@@ -167,6 +168,7 @@ object CompositionFactory {
       .build()
     val outUs = clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
     val audio = mutableListOf<AudioProcessor>()
+    if (clip.denoise > 0.01f) audio.add(DenoiseProcessor(clip.denoise))
     if (VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
       audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs)))
     }

@@ -47,6 +47,7 @@ jobs:
         run: |
           npm test
           npm run i18n:check
+          npm run test:dsp
 
       - name: JS paketini doğrula
         if: steps.apkcache.outputs.cache-hit != 'true'

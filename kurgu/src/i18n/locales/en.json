@@ -149,7 +149,8 @@
     "positionY": "Vertical position",
     "duration": "Duration",
     "canvasFit": "Clip placement",
-    "ratioHint": "The format applies to the whole project; clips are fitted or filled according to the selected placement."
+    "ratioHint": "The format applies to the whole project; clips are fitted or filled according to the selected placement.",
+    "denoise": "Noise reduction"
   },
   "adjust": {
     "brightness": "Brightness",
@@ -443,7 +444,7 @@
       },
       "noiseReduction": {
         "title": "Noise reduction",
-        "desc": "Reduces background noise in speech."
+        "desc": "Reduces steady background noise (hum, fan, hiss) in speech. No internet needed."
       },
       "silenceRemoval": {
         "title": "Remove silences",
@@ -475,7 +476,8 @@
       "clip": "Target: clip {n}",
       "noClip": "Select a clip first",
       "text": "Target: \"{text}\"",
-      "noText": "Select a text first"
+      "noText": "Select a text first",
+      "audio": "Selected audio"
     },
     "needAudioClip": "Select a video clip that has sound.",
     "needVideoClip": "Select a video clip.",
@@ -493,7 +495,9 @@
       "TTS_TIMEOUT": "The text-to-speech engine did not respond."
     },
     "scenesFound_one": "Split the clip into {n} scene.",
-    "scenesFound_other": "Split the clip into {n} scenes."
+    "scenesFound_other": "Split the clip into {n} scenes.",
+    "denoiseOn": "Noise reduction on. Adjust its strength in the Volume panel.",
+    "denoiseOff": "Noise reduction off."
   },
   "templates": {
     "title": "Templates",

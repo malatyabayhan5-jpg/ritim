@@ -90,6 +90,9 @@ export function VolumePanel({ item, maxFadeMs, onChange, onClose, canMute = true
         <Labeled label={t('panels.fadeOut')}>
           <Slider value={item.fadeOut || 0} min={0} max={maxFadeMs} step={100} onChange={(v) => onChange({ fadeOut: v }, 'fadeOut')} formatValue={sec} />
         </Labeled>
+        <Labeled label={t('panels.denoise')}>
+          <Slider testID="denoise-slider" value={item.denoise || 0} min={0} max={1} onChange={(v) => onChange({ denoise: Math.round(v * 100) / 100 }, 'denoise')} formatValue={pct} />
+        </Labeled>
         {canMute ? (
           <Row>
             <Chip icon={item.muted ? 'volume-mute' : 'volume-high'} label={item.muted ? t('panels.unmute') : t('panels.mute')} active={item.muted} onPress={() => onChange({ muted: !item.muted })} testID="mute-toggle" />
