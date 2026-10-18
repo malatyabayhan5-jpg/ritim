@@ -229,19 +229,20 @@ export function LibraryProvider({ children }) {
       if (!isValidAudioUrl(url)) {
         return { ok: false, error: 'Geçerli bir link gir (http:// veya https:// ile başlamalı).' };
       }
-      const id = `url:${hashString(url)}`;
+      const id = meta.id || `url:${hashString(url)}`;
       if (downloads[id]) return { ok: false, error: 'Bu dosya zaten indirilmiş.', exists: true };
+      const ext = String(meta.ext || '').toLowerCase();
       const track = {
         id,
         title: (meta.title || '').trim() || titleFromUrl(url),
         artist: (meta.artist || '').trim() || 'Bilinmeyen sanatçı',
-        album: 'Linkten indirilenler',
+        album: meta.album || 'Linkten indirilenler',
         albumId: null,
         url,
-        artwork: null,
-        duration: 0,
-        ext: extFromUrl(url) || 'mp3',
-        source: 'url',
+        artwork: meta.artwork || null,
+        duration: meta.duration || 0,
+        ext: AUDIO_EXTS.includes(ext) ? ext : extFromUrl(url) || 'mp3',
+        source: meta.source || 'url',
       };
       const res = await runDownload(track);
       return { ...res, track };

@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import TrackRow from '../components/TrackRow';
 import TrackActionsSheet from '../components/TrackActionsSheet';
+import ServerSearch from '../components/ServerSearch';
 import { colors, radius, space, type } from '../theme';
 import { isValidAudioUrl, useLibrary } from '../context/LibraryContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -83,6 +84,7 @@ export default function DownloadScreen({ navigation }) {
   const [busy, setBusy] = useState(false);
   const [sheetTrack, setSheetTrack] = useState(null);
   const [editTrack, setEditTrack] = useState(null);
+  const [mode, setMode] = useState('server'); // 'server' | 'link'
 
   const urlDownloads = useMemo(
     () => downloadList.filter((d) => d.track.source === 'url').map((d) => d.track),
@@ -120,8 +122,7 @@ export default function DownloadScreen({ navigation }) {
   const header = (
     <View>
       <View style={styles.top}>
-        <Text style={type.h1}>Linkten indir</Text>
-        <Text style={[type.bodyDim, { marginTop: 6, lineHeight: 20 }]}>
+        <Text style={[type.bodyDim, { lineHeight: 20 }]}>
           Herkese açık bir .mp3 veya .m4a dosyasının linkini yapıştır. Dosya telefonuna kaydedilir, internet olmadan da çalar.
         </Text>
       </View>
@@ -234,6 +235,26 @@ export default function DownloadScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.titleBar}>
+        <Text style={type.h1}>İndir</Text>
+        <View style={styles.segment}>
+          {[
+            ['server', 'Sunucumda ara'],
+            ['link', 'Linkten indir'],
+          ].map(([key, label]) => (
+            <Pressable
+              key={key}
+              onPress={() => setMode(key)}
+              style={[styles.segBtn, mode === key && styles.segBtnOn]}
+            >
+              <Text style={[styles.segText, mode === key && styles.segTextOn]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+      {mode === 'server' ? (
+        <ServerSearch />
+      ) : (
       <FlatList
         data={urlDownloads}
         keyExtractor={(t) => t.id}
@@ -254,6 +275,7 @@ export default function DownloadScreen({ navigation }) {
           />
         )}
       />
+      )}
       <TrackActionsSheet
         track={sheetTrack}
         onClose={() => setSheetTrack(null)}
@@ -278,7 +300,13 @@ export default function DownloadScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  top: { paddingHorizontal: space.lg, paddingTop: space.lg },
+  top: { paddingHorizontal: space.lg, paddingTop: space.md },
+  titleBar: { paddingHorizontal: space.lg, paddingTop: space.lg, gap: space.md },
+  segment: { flexDirection: 'row', backgroundColor: colors.surface2, borderRadius: radius.pill, padding: 4 },
+  segBtn: { flex: 1, paddingVertical: 9, borderRadius: radius.pill, alignItems: 'center' },
+  segBtnOn: { backgroundColor: colors.text },
+  segText: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
+  segTextOn: { color: colors.onAccent },
   form: { paddingHorizontal: space.lg, marginTop: space.lg, gap: space.md },
   urlWrap: {
     flexDirection: 'row',

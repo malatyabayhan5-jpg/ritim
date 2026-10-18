@@ -11,6 +11,7 @@ React Native (Expo SDK 54) ile yazılmış müzik uygulaması.
 - İndirme ve çevrimdışı dinleme (tek parça veya tüm albüm)
 - Arşivim: kendi sunucunda arama ve indirme (bağlantı noktası: src/api/server.js, şu an deneme modunda)
 - Linkten indir: herkese açık herhangi bir .mp3/.m4a linkini telefona kaydetme (http ve https)
+- Sunucumda ara: kendi API'ne bağlanacak arama + indirme (src/api/myServer.js içindeki iki fonksiyonu değiştirmen yeterli)
 
 Müzikler Internet Archive'ın Creative Commons lisanslı "netlabels" koleksiyonundan gelir.
 Dinlemek ve indirmek yasaldır, API anahtarı gerekmez.
