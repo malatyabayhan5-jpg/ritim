@@ -33,6 +33,15 @@ foreground() {
   adb shell dumpsys activity activities | grep -m1 -E 'mResumedActivity|topResumedActivity' | sed -E 's/.* ([a-zA-Z0-9_.]+)\/.*/\1/' | tr -d '\r'
 }
 
+# Maestro'dan bağımsız ilk açılış kontrolü
+adb logcat -c
+adb shell monkey -p com.ritim.muzik -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1
+sleep 25
+echo "Doğrudan açılıştan 25 sn sonra ön plandaki uygulama: $(adb shell dumpsys activity activities | grep -m1 -E 'mResumedActivity|topResumedActivity' | tr -d '\r')" > "$OUT/acilis.txt"
+adb exec-out screencap -p > "$OUT/0_acilis.png" 2>/dev/null
+adb logcat -d -b crash > "$OUT/acilis_cokme.txt" 2>&1 || true
+adb shell am force-stop com.ritim.muzik
+
 : > "$OUT/sonuclar.txt"
 ALL_OK=1
 for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu; do
@@ -44,6 +53,12 @@ for flow in 1_arama_alani 2_arama_sonuclari 3_video_secme 4_geri_tusu; do
   echo "$flow: $res | ön plandaki uygulama: ${fg:-bilinmiyor}$ext" | tee -a "$OUT/sonuclar.txt"
   adb exec-out screencap -p > "$OUT/${flow}_son_ekran.png" 2>/dev/null
 done
+
+# Çökme ve hata kayıtları
+adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
+adb logcat -d -v time AndroidRuntime:E ReactNativeJS:V ReactNative:V ReactNativeJNI:V '*:F' '*:S' > "$OUT/rn_log.txt" 2>&1 || true
+adb logcat -d -v time | grep -i -E 'com.ritim.muzik|FATAL|ReactNative|Hermes|SoLoader|expo' | tail -400 > "$OUT/uygulama_log.txt" || true
+cp -r "$HOME/.maestro/tests" "$OUT/maestro-debug" 2>/dev/null || true
 
 # Uygulama dışına açılmaya çalışılan intent kayıtları (YouTube uygulamasına gönderim olursa burada görünür)
 adb logcat -d -s ActivityTaskManager:I ActivityManager:I | grep -E 'START u0' | grep -v 'com.ritim.muzik/.MainActivity' > "$OUT/dis_intentler.txt" || true
