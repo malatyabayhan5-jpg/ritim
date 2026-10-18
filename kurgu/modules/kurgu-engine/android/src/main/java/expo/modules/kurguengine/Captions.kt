@@ -26,10 +26,10 @@ import kotlin.math.sin
  * Ses cihaz dışına gönderilmez. Model yalnızca kullanıcı onayıyla bir kez indirilir
  * ve SHA-256 özetiyle doğrulanır; özet tutmazsa dosya silinir.
  */
-// CI'daki "Altyazı modeli özetleri" adımında indirilen dosyalardan alınmıştır.
-private const val BASE_SHA256 = "PENDING"
+// SHA-256 ve boyutlar, 2026-10-18'de CI'da indirilen dosyalardan alınmıştır (ggml-base-q5_1.bin, ggml-small-q5_1.bin).
+private const val BASE_SHA256 = "422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898"
 private const val BASE_SIZE = 59_707_625L
-private const val SMALL_SHA256 = "PENDING"
+private const val SMALL_SHA256 = "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb"
 private const val SMALL_SIZE = 190_085_487L
 
 object Captions {

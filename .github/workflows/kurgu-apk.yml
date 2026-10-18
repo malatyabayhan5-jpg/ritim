@@ -49,14 +49,6 @@ jobs:
           npm run i18n:check
           npm run test:dsp
 
-      # Geçici: otomatik altyazı modellerinin SHA-256 özetleri (uygulamada sabitlenir)
-      - name: Altyazı modeli özetleri
-        continue-on-error: true
-        run: |
-          for m in base-q5_1 small-q5_1; do
-            curl -sSfL "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$m.bin" -o /tmp/m.bin && echo "::notice title=ggml-$m::$(sha256sum /tmp/m.bin | cut -d' ' -f1) $(stat -c%s /tmp/m.bin)"
-          done
-
       - name: JS paketini doğrula
         if: steps.apkcache.outputs.cache-hit != 'true'
         run: npx expo export --platform android --output-dir /tmp/kurgu-bundle > /dev/null
