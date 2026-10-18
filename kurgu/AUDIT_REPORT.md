@@ -39,6 +39,7 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 | Y2 | Dışa aktarılan her video hem uygulama içinde hem galeride tutuluyor; uygulama içi kopyalar hiç silinmiyor | Depolama hızla dolar | Kopya temizliği yalnızca "önbelleği temizle" ile |
 | Y3 | Efekt önizleme küçük resimleri yok (renk kutucuğu / simge) | Kullanıcı efekti seçmeden göremiyor; CapCut'tan belirgin fark | Katalogda görsel yok |
 | Y4 | Eksik medyayı yeniden bağlama hatası sessizce yutuluyor | Kullanıcı neden olmadığını anlamıyor | `relink` içinde boş `catch` |
+| Y5 | Zaman çizelgesi 210 px sabit yükseklikte ve dikey kaydırma yok: 2 ses + 1 metin şeridinden sonra eklenen şeritler görünmez ve seçilemez (efekt çalışması sırasında bulundu) | Çok katmanlı projelerde öğelere erişilemiyor | Yatay `ScrollView` içerik yüksekliği taşınca kırpılıyor |
 
 ### Orta
 
@@ -60,4 +61,4 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 
 ## Bu turda ele alınacaklar
 
-K1, K2, K3, Y1, Y2, Y3, Y4, O1 bu turda düzeltilecek; O2–O5 sonraki tura planlandı. Düzeltmelerin ayrıntısı ve test sonuçları `BUG_FIXES.md` ve `PROGRESS.md` dosyalarındadır.
+K1, K2, K3, Y1, Y2, Y3, Y4, Y5, O1 bu turda düzeltildi; O2–O5 sonraki tura planlandı. Düzeltmelerin ayrıntısı ve test sonuçları `BUG_FIXES.md` ve `PROGRESS.md` dosyalarındadır.

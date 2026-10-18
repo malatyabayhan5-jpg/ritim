@@ -313,6 +313,17 @@ export function trimText(project, id, edge, delta) {
   return updateText(project, id, { duration: Math.round(Math.max(MIN_CLIP_MS, x.duration + delta)) });
 }
 
+// --- LUT (.cube) ---
+
+/** İçe aktarılan LUT'u projeye ekler; LUT dosyası kütüphanede (media/) tutulur. */
+export function addLut(project, lut) {
+  return touch({ ...project, luts: { ...(project.luts || {}), [lut.id]: lut } });
+}
+
+export function setClipLut(project, clipId, lutId, intensity = 1) {
+  return updateMain(project, clipId, { lut: lutId ? { id: lutId, intensity } : null });
+}
+
 // --- Efektler: klip efekt yığını ---
 
 export const MAX_CLIP_EFFECTS = 4;

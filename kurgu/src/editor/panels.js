@@ -118,29 +118,47 @@ function swatch(matrix) {
   return `rgb(${out.map((v) => Math.round(v * 255)).join(',')})`;
 }
 
-export function FilterPanel({ clip, onChange, onApplyAll, onClose }) {
+export function FilterPanel({ clip, luts = {}, onImportLut, onChange, onApplyAll, onClose }) {
   const { t, fmt } = useI18n();
-  const [cat, setCat] = useState(FILTERS.find((f) => f.id === clip.filter.id)?.category || 'basic');
+  const [cat, setCat] = useState(clip.lut ? 'lut' : FILTERS.find((f) => f.id === clip.filter.id)?.category || 'basic');
+  const lutList = Object.values(luts);
+  const isLut = cat === 'lut';
   return (
     <Panel title={t('tools.filters')} onClose={onClose} testID="panel-filters">
       <View style={styles.body}>
         <Hscroll>
-          {FILTER_CATEGORIES.map((c) => (
-            <Chip key={c} label={t(`filters.category.${c}`)} active={cat === c} onPress={() => setCat(c)} />
+          {[...FILTER_CATEGORIES, 'lut'].map((c) => (
+            <Chip key={c} label={t(`filters.category.${c}`)} active={cat === c} onPress={() => setCat(c)} testID={`filter-cat-${c}`} />
           ))}
         </Hscroll>
-        <Hscroll>
-          {FILTERS.filter((f) => f.category === cat || f.id === 'none').map((f) => (
-            <Tile key={f.id} testID={`filter-${f.id}`} label={t(`filters.${f.id}`)} color={swatch(f.matrix)} icon={f.id === 'none' ? 'ban-outline' : null} active={clip.filter.id === f.id} onPress={() => onChange({ filter: { id: f.id, intensity: clip.filter.id === f.id ? clip.filter.intensity : 1 } })} />
-          ))}
-        </Hscroll>
-        {clip.filter.id !== 'none' ? (
+        {isLut ? (
+          <Hscroll>
+            <Tile testID="lut-none" label={t('filters.none')} icon="ban-outline" active={!clip.lut} onPress={() => onChange({ lut: null })} />
+            {lutList.map((l) => (
+              <Tile key={l.id} testID={`lut-${l.id}`} label={l.name} icon="cube-outline" active={clip.lut?.id === l.id} onPress={() => onChange({ lut: { id: l.id, intensity: clip.lut?.id === l.id ? clip.lut.intensity : 1 } })} />
+            ))}
+            <Tile testID="lut-import" label={t('filters.lutImport')} icon="add-circle-outline" onPress={onImportLut} />
+          </Hscroll>
+        ) : (
+          <Hscroll>
+            {FILTERS.filter((f) => f.category === cat || f.id === 'none').map((f) => (
+              <Tile key={f.id} testID={`filter-${f.id}`} label={t(`filters.${f.id}`)} color={swatch(f.matrix)} icon={f.id === 'none' ? 'ban-outline' : null} active={clip.filter.id === f.id} onPress={() => onChange({ filter: { id: f.id, intensity: clip.filter.id === f.id ? clip.filter.intensity : 1 } })} />
+            ))}
+          </Hscroll>
+        )}
+        {isLut && clip.lut ? (
+          <Labeled label={t('panels.intensity')}>
+            <Slider value={clip.lut.intensity} min={0} max={1} onChange={(v) => onChange({ lut: { id: clip.lut.id, intensity: v } }, 'lutIntensity')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
+          </Labeled>
+        ) : null}
+        {!isLut && clip.filter.id !== 'none' ? (
           <Labeled label={t('panels.intensity')}>
             <Slider value={clip.filter.intensity} min={0} max={1} onChange={(v) => onChange({ filter: { id: clip.filter.id, intensity: v } }, 'filterIntensity')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
           </Labeled>
         ) : null}
+        {isLut && !lutList.length ? <Txt faint style={{ fontSize: 12 }}>{t('filters.lutHint')}</Txt> : null}
         <Row>
-          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ filter: clip.filter })} />
+          <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll(isLut ? { lut: clip.lut } : { filter: clip.filter })} />
         </Row>
       </View>
     </Panel>

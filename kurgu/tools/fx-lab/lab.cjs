@@ -6,6 +6,7 @@
 //   node lab.cjs render  --fx glow,vhs --scenes dir --out dir [--times 0,0.5,1] [--amount 1]
 //   node lab.cjs thumbs  --scene file.png --out dir [--size 160]
 //   node lab.cjs motion  --fx glow --scene file.png --out dir   (30 kare, kareler arası fark)
+//   node lab.cjs lut     --cube file.cube --scene file.png --out file.png [--amount 1]
 //
 // Playwright yolu PLAYWRIGHT_MODULE ile, Chromium yolu CHROMIUM ile değiştirilebilir.
 
@@ -40,7 +41,7 @@ function defaultParams(entry, overrides = {}) {
 }
 
 const PAGE = `<!doctype html><html><body style="margin:0"><canvas id=c></canvas><script>
-window.renderFx = async (frag, imgUrl, frames) => {
+window.renderFx = async (frag, imgUrl, frames, lut) => {
   const img = new Image(); img.src = imgUrl; await img.decode();
   const c = document.getElementById('c'); c.width = img.width; c.height = img.height;
   const gl = c.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
@@ -59,6 +60,16 @@ window.renderFx = async (frag, imgUrl, frames) => {
   for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
   const u = (n) => gl.getUniformLocation(pr, n);
   gl.uniform1i(u('uTex'), 0); gl.uniform2f(u('uRes'), c.width, c.height);
+  if (lut) {
+    // LUT dokusu (_lut.glsl): ızgara düzeni Android'deki LutFx.kt ile aynı, Y çevrilmez
+    const lt = gl.createTexture(); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, lt);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    const bytes = Uint8Array.from(atob(lut.rgba), (ch) => ch.charCodeAt(0));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, lut.width, lut.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(u('uLut'), 1); gl.uniform2f(u('uLutGrid'), lut.size, lut.cols); gl.uniform2f(u('uLutTexSize'), lut.width, lut.height);
+  }
   const out = [];
   for (const f of frames) {
     gl.uniform1f(u('uTime'), f.time); gl.uniform1f(u('uDur'), f.dur || 0); gl.uniform1f(u('uAmount'), f.amount);
@@ -144,6 +155,41 @@ async function thumbs() {
   });
 }
 
+/** .cube -> ızgara dokusu (LutFx.kt ile aynı düzen). */
+function cubeTexture(file) {
+  let size = 0; const vals = []; let dmin = [0, 0, 0]; let dmax = [1, 1, 1];
+  for (const raw of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const parts = line.split(/\s+/);
+    if (/^[0-9+.-]/.test(line)) vals.push(parts.slice(0, 3).map(Number));
+    else if (parts[0] === 'LUT_3D_SIZE') size = Number(parts[1]);
+    else if (parts[0] === 'DOMAIN_MIN') dmin = parts.slice(1, 4).map(Number);
+    else if (parts[0] === 'DOMAIN_MAX') dmax = parts.slice(1, 4).map(Number);
+  }
+  if (vals.length !== size ** 3) throw new Error(`LUT_DATA ${vals.length}/${size ** 3}`);
+  const cols = Math.ceil(Math.sqrt(size)); const rows = Math.ceil(size / cols);
+  const width = cols * size; const height = rows * size;
+  const out = Buffer.alloc(width * height * 4);
+  for (let b = 0; b < size; b++) for (let g = 0; g < size; g++) for (let r = 0; r < size; r++) {
+    const v = vals[r + g * size + b * size * size];
+    const o = (((Math.floor(b / cols) * size + g) * width) + (b % cols) * size + r) * 4;
+    for (let k = 0; k < 3; k++) out[o + k] = Math.round(Math.max(0, Math.min(1, v[k])) * 255);
+    out[o + 3] = 255;
+  }
+  return { size, cols, width, height, dmin, dmax, rgba: out.toString('base64') };
+}
+
+async function lut() {
+  const cube = cubeTexture(arg('cube'));
+  const amount = Number(arg('amount', '1'));
+  await withPage(async (page) => {
+    const p = [...cube.dmin, 0, ...cube.dmax, 0];
+    const urls = await page.evaluate(([f, img, fr, l]) => window.renderFx(f, img, fr, l), [shaderSource('_lut'), dataUrl(arg('scene')), [{ time: 0, amount, p }], cube]);
+    writePng(arg('out'), urls[0]);
+  });
+}
+
 const cmd = process.argv[2];
-({ render, motion, thumbs }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
+({ render, motion, thumbs, lut }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
   .catch((e) => { console.error(e.message || e); process.exit(1); });

@@ -27,7 +27,7 @@ import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { thumbnails } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
-import { importPicked, pickFiles, pickFromGallery } from '../storage/importer';
+import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
 import { canRedo, canUndo, createHistory, pushHistory, redo, undo } from '../model/history';
 import { canvasSize } from '../model/schema';
@@ -355,6 +355,17 @@ export default function EditorScreen({ params, focused }) {
     }
   };
 
+  const importLut = async (clipId) => {
+    try {
+      const lut = await importLutFile();
+      if (!lut) return;
+      apply((p) => TL.setClipLut(TL.addLut(p, lut), clipId, lut.id));
+      toast(t('filters.lutImported'));
+    } catch (e) {
+      toast(e?.code && e.code.startsWith('LUT_') ? t(`errors.lut.${e.code}`) : t('errors.generic'), 'error');
+    }
+  };
+
   const relink = async (mediaId) => {
     try {
       const old = project.media[mediaId];
@@ -678,7 +689,7 @@ export default function EditorScreen({ params, focused }) {
       case 'duration':
         return selectedMain && <ImageDurationPanel clip={selectedMain} onChange={updMain} onClose={close} />;
       case 'filters':
-        return target && <FilterPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
+        return target && <FilterPanel clip={target} luts={project.luts} onImportLut={() => importLut(target.id)} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
       case 'adjust':
         return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
       case 'fxClip': {

@@ -43,6 +43,7 @@ data class MainClip(
   val blur: Float,
   val fx: FxParams,
   val effects: List<ShaderFxSpec>,
+  val lut: LutSpec?,
 )
 
 data class AudioClip(
@@ -177,6 +178,7 @@ data class RenderSpec(
         blur = o.optDouble("blur", 0.0).toFloat(),
         fx = parseFx(o.optJSONObject("fx")),
         effects = o.optJSONArray("effects").objects().map { parseShaderFx(it) },
+        lut = o.optJSONObject("lut")?.let { l -> l.optString("uri").takeIf { it.isNotEmpty() }?.let { LutSpec(it, l.optDouble("amount", 1.0).toFloat().coerceIn(0f, 1f)) } },
       )
     }
 

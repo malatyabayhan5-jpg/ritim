@@ -22,6 +22,8 @@ vec2 px() { return 1.0 / uRes; }
 vec4 tex(vec2 uv) { return texture2D(uTex, clamp(uv, 0.0, 1.0)); }
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
+// hash11/hash12/hash22: "Hash without Sine" yöntemi, Dave Hoskins, MIT Lisansı
+// (https://www.shadertoy.com/view/4djSRW). Bkz. RESEARCH_AND_LICENSES.md.
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 vec2 hash22(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }

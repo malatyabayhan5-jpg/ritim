@@ -65,6 +65,13 @@
       "EXPORT_BUSY": "Another export is already running.",
       "BAD_SPEC": "The project data could not be read.",
       "ENGINE_UNAVAILABLE": "The video engine is not available on this device."
+    },
+    "lut": {
+      "LUT_1D": "1D LUTs are not supported; choose a 3D .cube file.",
+      "LUT_SIZE": "Unsupported LUT size (must be 2–65).",
+      "LUT_DATA": "LUT data is missing or corrupt.",
+      "LUT_FORMAT": "This file is not a valid .cube LUT.",
+      "LUT_EMPTY": "The LUT file is empty."
     }
   },
   "editor": {
@@ -164,7 +171,8 @@
       "cinematic": "Cinematic",
       "bw": "Black & white",
       "retro": "Retro",
-      "mood": "Mood"
+      "mood": "Mood",
+      "lut": "LUT"
     },
     "none": "None",
     "vivid": "Vivid",
@@ -186,7 +194,10 @@
     "forest": "Forest",
     "night": "Night",
     "pastel": "Pastel",
-    "pop": "Pop"
+    "pop": "Pop",
+    "lutImport": "Import LUT",
+    "lutImported": "LUT imported",
+    "lutHint": "Import a 3D LUT in .cube format for color grading. The file stays on your device."
   },
   "effects": {
     "category": {

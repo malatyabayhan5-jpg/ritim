@@ -132,6 +132,8 @@ object CompositionFactory {
       video.add(ClipPlacement(clip.scale, clip.offsetX, clip.offsetY))
     }
     clip.colorMatrix?.let { video.add(StaticColorMatrix(it)) }
+    // LUT renk ayarlarından sonra uygulanır; dosya silinmişse atlanır (proje yine açılır).
+    clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it)) }
     if (clip.blur > 0.01f) video.add(GaussianBlur(max(0.5f, clip.blur * h * 0.02f)))
     if (!clip.fx.isNoOp) video.add(FxEffect(clip.fx))
     clip.effects.forEach { video.add(ShaderFx(it)) }

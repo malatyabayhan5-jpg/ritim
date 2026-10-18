@@ -43,6 +43,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       blur: visuals.blur,
       fx: visuals.fx,
       effects: (clip.effects || []).map((e) => effectRenderSpec(e, start, end)).filter(Boolean),
+      lut: lutSpec(project, clip, resolveUri),
     };
   });
 
@@ -141,6 +142,13 @@ export function suggestBitrate(width, height, fps, quality = 'recommended', code
 /** Tahmini dosya boyutu (bayt). */
 export function estimateSize(durationMs, videoBitrate, audioBitrate = 192000) {
   return Math.round(((videoBitrate + audioBitrate) / 8) * (durationMs / 1000) * 1.02);
+}
+
+function lutSpec(project, clip, resolveUri) {
+  const lut = clip.lut && project.luts?.[clip.lut.id];
+  if (!lut) return null;
+  const amount = clamp(clip.lut.intensity ?? 1, 0, 1);
+  return amount > 0 ? { uri: resolveUri(lut), amount } : null;
 }
 
 function clamp(v, a, b) {

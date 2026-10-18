@@ -51,6 +51,8 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 | Ana video izi (manyetik) | ✅ | B | — |
 | Ses şeritleri (çoklu, çakışan sesler ayrı şeritte) | ✅ | B | — |
 | Metin şeritleri | ✅ | B | — |
+| Efekt şeritleri (çakışan efektler ayrı şeritte) | ✅ | B, E* | — |
+| Şerit sayısı alanı aşınca dikey kaydırma | ✅ | E* | — |
 | Klip ekleme / silme / çoğaltma / bölme | ✅ | B, E | — |
 | Kenar tutamaçlarıyla kırpma | ✅ | B | — |
 | Uzun basıp sürükleyerek yeniden sıralama / taşıma | ✅ | — | — |
@@ -104,11 +106,16 @@ Tüm özellikler v1'de ücretsizdir; ücretli katman ayrımı için altyapı hen
 | Geçişler: siyaha/beyaza geçiş, flaş, yakınlaş, uzaklaş, döndür, 4 yönde kaydırma, glitch | ✅ | Süre ayarlı; "Tümüne uygula" |
 | Gerçek çapraz geçiş (cross dissolve), maskeli geçişler | ⏳ | İki klibin üst üste binmesi gerekir |
 | 21 özgün filtre, 5 kategori, yoğunluk | ✅ | — |
-| Efektler: glitch, RGB kayması, pikselleştirme, mozaik, bulanıklık, rüya, vinyet, film greni, eski film, VHS, keskinleştirme | ✅ | Klip bazında; ayrı efekt katmanı ⏳ |
+| GPU efektleri (21 özgün shader, 10 kategori, gerçek önizleme küçük resimleri, efekt başına 4 parametre + yoğunluk): parıltı, ışık sızıntısı, dijital bozulma, VHS, renk sapması, kamera sarsıntısı, minyatür, eski film, CRT, neon kontur, çizgi roman, kaleydoskop, su dalgası, zoom/hareket bulanıklığı, kar, yağmur, ışıltı, anamorfik parlama, çift ton, mozaik | ✅ (B, E*) | Görsel QA efekt laboratuvarında; gerçek cihaz performansı ölçülmedi |
+| Klip efekt yığını (en fazla 4 efekt üst üste) | ✅ (B, E*) | — |
+| Efekt katmanı şeridi: süreli, taşınabilir, kırpılabilir, bölünebilir, çoğaltılabilir | ✅ (B, E*) | — |
 | Renk: parlaklık, kontrast, doygunluk, pozlama, sıcaklık, renk tonu, vurgular, gölgeler, solukluk, keskinlik, vinyet, gren | ✅ | — |
-| LUT içe aktarma, öncesi/sonrası karşılaştırma, HDR uçtan uca | ⏳ | HDR kaynak SDR'ye ton eşlenir |
+| 3B LUT (.cube) içe aktarma, klip başına LUT + yoğunluk, tümüne uygula | ✅ (B, L) | 2–65 boyut; dosya cihazda kalır. Emülatörde dosya seçici otomatikleştirilemediği için E testi yok |
+| Öncesi/sonrası karşılaştırma, HDR uçtan uca | ⏳ | HDR kaynak SDR'ye ton eşlenir |
 | Chroma key, maske, arka plan kaldırma, hareket takibi | ⏳ | — |
 | Efekt favorileri / arama | ⏳ | — |
+
+\* E: emülatör akışına eklendi; sonucu `PROGRESS.md`'de. L: aynı shader efekt laboratuvarında (WebGL) referans hesapla karşılaştırıldı.
 
 ## Ses
 

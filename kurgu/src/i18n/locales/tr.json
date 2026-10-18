@@ -65,6 +65,13 @@
       "EXPORT_BUSY": "Başka bir dışa aktarma sürüyor.",
       "BAD_SPEC": "Proje verisi okunamadı.",
       "ENGINE_UNAVAILABLE": "Video motoru bu cihazda kullanılamıyor."
+    },
+    "lut": {
+      "LUT_1D": "1B LUT desteklenmiyor; 3B .cube dosyası seçin.",
+      "LUT_SIZE": "LUT boyutu desteklenmiyor (2–65 arası olmalı).",
+      "LUT_DATA": "LUT verisi eksik veya bozuk.",
+      "LUT_FORMAT": "Bu dosya geçerli bir .cube LUT değil.",
+      "LUT_EMPTY": "LUT dosyası boş."
     }
   },
   "editor": {
@@ -164,7 +171,8 @@
       "cinematic": "Sinematik",
       "bw": "Siyah-beyaz",
       "retro": "Retro",
-      "mood": "Atmosfer"
+      "mood": "Atmosfer",
+      "lut": "LUT"
     },
     "none": "Yok",
     "vivid": "Canlı",
@@ -186,7 +194,10 @@
     "forest": "Orman",
     "night": "Gece",
     "pastel": "Pastel",
-    "pop": "Pop"
+    "pop": "Pop",
+    "lutImport": "LUT içe aktar",
+    "lutImported": "LUT içe aktarıldı",
+    "lutHint": "Renk derecelendirme için .cube biçiminde 3B LUT dosyası içe aktarın. Dosya cihazda kalır."
   },
   "effects": {
     "category": {

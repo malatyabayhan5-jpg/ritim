@@ -68,6 +68,7 @@ export function createProject({ name, ratio = '9:16', resolution = 1080, fps = 3
     audio: [],
     texts: [],
     effectLayers: [],
+    luts: {},
     markers: [],
     unsupported: [],
   };
@@ -92,6 +93,7 @@ export function createMainClip(media, { imageDurationMs = 3000 } = {}) {
     transform: { rotation: 0, flipH: false, flipV: false, scale: 1, x: 0, y: 0, fit: null },
     blur: 0,
     effects: [],
+    lut: null,
     transition: { type: 'none', durationMs: 500 },
   };
 }
@@ -190,6 +192,7 @@ export function migrateProject(raw) {
     style: { ...DEFAULT_TEXT_STYLE, ...(t.style || {}) },
   }));
   p.effectLayers = (raw.effectLayers || []).filter((e) => e && e.effectId && e.duration > 0);
+  p.luts = raw.luts && typeof raw.luts === 'object' ? raw.luts : {};
   p.markers = raw.markers || [];
   p.unsupported = raw.unsupported || [];
   return p;

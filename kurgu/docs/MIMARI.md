@@ -21,7 +21,8 @@ masaüstü sürümüne nasıl hazırlanıldığını açıklar.
 │  RenderSpec.kt → CompositionFactory.kt → Media3 Composition                        │
 │        ├── KurguPreviewView: CompositionPlayer (önizleme, düşük çözünürlük)        │
 │        └── Exporter: Transformer (dışa aktarma, donanım kodlayıcı)                 │
-│  Fx.kt (renk matrisi, geçişler, GLSL efekt), TextLayer.kt (metin bitmap katmanı)   │
+│  Fx.kt (renk matrisi, geçişler), ShaderFx.kt (katalog efektleri, assets/kurgu_fx)  │
+│  TextLayer.kt (metin bitmap katmanı)                                               │
 │  MediaTools.kt (probe, küçük resim, dalga biçimi, kodlayıcı yetenekleri)           │
 │  ExportService.kt (ön plan hizmeti)                                                │
 └────────────────────────────────────────────────────────────────────────────────────┘
@@ -129,6 +130,37 @@ parça render motorudur. Önerilen yol:
 - Kullanıcı dosyaları hiçbir sunucuya gönderilmez; telemetri yoktur. API anahtarı kaynak kodda yoktur.
 - Silme işlemleri onay ister; proje silinirken yalnızca o projeye ait medya kopyaları silinir.
 - Marka, simge ve renk paleti özgündür; CapCut'a ait kod, marka, simge veya varlık kullanılmaz.
+
+## 9b. Efekt motoru
+
+- **Tek kaynak:** Her efekt `modules/kurgu-engine/android/src/main/assets/kurgu_fx/<shader>.glsl`
+  dosyasında `vec4 fx(vec2 uv)` olarak yazılır (GLSL ES 1.00). `_common.glsl` ortak
+  uniform'ları (`uTex, uRes, uTime, uDur, uAmount, uP0, uP1, uSeed`) ve yardımcıları
+  (hash, değer gürültüsü, fbm, karışım modları) içerir; `_main.glsl` yoğunluk 0 iken
+  görüntüyü dokunmadan geçirir.
+- **Katalog:** `src/model/fx-catalog.json` efektin kimliği, shader dosyası, kategorisi,
+  parametreleri (anahtar, uP0/uP1 yuvası, varsayılan, min, maks), performans sınıfı,
+  animasyonlu olup olmadığı, lisansı, platformları ve ücret katmanını tutar. Adlar ve
+  açıklamalar çeviri dosyalarındaki `fx` bölümündedir. Yeni efekt = GLSL dosyası +
+  katalog satırı + üç dilde ad + `tools/fx-lab/make-thumbs.sh`.
+- **Model:** `clip.effects[]` (klibe bağlı yığın, en fazla 4) ve `project.effectLayers[]`
+  (zaman çizelgesinde süreli öğe). Her örnek `{ id, effectId, amount, values }`;
+  rastgelelik örnek kimliğinden türetilen kararlı tohumla (`seedOf`) yapılır, bu yüzden
+  önizleme, dışa aktarma ve yeniden açılış aynı sonucu verir.
+- **Sıra:** klip renk matrisi → bulanıklık → eski efekt → klip efektleri (yığın sırası)
+  → [kompozisyon] geçiş/global efekt → efekt katmanları → metin katmanları. Metin
+  efektlerden etkilenmez.
+- **Zaman:** Shader `uTime` olarak efekt başlangıcından beri geçen süreyi alır; pencere
+  dışında yoğunluk 0, kenarlarda 80 ms yumuşak geçiş.
+- **Görsel QA:** `tools/fx-lab/lab.cjs` aynı GLSL dosyalarını başsız Chromium'da (WebGL)
+  prosedürel test sahnelerine uygular: öncesi/sonrası, yoğunluk taraması, 30 karelik
+  zamansal akıcılık ölçümü ve uygulamaya gömülen küçük resimler.
+- **LUT:** `.cube` dosyası içe aktarmada `src/model/lut.js` ile doğrulanır, kütüphaneye
+  kopyalanır (`project.luts`), klipte `{ id, intensity }` olarak tutulur. Yerel motor dosyayı
+  `LutFx.kt` ile okuyup dilimleri ızgara hâlinde 2B dokuya yerleştirir; `_lut.glsl` üç doğrusal
+  ara değerle uygular. Sıra: renk matrisi → LUT → bulanıklık → efektler.
+- **E2E doğrulama:** `e2e/fx_check.py` dışa aktarılan MP4'te efekt katmanının izini
+  (çift ton paleti) kare kare arar; efekt yalnızca katman aralığında görünmelidir.
 
 ## 10. Bilinen sınırlamalar (bu sürüm)
 

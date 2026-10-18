@@ -128,7 +128,7 @@ export async function collectUnusedMedia() {
   const used = new Set();
   for (const id of ids) {
     const p = await loadProject(id).catch(() => null);
-    if (p) for (const m of Object.values(p.media)) if (m.path) used.add(m.path);
+    if (p) for (const m of [...Object.values(p.media), ...Object.values(p.luts || {})]) if (m.path) used.add(m.path);
   }
   const files = await FS.readDirectoryAsync(MEDIA_DIR);
   let freed = 0;

@@ -1,11 +1,14 @@
 // Medya içe aktarma: Android Photo Picker / iOS Photos Picker (expo-image-picker)
 // ve dosya seçici (expo-document-picker). Seçilen dosyalar kütüphaneye alınır,
 // yerel motorla incelenir; desteklenmeyen dosyalar açıklamalı hata ile döner.
+// Ayrıca .cube LUT dosyaları doğrulanıp kütüphaneye alınır.
 
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { ROOT, adoptFile } from './library';
+import * as FS from 'expo-file-system/legacy';
 import { probe, isEngineAvailable } from '../engine/engine';
+import { LutError, lutDisplayName, parseCube } from '../model/lut';
 
 export class ImportError extends Error {
   constructor(code, name) {
@@ -100,4 +103,19 @@ function describe(item, adopted, info) {
     hdr: !!info?.hdr,
     importedAt: Date.now(),
   };
+}
+
+/**
+ * .cube LUT seçer, doğrular ve kütüphaneye kopyalar. İptalde null döner.
+ * Geçersiz dosyada `LutError` (kod: LUT_1D, LUT_SIZE, LUT_DATA, LUT_FORMAT, LUT_EMPTY) fırlatır.
+ */
+export async function importLutFile() {
+  const res = await DocumentPicker.getDocumentAsync({ type: ['*/*'], multiple: false, copyToCacheDirectory: true });
+  if (res.canceled || !res.assets?.length) return null;
+  const a = res.assets[0];
+  if (!/\.cube$/i.test(a.name || '')) throw new LutError('LUT_FORMAT', 'extension');
+  if ((a.size || 0) > 20e6) throw new LutError('LUT_SIZE', 'file');
+  const parsed = parseCube(await FS.readAsStringAsync(a.uri));
+  const stored = await adoptFile(a.uri, a.name, 'text/plain');
+  return { id: stored.id, path: stored.path, name: lutDisplayName(a.name, parsed.title), size: parsed.size };
 }
