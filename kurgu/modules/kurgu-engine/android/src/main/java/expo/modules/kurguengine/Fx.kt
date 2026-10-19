@@ -393,9 +393,18 @@ class VolumeEnvelope(
     return min(1f, max(0f, g))
   }
 
+  // GainProcessor bunu kazanç tam 1 iken sorar ve TIME_UNSET dönerse çöker
+  // ("Expected a valid end boundary for unity region" — CI e2e önizleme hatası).
+  // Birlik bölgesi en çok 10 ms'lik parçalar hâlinde bildirilir: canlı ses düzeyi
+  // değişirse en geç bir parça sonra uygulanır; sabit zarfta solma başı aşılmaz.
   override fun isUnityUntil(samplePosition: Long, sampleRate: Int): Long {
-    if (liveKey != null) return C.TIME_UNSET
-    return if (getGainFactorAtSamplePosition(samplePosition, sampleRate) == 1f) samplePosition + 1 else C.TIME_UNSET
+    val chunkEnd = samplePosition + max(1, sampleRate / 100)
+    if (liveKey != null) return chunkEnd
+    if (baseFadeOutUs > 0 && durationUs > 0) {
+      val fadeStart = (durationUs - baseFadeOutUs) * sampleRate / 1_000_000L
+      if (fadeStart > samplePosition) return min(chunkEnd, fadeStart)
+    }
+    return chunkEnd
   }
 
   companion object {
