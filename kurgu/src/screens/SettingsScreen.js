@@ -70,7 +70,7 @@ export default function SettingsScreen() {
 
         <Group title={t('settings.preview')}>
           <Row style={styles.wrap}>
-            {['low', 'medium', 'high'].map((q) => (
+            {['auto', 'low', 'medium', 'high'].map((q) => (
               <Chip key={q} label={t(`settings.previewQuality.${q}`)} active={s.previewQuality === q} onPress={() => update({ previewQuality: q })} />
             ))}
           </Row>

@@ -33,8 +33,9 @@ private val IDENTITY: FloatArray = GlUtil.create4x4IdentityMatrix()
 
 /** Sabit 4x4 renk matrisi (sütun öncelikli). Filtreler ve renk ayarları JS'de hesaplanır. */
 @OptIn(UnstableApi::class)
-class StaticColorMatrix(private val matrix: FloatArray) : RgbMatrix {
-  override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray = matrix
+class StaticColorMatrix(private val matrix: FloatArray, private val liveKey: String? = null) : RgbMatrix {
+  override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray =
+    LiveParams.get(liveKey)?.takeIf { it.size == 16 } ?: matrix
 }
 
 /** Klibin kullanıcı ölçeği ve konumu (kanvasa yerleştirildikten sonra). */
@@ -316,13 +317,18 @@ void main() {
 /** Ses düzeyi ve giriş/çıkış yumuşatması. Kazanç 0..1 aralığındadır. */
 @OptIn(UnstableApi::class)
 class VolumeEnvelope(
-  private val volume: Float,
-  private val fadeInUs: Long,
-  private val fadeOutUs: Long,
+  private val baseVolume: Float,
+  private val baseFadeInUs: Long,
+  private val baseFadeOutUs: Long,
   private val durationUs: Long,
+  private val liveKey: String? = null,
 ) : GainProcessor.GainProvider {
   override fun getGainFactorAtSamplePosition(samplePosition: Long, sampleRate: Int): Float {
     val posUs = samplePosition * 1_000_000L / sampleRate
+    val live = LiveParams.get(liveKey)
+    val volume = live?.getOrNull(0) ?: baseVolume
+    val fadeInUs = live?.getOrNull(1)?.let { (it * 1000).toLong() } ?: baseFadeInUs
+    val fadeOutUs = live?.getOrNull(2)?.let { (it * 1000).toLong() } ?: baseFadeOutUs
     var g = volume
     if (fadeInUs > 0 && posUs < fadeInUs) g *= posUs.toFloat() / fadeInUs
     if (fadeOutUs > 0 && durationUs > 0) {
@@ -333,6 +339,7 @@ class VolumeEnvelope(
   }
 
   override fun isUnityUntil(samplePosition: Long, sampleRate: Int): Long {
+    if (liveKey != null) return C.TIME_UNSET
     return if (getGainFactorAtSamplePosition(samplePosition, sampleRate) == 1f) samplePosition + 1 else C.TIME_UNSET
   }
 

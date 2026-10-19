@@ -11,6 +11,13 @@ uniform float uAmount;  // yoğunluk 0..1
 uniform vec4 uP0;       // efekte özgü parametreler (0..1)
 uniform vec4 uP1;
 uniform float uSeed;
+// İki geçişli efektler: efekt dosyası `vec4 prepass(vec2 uv)` tanımlarsa bu fonksiyon
+// önce yarım çözünürlüklü bir dokuya çizilir; fx() bu dokuyu pre() ile okur.
+// KURGU_TWO_PASS yalnızca bu efektlerde tanımlanır (ShaderFx.kt, lab.cjs).
+#ifdef KURGU_TWO_PASS
+uniform sampler2D uPre;
+vec4 pre(vec2 uv) { return texture2D(uPre, clamp(uv, 0.0, 1.0)); }
+#endif
 varying vec2 vUv;
 
 const float PI = 3.14159265;

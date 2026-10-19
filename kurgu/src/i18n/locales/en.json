@@ -363,6 +363,7 @@
     "frameRate": "Frame rate",
     "preview": "Preview",
     "previewQuality": {
+      "auto": "Automatic",
       "low": "Smooth",
       "medium": "Balanced",
       "high": "High quality"

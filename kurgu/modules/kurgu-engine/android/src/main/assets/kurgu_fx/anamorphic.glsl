@@ -3,6 +3,9 @@
 // yatay, ince, uçlara doğru sönen mavi-camgöbeği ışık çizgileri uzanır.
 // Geniş parlak yüzeyler (gökyüzü, beyaz duvar) çizgi üretmez.
 // P0: x=çizgi uzunluğu  y=eşik  z=renk (0 mavi, 1 sıcak)  w=kontrast
+//
+// İki geçiş: noktasal ışık haritası (9 doku okuması) yarım çözünürlükte bir kez
+// hesaplanır; çizgi toplama döngüsü bu haritadan okur (piksel başına 40 okuma).
 float pointLight(vec2 uv, float thr) {
   vec3 c = tex(uv).rgb;
   float l = max(c.r, max(c.g, c.b));
@@ -17,9 +20,12 @@ float pointLight(vec2 uv, float thr) {
   float k = smoothstep(thr, 1.0, l) * smoothstep(0.15, 0.5, l - surround * 0.85);
   return k * k;
 }
+vec4 prepass(vec2 uv) {
+  float thr = mix(0.55, 0.92, uP0.y);
+  return vec4(pointLight(uv, thr), 0.0, 0.0, 1.0);
+}
 vec4 fx(vec2 uv) {
   vec3 src = tex(uv).rgb;
-  float thr = mix(0.55, 0.92, uP0.y);
   float len = mix(0.12, 0.5, uP0.x);
   float j = hash12(uv * uRes) - 0.5;
   float acc = 0.0;
@@ -27,10 +33,12 @@ vec4 fx(vec2 uv) {
   for (int i = 0; i < 40; i++) {
     float t = ((float(i) + j) / 39.5) * 2.0 - 1.0;
     float w = exp(-abs(t) * 4.0);
-    acc += pointLight(uv + vec2(t * len / aspect(), 0.0), thr) * w;
+    acc += pre(uv + vec2(t * len / aspect(), 0.0)).r * w;
     wsum += w;
   }
-  float s = acc / wsum * 6.0;
+  // Yarım çözünürlükte küçük ışık noktaları ortalamayla sönükleşir; 6.8 tek geçişli
+  // sürümün (6.0) toplam ışık miktarını korur.
+  float s = acc / wsum * 6.8;
   vec3 tint = mix(vec3(0.3, 0.6, 1.0), vec3(1.0, 0.62, 0.32), uP0.z);
   vec3 col = screen(src, clamp(s * tint * uAmount, 0.0, 1.0));
   col = mix(col, col * col * (3.0 - 2.0 * col), 0.2 * uP0.w * uAmount);

@@ -34,7 +34,8 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private var player: CompositionPlayer? = null
   private var spec: RenderSpec? = null
   private var specJson: String? = null
-  private var maxPreviewSide = 960
+  private var builtSide = 0
+  private var builtSpec: RenderSpec? = null
   private var pendingPositionMs = 0L
   private var lastReportedMs = -1L
   private var attached = false
@@ -52,14 +53,63 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       onPreviewError(mapOf("code" to "BAD_SPEC", "message" to (e.message ?: "")))
       null
     }
+    spec?.let { LiveParams.seed(it) }
     applyComposition()
   }
 
+  /** Kaydırıcı değerleri: kompozisyonu yeniden kurmadan günceller, duraklatılmışsa kareyi yeniler. */
+  fun setLive(json: String?) {
+    if (json == null) return
+    try {
+      val o = org.json.JSONObject(json)
+      val keys = o.keys()
+      while (keys.hasNext()) {
+        val k = keys.next()
+        val arr = o.optJSONArray(k) ?: continue
+        LiveParams.put(k, FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() })
+      }
+    } catch (e: Exception) {
+      return
+    }
+    requestRedraw()
+  }
+
+  private var lastRedraw = 0L
+  private val redraw = Runnable {
+    val p = player ?: return@Runnable
+    lastRedraw = android.os.SystemClock.uptimeMillis()
+    if (!p.isPlaying && p.playbackState != Player.STATE_IDLE) p.seekTo(p.currentPosition)
+  }
+
+  private fun requestRedraw() {
+    main.removeCallbacks(redraw)
+    val since = android.os.SystemClock.uptimeMillis() - lastRedraw
+    main.postDelayed(redraw, if (since > 40) 0L else 40L - since)
+  }
+
+  private var quality = "auto"
+
   fun setPreviewQuality(q: String?) {
-    val side = when (q) { "low" -> 640; "high" -> 1280; else -> 960 }
-    if (side != maxPreviewSide) {
-      maxPreviewSide = side
-      applyComposition()
+    quality = q ?: "auto"
+    applyComposition()
+  }
+
+  /**
+   * Önizleme çözünürlüğü (uzun kenar). "auto": ağır efekt ve katman sayısına göre
+   * düşürülür; dışa aktarma kalitesi etkilenmez.
+   */
+  private fun previewSide(s: RenderSpec): Int = when (quality) {
+    "low" -> 640
+    "medium" -> 960
+    "high" -> 1280
+    else -> {
+      val effects = s.main.sumOf { it.effects.size } + s.effectLayers.size
+      val heavy = s.main.any { m -> m.effects.any { it.heavy } } || s.effectLayers.any { it.heavy }
+      when {
+        heavy || effects >= 4 -> 640
+        effects >= 1 -> 800
+        else -> 960
+      }
     }
   }
 
@@ -92,11 +142,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       releasePlayer()
       return
     }
-    val scale = minOf(1f, maxPreviewSide.toFloat() / max(s.width, s.height))
+    val side = previewSide(s)
+    if (side == builtSide && s === builtSpec) return
+    builtSide = side
+    builtSpec = s
+    val scale = minOf(1f, side.toFloat() / max(s.width, s.height))
     val w = (s.width * scale).roundToInt()
     val h = (s.height * scale).roundToInt()
     try {
-      val composition = CompositionFactory.build(s, w, h)
+      val composition = CompositionFactory.build(s, w, h, forExport = false, live = true)
       val p = ensurePlayer()
       val wasPlaying = p.playWhenReady
       val pos = if (p.playbackState == Player.STATE_IDLE) pendingPositionMs else p.currentPosition
@@ -163,6 +217,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   }
 
   private fun releasePlayer() {
+    builtSpec = null
     main.removeCallbacks(positionTick)
     player?.let {
       pendingPositionMs = it.currentPosition

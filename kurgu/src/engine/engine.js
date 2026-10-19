@@ -46,17 +46,34 @@ function pump() {
   }
 }
 
+// Küçük resim istekleri en fazla THUMB_MEMO_MAX kayıtla önbelleğe alınır (LRU):
+// uzun oturumlarda bellek sürekli artmaz. Dosyalar diskte kalır, yalnızca
+// JS tarafındaki söz (promise) kayıtları sınırlanır.
+const THUMB_MEMO_MAX = 600;
 const thumbMemo = new Map();
+function memoGet(map, key) {
+  const v = map.get(key);
+  if (v !== undefined) {
+    map.delete(key);
+    map.set(key, v);
+  }
+  return v;
+}
+function memoSet(map, key, v, max) {
+  map.set(key, v);
+  while (map.size > max) map.delete(map.keys().next().value);
+}
 
 /** Medya için belirli zamanlarda (ms) küçük resim URI'leri. */
 export function thumbnails(media, timesMs, heightPx = 96) {
   if (!KurguEngine) return Promise.resolve(timesMs.map(() => null));
   const key = `${media.id}|${heightPx}|${timesMs.join(',')}`;
-  if (thumbMemo.has(key)) return thumbMemo.get(key);
+  const hit = memoGet(thumbMemo, key);
+  if (hit) return hit;
   const p = schedule(() =>
     KurguEngine.thumbnails(mediaUri(media), timesMs, heightPx, `${THUMBS_DIR}${media.id}/`, media.kind === 'image'),
   ).catch(() => timesMs.map(() => null));
-  thumbMemo.set(key, p);
+  memoSet(thumbMemo, key, p, THUMB_MEMO_MAX);
   return p;
 }
 

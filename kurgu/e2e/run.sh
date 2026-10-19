@@ -60,7 +60,8 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 adb logcat -c
 : > "$OUT/sonuclar.txt"
 # AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
-for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
+for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans; do
+  [ "$flow" = 5_performans ] && adb shell dumpsys gfxinfo $PKG reset > /dev/null 2>&1
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export)" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
@@ -72,6 +73,13 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl; do
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
   fi
 done
+
+# Performans ölçümü (5. akıştan sonra): kare süreleri ve bellek
+{
+  echo "Performans (emülatör, yazılımsal GPU — gerçek cihaz değildir):"
+  adb shell dumpsys gfxinfo $PKG 2>/dev/null | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|95th percentile|99th percentile|Number Slow UI thread|Number Frame deadline missed" | sed 's/^/  /'
+  adb shell dumpsys meminfo $PKG 2>/dev/null | grep -E "TOTAL PSS|TOTAL RSS|Native Heap|Graphics" | head -4 | sed 's/^ */  /'
+} >> "$OUT/sonuclar.txt"
 
 # Dışa aktarılan videoyu cihazdan al ve bağımsız bir araçla (ffprobe) denetle
 adb shell ls -l /sdcard/Movies/Kurgu/ > "$OUT/galeri.txt" 2>&1
@@ -108,7 +116,7 @@ adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPl
 cat "$OUT/sonuclar.txt"
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
-for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi; do
+for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans; do
   echo "===== $flow (son 40 satır) ====="
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done

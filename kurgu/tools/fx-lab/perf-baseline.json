@@ -1,0 +1,93 @@
+{
+  "_note": "SwiftShader (yazılımsal GPU), 1280x720, kare başına medyan çizim süresi; relative = efekt / doğrudan kopya. Mutlak ms cihazı temsil etmez. Üretim: node tools/fx-lab/lab.cjs perf (2 çalıştırmanın ortalaması).",
+  "_passthroughMs": 42.0,
+  "glow": {
+    "ms": 307.8,
+    "relative": 7.33,
+    "relativeBeforeTwoPass": 15.4
+  },
+  "lightLeak": {
+    "ms": 78.7,
+    "relative": 1.88
+  },
+  "glitch": {
+    "ms": 58.9,
+    "relative": 1.4
+  },
+  "vhs": {
+    "ms": 101.7,
+    "relative": 2.41
+  },
+  "chromatic": {
+    "ms": 132.9,
+    "relative": 3.15
+  },
+  "shake": {
+    "ms": 116.4,
+    "relative": 2.76
+  },
+  "tiltShift": {
+    "ms": 234.1,
+    "relative": 5.57,
+    "relativeBeforeTwoPass": 9.49
+  },
+  "oldFilm": {
+    "ms": 82.8,
+    "relative": 1.97
+  },
+  "crt": {
+    "ms": 51.6,
+    "relative": 1.23
+  },
+  "neonEdge": {
+    "ms": 160.6,
+    "relative": 3.82,
+    "relativeBeforeTwoPass": 11.81
+  },
+  "comic": {
+    "ms": 48.5,
+    "relative": 1.15
+  },
+  "kaleidoscope": {
+    "ms": 46.0,
+    "relative": 1.1
+  },
+  "ripple": {
+    "ms": 30.8,
+    "relative": 0.73
+  },
+  "zoomBlur": {
+    "ms": 186.2,
+    "relative": 4.44
+  },
+  "motionBlur": {
+    "ms": 190.3,
+    "relative": 4.54,
+    "relativeBeforeTwoPass": 5.71
+  },
+  "snow": {
+    "ms": 45.9,
+    "relative": 1.09
+  },
+  "rain": {
+    "ms": 49.2,
+    "relative": 1.17
+  },
+  "sparkle": {
+    "ms": 73.8,
+    "relative": 1.75
+  },
+  "anamorphic": {
+    "ms": 349.8,
+    "relative": 8.32,
+    "relativeBeforeTwoPass": 52.73
+  },
+  "duotone": {
+    "ms": 33.5,
+    "relative": 0.8
+  },
+  "mosaic": {
+    "ms": 45.5,
+    "relative": 1.08
+  }
+}

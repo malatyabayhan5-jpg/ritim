@@ -52,11 +52,13 @@ export function seedOf(id) {
   return ((h >>> 0) % 10000) / 10000;
 }
 
-export function effectRenderSpec(inst, startMs, endMs) {
+export function effectRenderSpec(inst, startMs, endMs, key = inst.id) {
   const effect = effectById(inst.effectId);
   if (!effect) return null;
   return {
+    key,
     shader: effect.shader,
+    heavy: effect.perf === 'heavy',
     amount: clamp(inst.amount ?? 1, 0, 1),
     params: paramsArray(effect, inst.values).map((v) => Math.round(v * 1000) / 1000),
     seed: seedOf(inst.id),

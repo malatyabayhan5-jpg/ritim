@@ -23,6 +23,7 @@ data class FxParams(
 }
 
 data class MainClip(
+  val key: String,
   val uri: String,
   val kind: String,
   val srcInMs: Long,
@@ -48,6 +49,7 @@ data class MainClip(
 )
 
 data class AudioClip(
+  val key: String,
   val uri: String,
   val startMs: Long,
   val srcInMs: Long,
@@ -132,6 +134,8 @@ data class RenderSpec(
     private fun parseShaderFx(o: JSONObject): ShaderFxSpec {
       val arr = o.optJSONArray("params")
       return ShaderFxSpec(
+        key = o.optString("key"),
+        heavy = o.optBoolean("heavy"),
         shader = o.getString("shader"),
         amount = o.optDouble("amount", 1.0).toFloat().coerceIn(0f, 1f),
         params = FloatArray(8) { i -> arr?.optDouble(i, 0.0)?.toFloat() ?: 0f },
@@ -160,6 +164,7 @@ data class RenderSpec(
         if (arr.length() == 16) FloatArray(16) { arr.optDouble(it, 0.0).toFloat() } else null
       }
       return MainClip(
+        key = o.optString("key"),
         uri = o.getString("uri"),
         kind = o.optString("kind", "video"),
         srcInMs = o.optLong("srcInMs"),
@@ -186,6 +191,7 @@ data class RenderSpec(
     }
 
     private fun parseAudio(o: JSONObject) = AudioClip(
+      key = o.optString("key"),
       uri = o.getString("uri"),
       startMs = o.optLong("startMs"),
       srcInMs = o.optLong("srcInMs"),

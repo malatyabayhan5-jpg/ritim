@@ -35,12 +35,12 @@ object CompositionFactory {
   private val AUDIO_VIDEO: Set<Int> = setOf(C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_VIDEO)
   private val AUDIO_ONLY: Set<Int> = setOf(C.TRACK_TYPE_AUDIO)
 
-  fun build(spec: RenderSpec, outWidth: Int = spec.width, outHeight: Int = spec.height, forExport: Boolean = false): Composition {
+  fun build(spec: RenderSpec, outWidth: Int = spec.width, outHeight: Int = spec.height, forExport: Boolean = false, live: Boolean = false): Composition {
     require(spec.main.isNotEmpty()) { "EMPTY_TIMELINE" }
     val w = even(outWidth)
     val h = even(outHeight)
 
-    val mainItems = spec.main.map { mainItem(it, w, h, spec.fps) }
+    val mainItems = spec.main.map { mainItem(it, w, h, spec.fps, live) }
     val sequences = mutableListOf(
       EditedMediaItemSequence.Builder(AUDIO_VIDEO).addItems(mainItems).build(),
     )
@@ -64,7 +64,7 @@ object CompositionFactory {
           srcOutMs = clip.srcInMs + (maxOutUs * clip.speed / 1000f).toLong()
         }
         if (srcOutMs - clip.srcInMs < 20) continue
-        builder.addItem(audioItem(clip, srcOutMs))
+        builder.addItem(audioItem(clip, srcOutMs, live))
         cursorUs += clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
         added++
       }
@@ -85,7 +85,7 @@ object CompositionFactory {
       compositionEffects.add(FxEffect(spec.globalFx, glitchTransitions))
     }
     // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
-    spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it)) }
+    spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it) }
     if (overlays.isNotEmpty()) compositionEffects.add(OverlayEffect(overlays))
     if (forExport) compositionEffects.add(FrameDropEffect.createDefaultFrameDropEffect(spec.fps.toFloat()))
@@ -98,7 +98,7 @@ object CompositionFactory {
       .build()
   }
 
-  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int): EditedMediaItem {
+  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean = false): EditedMediaItem {
     val isImage = clip.kind == "image"
     val mediaItem = if (isImage) {
       MediaItem.Builder()
@@ -131,18 +131,19 @@ object CompositionFactory {
     if (abs(clip.scale - 1f) > 0.001f || abs(clip.offsetX) > 0.0005f || abs(clip.offsetY) > 0.0005f) {
       video.add(ClipPlacement(clip.scale, clip.offsetX, clip.offsetY))
     }
-    clip.colorMatrix?.let { video.add(StaticColorMatrix(it)) }
+    clip.colorMatrix?.let { video.add(StaticColorMatrix(it, if (live) "cm:${clip.key}" else null)) }
     // LUT renk ayarlarından sonra uygulanır; dosya silinmişse atlanır (proje yine açılır).
-    clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it)) }
+    clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it, if (live) "lut:${clip.key}" else null)) }
     if (clip.blur > 0.01f) video.add(GaussianBlur(max(0.5f, clip.blur * h * 0.02f)))
     if (!clip.fx.isNoOp) video.add(FxEffect(clip.fx))
-    clip.effects.forEach { video.add(ShaderFx(it)) }
+    clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
 
     val audio = mutableListOf<AudioProcessor>()
     val outUs = clipOutUs(clip.srcInMs, clip.srcOutMs, clip.speed)
     if (clip.denoise > 0.01f && clip.volume > 0f) audio.add(DenoiseProcessor(clip.denoise))
-    if (VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
-      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs)))
+    // Önizlemede ses düzeyi canlı değişebilsin diye işlemci her zaman eklenir.
+    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
+      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null)))
     }
 
     val builder = EditedMediaItem.Builder(mediaItem)
@@ -156,7 +157,7 @@ object CompositionFactory {
     return builder.build()
   }
 
-  private fun audioItem(clip: AudioClip, srcOutMs: Long): EditedMediaItem {
+  private fun audioItem(clip: AudioClip, srcOutMs: Long, live: Boolean = false): EditedMediaItem {
     val mediaItem = MediaItem.Builder()
       .setUri(Uri.parse(clip.uri))
       .setClippingConfiguration(
@@ -169,8 +170,8 @@ object CompositionFactory {
     val outUs = clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
     val audio = mutableListOf<AudioProcessor>()
     if (clip.denoise > 0.01f) audio.add(DenoiseProcessor(clip.denoise))
-    if (VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
-      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs)))
+    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
+      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null)))
     }
     val builder = EditedMediaItem.Builder(mediaItem)
       .setRemoveVideo(true)

@@ -152,6 +152,10 @@ class KurguEngineModule : Module() {
         view.setSpec(spec)
       }
 
+      Prop("live") { view: KurguPreviewView, live: String? ->
+        view.setLive(live)
+      }
+
       Prop("previewQuality") { view: KurguPreviewView, quality: String? ->
         view.setPreviewQuality(quality)
       }

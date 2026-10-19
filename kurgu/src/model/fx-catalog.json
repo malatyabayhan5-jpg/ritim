@@ -5,7 +5,7 @@
       "id": "glow",
       "shader": "glow",
       "category": "light",
-      "perf": "medium",
+      "perf": "heavy",
       "animated": false,
       "params": [
         {
@@ -176,7 +176,7 @@
       "id": "chromatic",
       "shader": "chromatic",
       "category": "glitch",
-      "perf": "light",
+      "perf": "medium",
       "animated": false,
       "params": [
         {
@@ -387,7 +387,7 @@
       "id": "neonEdge",
       "shader": "neonedge",
       "category": "stylize",
-      "perf": "heavy",
+      "perf": "medium",
       "animated": true,
       "params": [
         {
@@ -429,7 +429,7 @@
       "id": "comic",
       "shader": "halftone",
       "category": "stylize",
-      "perf": "medium",
+      "perf": "light",
       "animated": false,
       "params": [
         {
@@ -768,7 +768,7 @@
       "id": "anamorphic",
       "shader": "anamorphic",
       "category": "cinematic",
-      "perf": "medium",
+      "perf": "heavy",
       "animated": false,
       "params": [
         {

@@ -371,6 +371,7 @@
     "frameRate": "معدل الإطارات",
     "preview": "المعاينة",
     "previewQuality": {
+      "auto": "تلقائي",
       "low": "سلسة",
       "medium": "متوازنة",
       "high": "جودة عالية"

@@ -4,7 +4,7 @@ const KEY = 'kurgu.settings.v1';
 
 export const DEFAULT_SETTINGS = {
   language: 'system', // 'system' | 'tr' | 'en' | 'ar'
-  previewQuality: 'medium', // 'low' | 'medium' | 'high'
+  previewQuality: 'auto', // 'auto' | 'low' | 'medium' | 'high'
   defaultRatio: '9:16',
   defaultResolution: 1080,
   defaultFps: 30,

@@ -1,0 +1,62 @@
+# Performans ölçümü: kabul akışının projesinde oynatma, zaman çizelgesinde
+# kaydırma ve efekt yoğunluğu kaydırıcısını sürükleme. Kare süreleri ve bellek
+# run.sh tarafından `dumpsys gfxinfo` / `dumpsys meminfo` ile ölçülür.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "project-prj_.*"
+    timeout: 30000
+- tapOn:
+    id: "project-prj_.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 3000
+# Oynatma (5 sn)
+- tapOn:
+    id: "play-toggle"
+- swipe:
+    start: "50%, 20%"
+    end: "50%, 20%"
+    duration: 5000
+- tapOn:
+    id: "play-toggle"
+# Zaman çizelgesinde kaydırma
+- swipe:
+    from:
+      id: "timeline-scroll"
+    direction: LEFT
+- swipe:
+    from:
+      id: "timeline-scroll"
+    direction: RIGHT
+- swipe:
+    from:
+      id: "timeline-scroll"
+    direction: LEFT
+# Efekt yoğunluğu kaydırıcısı (canlı parametre yolu)
+- tapOn:
+    id: "clip-0"
+- tapOn:
+    id: "tool-effects"
+- tapOn:
+    id: "fx-applied-.*"
+    optional: true
+- swipe:
+    from:
+      id: "fx-amount"
+    direction: LEFT
+    duration: 1500
+- swipe:
+    from:
+      id: "fx-amount"
+    direction: RIGHT
+    duration: 1500
+- takeScreenshot: 50_performans
+- tapOn:
+    id: "panel-done"

@@ -112,13 +112,13 @@ class CubeLut(
 
 /** 3B LUT efekti. Shader: assets/kurgu_fx/_lut.glsl (efekt laboratuvarıyla ortak). */
 @OptIn(UnstableApi::class)
-class LutFx(private val spec: LutSpec) : GlEffect {
+class LutFx(private val spec: LutSpec, private val liveKey: String? = null) : GlEffect {
   override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
-    LutFxProgram(context, useHdr, spec, CubeLut.load(spec.uri))
+    LutFxProgram(context, useHdr, spec, CubeLut.load(spec.uri), liveKey)
 }
 
 @OptIn(UnstableApi::class)
-internal class LutFxProgram(context: Context, useHdr: Boolean, private val spec: LutSpec, private val lut: CubeLut) :
+internal class LutFxProgram(context: Context, useHdr: Boolean, private val spec: LutSpec, private val lut: CubeLut, private val liveKey: String? = null) :
   BaseGlShaderProgram(useHdr, 1) {
   private val program: GlProgram
   private val lutTex: Int
@@ -153,7 +153,7 @@ internal class LutFxProgram(context: Context, useHdr: Boolean, private val spec:
       program.setSamplerTexIdUniform("uLut", lutTex, 1)
       program.setFloatsUniformIfPresent("uLutGrid", floatArrayOf(lut.size.toFloat(), lut.cols.toFloat()))
       program.setFloatsUniformIfPresent("uLutTexSize", floatArrayOf(lut.width.toFloat(), lut.height.toFloat()))
-      program.setFloatsUniformIfPresent("uAmount", floatArrayOf(spec.amount))
+      program.setFloatsUniformIfPresent("uAmount", floatArrayOf(LiveParams.get(liveKey)?.getOrNull(0) ?: spec.amount))
       program.setFloatsUniformIfPresent("uP0", floatArrayOf(lut.domainMin[0], lut.domainMin[1], lut.domainMin[2], 0f))
       program.setFloatsUniformIfPresent("uP1", floatArrayOf(lut.domainMax[0], lut.domainMax[1], lut.domainMax[2], 0f))
       program.bindAttributesAndUniforms()

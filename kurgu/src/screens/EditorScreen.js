@@ -29,6 +29,7 @@ import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
 import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
+import { splitLive } from '../engine/live';
 import { cancelAi, captionModels, downloadCaptionModel, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
@@ -59,6 +60,8 @@ export default function EditorScreen({ params, focused }) {
   const [pxPerMs, setPxPerMs] = useState(0.06);
   const [previewBox, setPreviewBox] = useState({ w: 0, h: 0 });
   const [specJson, setSpecJson] = useState(null);
+  const [liveJson, setLiveJson] = useState(null);
+  const sentStructure = useRef(null);
   const [busy, setBusy] = useState(null);
   const [renaming, setRenaming] = useState(false);
   const [saveState, setSaveState] = useState('saved');
@@ -66,7 +69,7 @@ export default function EditorScreen({ params, focused }) {
   const [fxSel, setFxSel] = useState(null);
   const [cap, setCap] = useState({ info: null, lang: null, modelId: 'base', progress: null });
   const capCancelled = useRef(false);
-  const settings = useRef({ haptics: true, previewQuality: 'medium', imageDurationMs: 3000 });
+  const settings = useRef({ haptics: true, previewQuality: 'auto', imageDurationMs: 3000 });
   const previewRef = useRef(null);
   const trimBase = useRef(null);
   const lastSeek = useRef(0);
@@ -165,11 +168,19 @@ export default function EditorScreen({ params, focused }) {
     return buildRenderSpec(visible, mediaUri, { rtl });
   }, [project, missing, rtl]);
 
+  // Yapı değişince önizleme yeniden kurulur (gecikmeli); yalnızca kaydırıcı
+  // değerleri değişince canlı parametreler hemen gönderilir (yeniden kurulum yok).
+  const liveSplit = useMemo(() => (spec ? splitLive(spec) : null), [spec]);
   useEffect(() => {
-    if (!spec) return undefined;
-    const timer = setTimeout(() => setSpecJson(JSON.stringify(spec)), SPEC_DEBOUNCE_MS);
+    if (!liveSplit) return undefined;
+    setLiveJson(JSON.stringify(liveSplit.live));
+    if (liveSplit.structure === sentStructure.current) return undefined;
+    const timer = setTimeout(() => {
+      sentStructure.current = liveSplit.structure;
+      setSpecJson(JSON.stringify(spec));
+    }, SPEC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [spec]);
+  }, [liveSplit, spec]);
 
   const total = project ? TL.totalDuration(project) : 0;
 
@@ -621,6 +632,7 @@ export default function EditorScreen({ params, focused }) {
               ref={previewRef}
               style={StyleSheet.absoluteFill}
               spec={specJson}
+              live={liveJson}
               previewQuality={settings.current.previewQuality}
               onPosition={(e) => setPosition(e.nativeEvent.positionMs)}
               onPlaybackState={(e) => setPlaying(!!e.nativeEvent.isPlaying)}

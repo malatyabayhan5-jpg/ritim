@@ -1,6 +1,9 @@
 // Neon kontur: Sobel kenarları renk geçişli neon çizgilere dönüşür; çizgiler
 // kendi ışımasını üretir, zemin kararır. Renk zamanla akar.
 // P0: x=çizgi kalınlığı  y=zemin karartma  z=renk akışı  w=ışıma
+//
+// İki geçiş: kenar haritası yarım çözünürlükte bir kez hesaplanır; ışıma halkası
+// (12 nokta) bu haritadan okur. Keskin çizgi tam çözünürlükte hesaplanır.
 float edgeAt(vec2 uv, float w) {
   vec2 o = px() * w;
   float tl = luma(tex(uv + vec2(-o.x, o.y)).rgb), tc = luma(tex(uv + vec2(0.0, o.y)).rgb), tr = luma(tex(uv + o).rgb);
@@ -10,14 +13,18 @@ float edgeAt(vec2 uv, float w) {
   float gy = (tl + 2.0 * tc + tr) - (bl + 2.0 * bc + br);
   return length(vec2(gx, gy));
 }
+float lineWidth() { return mix(1.0, 3.0, uP0.x) * (uRes.y / 1080.0) + 0.5; }
+vec4 prepass(vec2 uv) {
+  return vec4(smoothstep(0.08, 0.45, edgeAt(uv, lineWidth())), 0.0, 0.0, 1.0);
+}
 vec4 fx(vec2 uv) {
   vec3 src = tex(uv).rgb;
-  float w = mix(1.0, 3.0, uP0.x) * (uRes.y / 1080.0) + 0.5;
+  float w = lineWidth();
   float e = smoothstep(0.08, 0.45, edgeAt(uv, w));
   float g = 0.0;
   for (int i = 0; i < 12; i++) {
     float a = float(i) * TAU / 12.0;
-    g += smoothstep(0.08, 0.45, edgeAt(uv + vec2(cos(a), sin(a)) * px() * w * 5.0, w));
+    g += pre(uv + vec2(cos(a), sin(a)) * px() * w * 5.0).r;
   }
   g /= 12.0;
   float hue = fract(uv.x * 0.6 + uv.y * 0.3 + uTime * mix(0.0, 0.25, uP0.z) + uSeed);

@@ -363,6 +363,7 @@
     "frameRate": "Kare hızı",
     "preview": "Önizleme",
     "previewQuality": {
+      "auto": "Otomatik",
       "low": "Akıcı",
       "medium": "Dengeli",
       "high": "Yüksek kalite"

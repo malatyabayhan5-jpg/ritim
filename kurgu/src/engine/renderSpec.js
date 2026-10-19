@@ -23,6 +23,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     const visuals = clipVisuals(clip);
     const isImage = clip.kind === 'image';
     return {
+      key: clip.id,
       uri: resolveUri(media),
       kind: isImage ? 'image' : 'video',
       srcInMs: Math.round(clip.srcIn),
@@ -43,7 +44,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       offsetY: clip.transform?.y || 0,
       blur: visuals.blur,
       fx: visuals.fx,
-      effects: (clip.effects || []).map((e) => effectRenderSpec(e, start, end)).filter(Boolean),
+      effects: (clip.effects || []).map((e) => effectRenderSpec(e, start, end, `${clip.id}/${e.id}`)).filter(Boolean),
       lut: lutSpec(project, clip, resolveUri),
     };
   });
@@ -61,6 +62,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     lane.map((a) => {
       const media = project.media[a.mediaId];
       return {
+        key: a.id,
         uri: resolveUri(media),
         startMs: Math.round(a.start),
         srcInMs: Math.round(a.srcIn),

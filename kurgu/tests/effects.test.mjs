@@ -47,6 +47,28 @@ test('efekt kataloğu tutarlı: benzersiz kimlik, shader dosyası, parametre sı
   assert.ok(FX_CATALOG.length >= 20);
 });
 
+test('performans sınıfları ölçümle tutarlı (tools/fx-lab/perf-baseline.json)', () => {
+  // Göreli maliyet = efekt çizim süresi / doğrudan kopya (efekt laboratuvarı, SwiftShader).
+  // Sınır yakınındaki ölçüm gürültüsü için aralıklar örtüşür.
+  const range = { light: [0, 2.6], medium: [1.6, 7], heavy: [5, Infinity] };
+  const base = JSON.parse(readFileSync(join(root, 'tools/fx-lab/perf-baseline.json'), 'utf8'));
+  for (const e of FX_CATALOG) {
+    assert.ok(base[e.id], `${e.id}: ölçüm yok (node tools/fx-lab/lab.cjs perf)`);
+    const [lo, hi] = range[e.perf];
+    const r = base[e.id].relative;
+    assert.ok(r >= lo && r <= hi, `${e.id}: perf=${e.perf} ama ölçülen göreli maliyet ${r}`);
+  }
+});
+
+test('iki geçişli efektler: prepass() satır başında tanımlı ve pre() yalnız onlarda', () => {
+  // ShaderFx.kt ve lab.cjs ön geçişi `^vec4 prepass(` ile algılar.
+  for (const e of FX_CATALOG) {
+    const src = readFileSync(join(shaderDir, `${e.shader}.glsl`), 'utf8');
+    const hasPre = /^vec4\s+prepass\s*\(/m.test(src);
+    assert.equal(/\bpre\s*\(/.test(src), hasPre, `${e.shader}: pre() ve prepass() birlikte olmalı`);
+  }
+});
+
 test('her efektin adı, açıklaması, kategori ve parametre etiketleri üç dilde var', () => {
   const keys = ['fx.titleLayer', 'fx.titleClip', 'fx.amount', 'fx.remove', 'fx.maxReached', 'fx.perf.heavy', 'fx.category.all'];
   FX_CATEGORIES.forEach((c) => keys.push(`fx.category.${c}`));
