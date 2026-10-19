@@ -132,7 +132,8 @@
     "mask": "Maske",
     "chromaKey": "Chroma key",
     "reverse": "Ters",
-    "record": "Seslendir"
+    "record": "Seslendir",
+    "audioFx": "Ses efekti"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",

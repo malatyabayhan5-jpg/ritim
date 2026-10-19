@@ -132,7 +132,8 @@
     "mask": "Mask",
     "chromaKey": "Chroma key",
     "reverse": "Reverse",
-    "record": "Voiceover"
+    "record": "Voiceover",
+    "audioFx": "Audio FX"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",

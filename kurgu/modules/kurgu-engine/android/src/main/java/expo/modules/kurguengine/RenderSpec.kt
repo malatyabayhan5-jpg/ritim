@@ -52,6 +52,7 @@ data class MainClip(
   val angle: Float = 0f, // serbest açı (derece, saat yönü), anahtar kare tabanı
   val opacity: Float = 1f,
   val keyframes: Map<String, FloatArray> = emptyMap(),
+  val audioFx: AudioFxSpec? = null,
 )
 
 data class AudioClip(
@@ -68,6 +69,7 @@ data class AudioClip(
   val denoise: Float,
   val speedSegments: FloatArray? = null,
   val outMs: Long = 0,
+  val audioFx: AudioFxSpec? = null,
 )
 
 data class TransitionSpec(
@@ -255,6 +257,7 @@ data class RenderSpec(
         fadeInMs = o.optLong("fadeInMs"),
         fadeOutMs = o.optLong("fadeOutMs"),
         denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
+        audioFx = parseAudioFx(o.optJSONObject("audioFx")),
         colorMatrix = matrix,
         fit = o.optString("fit", "fit"),
         rotation = o.optDouble("rotation", 0.0).toFloat(),
@@ -299,6 +302,7 @@ data class RenderSpec(
       fadeInMs = o.optLong("fadeInMs"),
       fadeOutMs = o.optLong("fadeOutMs"),
       denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
+      audioFx = parseAudioFx(o.optJSONObject("audioFx")),
       speedSegments = o.optJSONArray("speedSegments")?.let { a -> if (a.length() >= 2 && a.length() % 2 == 0) FloatArray(a.length()) { a.optDouble(it, 1.0).toFloat() } else null },
       outMs = o.optLong("outMs"),
     )

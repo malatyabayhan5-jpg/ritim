@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { useI18n } from '../i18n';
@@ -10,17 +10,22 @@ import { colors, font, radius, space } from '../theme';
 import { loadSettings, saveSettings } from '../storage/settings';
 import { clearCache, collectUnusedMedia, storageUsage } from '../storage/library';
 import { ASPECT_OPTIONS } from '../model/catalog';
+import { normalizeServerUrl } from '../model/cloud';
 
 export default function SettingsScreen() {
-  const { t, fmt, preference, setLanguage, row } = useI18n();
+  const { t, fmt, preference, setLanguage, row, textAlign } = useI18n();
   const nav = useNav();
   const toast = useToast();
   const insets = useSafeAreaInsets();
   const [s, setS] = useState(null);
   const [usage, setUsage] = useState(null);
+  const [cloudUrl, setCloudUrl] = useState('');
 
   useEffect(() => {
-    loadSettings().then(setS);
+    loadSettings().then((v) => {
+      setS(v);
+      setCloudUrl(v.cloudServerUrl || '');
+    });
     storageUsage().then(setUsage).catch(() => {});
   }, []);
 
@@ -113,6 +118,28 @@ export default function SettingsScreen() {
           </Pressable>
         </Group>
 
+        <Group title={t('settings.cloud.title')}>
+          <Txt dim style={styles.note}>{t('settings.cloud.text')}</Txt>
+          <TextInput
+            testID="cloud-url"
+            value={cloudUrl}
+            onChangeText={setCloudUrl}
+            onEndEditing={() => {
+              const url = cloudUrl.trim() ? normalizeServerUrl(cloudUrl) : '';
+              if (url === null) return toast(t('settings.cloud.invalid'), 'error');
+              setCloudUrl(url);
+              update({ cloudServerUrl: url });
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            placeholder={t('settings.cloud.placeholder')}
+            placeholderTextColor={colors.textFaint}
+            style={[styles.input, { textAlign }]}
+          />
+          <Txt faint style={styles.note}>{t(s.cloudServerUrl ? 'settings.cloud.on' : 'settings.cloud.off')}</Txt>
+        </Group>
+
         <Group title={t('settings.privacy')}>
           <Txt dim style={styles.note}>{t('settings.privacyText')}</Txt>
         </Group>
@@ -159,6 +186,7 @@ const styles = StyleSheet.create({
   item: { minHeight: 48, alignItems: 'center', gap: space.md, paddingHorizontal: space.sm, borderRadius: radius.md },
   label: { fontSize: 13, marginTop: space.xs },
   note: { fontSize: 12 },
+  input: { backgroundColor: colors.bg, color: colors.text, borderRadius: radius.md, paddingHorizontal: space.md, height: 44, borderWidth: 1, borderColor: colors.border },
   wrap: { flexWrap: 'wrap' },
   switchRow: { minHeight: 48, paddingHorizontal: space.sm },
   usage: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, padding: space.sm },

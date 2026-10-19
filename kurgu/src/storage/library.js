@@ -10,9 +10,11 @@
 
 import * as FS from 'expo-file-system/legacy';
 import { migrateProject, newId } from '../model/schema';
+import { migratePhoto } from '../model/photo';
 
 export const ROOT = `${FS.documentDirectory}kurgu/`;
 export const PROJECTS_DIR = `${ROOT}projects/`;
+export const PHOTOS_DIR = `${ROOT}photos/`;
 export const MEDIA_DIR = `${ROOT}media/`;
 export const EXPORTS_DIR = `${ROOT}exports/`;
 export const CACHE_DIR = `${FS.cacheDirectory}kurgu/`;
@@ -22,7 +24,7 @@ export const WAVES_DIR = `${CACHE_DIR}waves/`;
 let ensured = false;
 export async function ensureDirs() {
   if (ensured) return;
-  for (const d of [ROOT, PROJECTS_DIR, MEDIA_DIR, EXPORTS_DIR, CACHE_DIR, THUMBS_DIR, WAVES_DIR]) {
+  for (const d of [ROOT, PROJECTS_DIR, PHOTOS_DIR, MEDIA_DIR, EXPORTS_DIR, CACHE_DIR, THUMBS_DIR, WAVES_DIR]) {
     const info = await FS.getInfoAsync(d);
     if (!info.exists) await FS.makeDirectoryAsync(d, { intermediates: true });
   }
@@ -128,6 +130,11 @@ export async function collectUnusedMedia() {
   const used = new Set();
   for (const id of ids) {
     const p = await loadProject(id).catch(() => null);
+    if (p) for (const m of [...Object.values(p.media), ...Object.values(p.luts || {})]) if (m.path) used.add(m.path);
+  }
+  // Fotoğraf projelerinin medyası da korunur
+  for (const id of await FS.readDirectoryAsync(PHOTOS_DIR).catch(() => [])) {
+    const p = await loadPhoto(id).catch(() => null);
     if (p) for (const m of [...Object.values(p.media), ...Object.values(p.luts || {})]) if (m.path) used.add(m.path);
   }
   const files = await FS.readDirectoryAsync(MEDIA_DIR);
@@ -264,4 +271,68 @@ export async function clearCache() {
 
 export async function freeDisk() {
   return FS.getFreeDiskStorageAsync().catch(() => Number.MAX_SAFE_INTEGER);
+}
+
+// --- Fotoğraf projeleri (src/model/photo.js) ---
+
+const photoDir = (id) => `${PHOTOS_DIR}${id}/`;
+
+export async function listPhotos() {
+  await ensureDirs();
+  const out = [];
+  for (const id of await FS.readDirectoryAsync(PHOTOS_DIR)) {
+    const p = await loadPhoto(id).catch(() => null);
+    if (!p) continue;
+    const cover = await FS.getInfoAsync(`${photoDir(id)}cover.jpg`);
+    out.push({ id: p.id, name: p.name, updatedAt: p.updatedAt, width: p.canvas.width, height: p.canvas.height, layers: p.layers.length, cover: cover.exists ? `${cover.uri}?v=${p.coverVersion || 0}` : null });
+  }
+  return out.sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+export async function loadPhoto(id) {
+  const dir = photoDir(id);
+  try {
+    return migratePhoto(JSON.parse(await FS.readAsStringAsync(`${dir}photo.json`)));
+  } catch {
+    return { ...migratePhoto(JSON.parse(await FS.readAsStringAsync(`${dir}photo.bak.json`))), _recovered: true };
+  }
+}
+
+/** Atomik kayıt (video projeleriyle aynı yöntem). */
+export async function savePhoto(photo) {
+  await ensureDirs();
+  const dir = photoDir(photo.id);
+  if (!(await FS.getInfoAsync(dir)).exists) await FS.makeDirectoryAsync(dir, { intermediates: true });
+  const { _recovered, ...clean } = photo;
+  const tmp = `${dir}photo.tmp.json`;
+  await FS.writeAsStringAsync(tmp, JSON.stringify(clean));
+  if ((await FS.getInfoAsync(`${dir}photo.json`)).exists) {
+    await FS.deleteAsync(`${dir}photo.bak.json`, { idempotent: true });
+    await FS.moveAsync({ from: `${dir}photo.json`, to: `${dir}photo.bak.json` });
+  }
+  await FS.moveAsync({ from: tmp, to: `${dir}photo.json` });
+}
+
+export async function setPhotoCover(id, fromUri) {
+  await FS.deleteAsync(`${photoDir(id)}cover.jpg`, { idempotent: true });
+  await FS.copyAsync({ from: fromUri, to: `${photoDir(id)}cover.jpg` });
+}
+
+export async function deletePhoto(id) {
+  await FS.deleteAsync(photoDir(id), { idempotent: true });
+  await collectUnusedMedia();
+}
+
+export async function renamePhoto(id, name) {
+  const p = await loadPhoto(id);
+  await savePhoto({ ...p, name, updatedAt: Date.now() });
+}
+
+export async function duplicatePhoto(id, nameSuffix) {
+  const p = await loadPhoto(id);
+  const copy = { ...p, id: newId('pho'), name: `${p.name} ${nameSuffix}`.trim(), createdAt: Date.now(), updatedAt: Date.now(), exportedAt: null };
+  await savePhoto(copy);
+  const cover = `${photoDir(id)}cover.jpg`;
+  if ((await FS.getInfoAsync(cover)).exists) await FS.copyAsync({ from: cover, to: `${photoDir(copy.id)}cover.jpg` });
+  return copy.id;
 }

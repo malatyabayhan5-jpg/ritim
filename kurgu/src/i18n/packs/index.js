@@ -16,11 +16,14 @@ import text2Ar from './text2/ar.json';
 import audioTr from './audio/tr.json';
 import audioEn from './audio/en.json';
 import audioAr from './audio/ar.json';
+import photoTr from './photo/tr.json';
+import photoEn from './photo/en.json';
+import photoAr from './photo/ar.json';
 
 export const PACKS = {
-  tr: [effects2Tr, filters2Tr, transitions2Tr, text2Tr, audioTr],
-  en: [effects2En, filters2En, transitions2En, text2En, audioEn],
-  ar: [effects2Ar, filters2Ar, transitions2Ar, text2Ar, audioAr],
+  tr: [effects2Tr, filters2Tr, transitions2Tr, text2Tr, audioTr, photoTr],
+  en: [effects2En, filters2En, transitions2En, text2En, audioEn, photoEn],
+  ar: [effects2Ar, filters2Ar, transitions2Ar, text2Ar, audioAr, photoAr],
 };
 
 /** Derin birleştirme; yaprak anahtar çakışması hatadır. */

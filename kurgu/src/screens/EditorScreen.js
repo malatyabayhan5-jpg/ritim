@@ -25,6 +25,8 @@ import OverlayHandle from '../editor/OverlayHandle';
 import LayerPanel from '../editor/LayerPanel';
 import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
+import AudioFxPanel from '../editor/AudioFxPanel';
+import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel from '../editor/CaptionsPanel';
 import { addClipCaptions, addSrtCaptions, captionableClips, hasCaptions, parseSrt, removeCaptions, toSrt } from '../model/captions';
@@ -935,6 +937,7 @@ export default function EditorScreen({ params, focused }) {
         T('split', 'cut-outline', split),
         isImage ? T('duration', 'time-outline', () => openPanel('duration')) : T('speed', 'speedometer-outline', () => openPanel('speed')),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
+        !isImage ? T('audioFx', 'pulse-outline', () => openPanel('audioFx'), { badge: isAudioFxActive(selectedMain.audioFx) }) : null,
         T('filters', 'color-filter-outline', () => openPanel('filters')),
         T('adjust', 'options-outline', () => openPanel('adjust')),
         T('effects', 'sparkles-outline', () => {
@@ -959,6 +962,7 @@ export default function EditorScreen({ params, focused }) {
       return [
         T('split', 'cut-outline', split),
         T('volume', 'volume-high-outline', () => openPanel('audioVolume')),
+        T('audioFx', 'pulse-outline', () => openPanel('audioFxAudio'), { badge: isAudioFxActive(selectedAudio.audioFx) }),
         T('speed', 'speedometer-outline', () => openPanel('audioSpeed')),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),
@@ -1026,6 +1030,8 @@ export default function EditorScreen({ params, focused }) {
         return selectedMain && <SpeedPanel clip={selectedMain} onChange={(patch, key) => apply((p) => TL.setSpeed(p, selectedMain.id, patch.speed), key)} onCurve={(curve, key) => apply((p) => TL.setSpeedCurve(p, selectedMain.id, curve), key)} onClose={close} />;
       case 'volume':
         return selectedMain && <VolumePanel item={selectedMain} maxFadeMs={Math.min(5000, TL.clipDuration(selectedMain) / 2)} onChange={updMain} onClose={close} />;
+      case 'audioFx':
+        return selectedMain && <AudioFxPanel value={selectedMain.audioFx} onChange={updMain} onClose={close} />;
       case 'duration':
         return selectedMain && <ImageDurationPanel clip={selectedMain} onChange={updMain} onClose={close} />;
       case 'filters':
@@ -1183,6 +1189,8 @@ export default function EditorScreen({ params, focused }) {
         );
       case 'audioVolume':
         return selectedAudio && <VolumePanel item={selectedAudio} canMute={false} maxFadeMs={Math.min(10000, TL.audioDuration(selectedAudio) / 2)} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
+      case 'audioFxAudio':
+        return selectedAudio && <AudioFxPanel value={selectedAudio.audioFx} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
       case 'audioSpeed':
         return selectedAudio && <SpeedPanel clip={selectedAudio} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, { speed: Math.max(0.25, Math.min(4, patch.speed)) }), key)} onClose={close} />;
       case 'text':

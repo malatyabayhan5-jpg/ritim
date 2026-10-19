@@ -12,6 +12,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import HelpScreen from './src/screens/HelpScreen';
 import AiToolsScreen from './src/screens/AiToolsScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
+import PhotoEditorScreen from './src/screens/PhotoEditorScreen';
 
 const SCREENS = {
   home: HomeScreen,
@@ -21,6 +22,7 @@ const SCREENS = {
   help: HelpScreen,
   ai: AiToolsScreen,
   templates: TemplatesScreen,
+  photo: PhotoEditorScreen,
 };
 
 function Root() {

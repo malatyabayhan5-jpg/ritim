@@ -27,7 +27,7 @@ import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } f
 
 const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
 
-function Hscroll({ children }) {
+export function Hscroll({ children }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hscroll}>
       {children}
@@ -35,7 +35,7 @@ function Hscroll({ children }) {
   );
 }
 
-function Labeled({ label, children }) {
+export function Labeled({ label, children }) {
   return (
     <View style={styles.labeled}>
       <Txt dim style={styles.label}>
@@ -161,7 +161,7 @@ export function VolumePanel({ item, maxFadeMs, onChange, onClose, canMute = true
   );
 }
 
-function Tile({ label, active, onPress, color, icon, testID }) {
+export function Tile({ label, active, onPress, color, icon, testID }) {
   return (
     <Pressable testID={testID} onPress={onPress} style={({ pressed }) => [styles.tile, active && styles.tileActive, pressed && { opacity: 0.7 }]}>
       <View style={[styles.tileSwatch, { backgroundColor: color || colors.surface3 }]}>{icon ? <Icon name={icon} size={22} /> : null}</View>
@@ -399,7 +399,7 @@ export function ImageDurationPanel({ clip, onChange, onClose }) {
 
 const TEXT_TABS = ['style', 'font', 'color', 'stroke', 'layout', 'animation'];
 
-export function TextPanel({ item, onChange, onClose, initialTab = 'style' }) {
+export function TextPanel({ item, onChange, onClose, initialTab = 'style', tabs = TEXT_TABS }) {
   const { t, fmt, textAlign } = useI18n();
   const [tab, setTab] = useState(initialTab);
   const st = item.style;
@@ -416,7 +416,7 @@ export function TextPanel({ item, onChange, onClose, initialTab = 'style' }) {
           style={[styles.textInput, { textAlign }]}
         />
         <Hscroll>
-          {TEXT_TABS.map((k) => (
+          {tabs.map((k) => (
             <Chip key={k} label={t(`text.tab.${k}`)} active={tab === k} onPress={() => setTab(k)} testID={`text-tab-${k}`} />
           ))}
         </Hscroll>
@@ -524,7 +524,7 @@ export function TextPanel({ item, onChange, onClose, initialTab = 'style' }) {
   );
 }
 
-function ColorRow({ value, onPick, allowNone }) {
+export function ColorRow({ value, onPick, allowNone }) {
   const { t } = useI18n();
   const norm = (c) => (c || '').slice(0, 7).toUpperCase();
   const none = !value || value.endsWith('00') && value.length === 9;

@@ -1,0 +1,213 @@
+{
+  "photo": {
+    "new": "Edit a photo",
+    "newHint": "Pick a photo from your gallery",
+    "blank": "Blank canvas",
+    "list": "Photo projects",
+    "empty": "No photo projects yet.",
+    "untitled": "Untitled photo",
+    "defaultName": "Photo {date}",
+    "layerCount_one": "{n} layer",
+    "layerCount_other": "{n} layers",
+    "deleteTitle": "Delete photo project?",
+    "deleteMessage": "\"{name}\" and copies used only by this project will be permanently deleted. The original photo in your gallery is not affected.",
+    "deleted": "Photo project deleted",
+    "importing": "Importing photo…",
+    "recovered": "Project recovered from backup",
+    "saveFailed": "Could not save the project",
+    "textDefault": "Text",
+    "layer": {
+      "image": "Image {n}"
+    },
+    "tool": {
+      "addImage": "Add image",
+      "addText": "Text",
+      "sticker": "Sticker",
+      "addShape": "Shape",
+      "canvas": "Size",
+      "background": "Background",
+      "generate": "AI generate",
+      "adjust": "Adjust",
+      "filters": "Filters",
+      "crop": "Crop",
+      "ai": "AI tools",
+      "hsl": "HSL",
+      "grade": "Color grade",
+      "style": "Layer",
+      "front": "Forward",
+      "back": "Backward",
+      "hide": "Hide",
+      "show": "Show",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "editText": "Edit",
+      "shape": "Shape"
+    },
+    "canvas": {
+      "original": "Original",
+      "square": "Square",
+      "portrait45": "Portrait post",
+      "story": "Story",
+      "landscape169": "Landscape 16:9",
+      "thumbnail": "Video thumbnail",
+      "cover31": "Cover 3:1",
+      "photo32": "Photo 3:2",
+      "photo23": "Photo 2:3",
+      "a4": "A4 (300 dpi)",
+      "current": "Canvas: {w}×{h} px"
+    },
+    "bg": {
+      "color": "Color",
+      "border": "Border",
+      "transparent": "Transparent",
+      "transparentHint": "Transparent areas are kept only when exporting PNG.",
+      "borderWidth": "Border width",
+      "borderRadius": "Corner radius"
+    },
+    "hsl": {
+      "red": "Red",
+      "orange": "Orange",
+      "yellow": "Yellow",
+      "green": "Green",
+      "aqua": "Aqua",
+      "blue": "Blue",
+      "purple": "Purple",
+      "magenta": "Magenta",
+      "hue": "Hue",
+      "saturation": "Saturation",
+      "luminance": "Luminance"
+    },
+    "grade": {
+      "shadowHue": "Shadow hue",
+      "shadowSat": "Shadow saturation",
+      "highHue": "Highlight hue",
+      "highSat": "Highlight saturation",
+      "balance": "Balance"
+    },
+    "crop": {
+      "free": "Free",
+      "original": "Original",
+      "zoom": "Zoom",
+      "panX": "Horizontal position",
+      "panY": "Vertical position",
+      "straighten": "Straighten",
+      "rotateLeft": "Rotate left",
+      "rotateRight": "Rotate right",
+      "flipH": "Flip horizontal",
+      "flipV": "Flip vertical",
+      "reset": "Reset"
+    },
+    "style": {
+      "opacity": "Opacity",
+      "blend": "Blend mode",
+      "scale": "Scale",
+      "rotation": "Rotation",
+      "center": "Center",
+      "fill": "Fit to canvas",
+      "blendHint": "The blend mode combines this layer with the layers below. On Android 9 and earlier only basic modes are supported."
+    },
+    "blend": {
+      "normal": "Normal",
+      "multiply": "Multiply",
+      "screen": "Screen",
+      "overlay": "Overlay",
+      "darken": "Darken",
+      "lighten": "Lighten",
+      "add": "Add",
+      "difference": "Difference",
+      "softLight": "Soft light",
+      "color": "Color",
+      "luminosity": "Luminosity"
+    },
+    "shape": {
+      "tab": {
+        "shape": "Shape",
+        "fill": "Fill",
+        "stroke": "Stroke",
+        "size": "Size"
+      },
+      "rect": "Rectangle",
+      "roundRect": "Rounded",
+      "ellipse": "Ellipse",
+      "triangle": "Triangle",
+      "star": "Star",
+      "heart": "Heart",
+      "line": "Line",
+      "arrow": "Arrow",
+      "strokeWidth": "Stroke width",
+      "width": "Width",
+      "height": "Height",
+      "radius": "Corner"
+    },
+    "ai": {
+      "removeBg": "Remove background",
+      "removePerson": "Remove person",
+      "erase": "Erase object",
+      "clearMask": "Clear mask",
+      "restore": "Restore original",
+      "edge": "Edge softness",
+      "threshold": "Threshold",
+      "onDeviceNote": "Background removal runs on the device (a person segmentation model; it only separates people). Object erase uses classic inpainting, not generative AI; it works best on plain or textured backgrounds. Photos never leave the device.",
+      "segmenting": "Separating person…",
+      "noPerson": "No person was found in this image.",
+      "maskDone": "Mask applied",
+      "failed": "The operation failed",
+      "erasing": "Erasing object…",
+      "eraseHint": "Draw a rectangle around the object you want to erase.",
+      "eraseApply": "Erase",
+      "eraseNote": "The result is written to a new copy; you can always restore the original.",
+      "eraseTooSmall": "The selection is too small or outside the image.",
+      "eraseDone": "Object erased",
+      "generate": "Generate image from text (cloud)",
+      "generateAction": "Generate",
+      "generating": "Generating image on the server…",
+      "cloudOff": "Not connected",
+      "cloudConfigured": "Server set",
+      "cloudOffHint": "Image generation needs a cloud server and none is connected. You can add your own server in Settings > Cloud AI server. Nothing is generated without a connection.",
+      "generateHint": "Your prompt is sent to the server in Settings; the result is added as a new layer.",
+      "promptPlaceholder": "What would you like to generate?"
+    },
+    "cloudErrors": {
+      "CLOUD_NOT_CONFIGURED": "No cloud server is set.",
+      "CLOUD_UNAUTHORIZED": "The server rejected the request (authorization).",
+      "CLOUD_RATE_LIMIT": "Too many requests; try again later.",
+      "CLOUD_TIMEOUT": "The server did not respond in time.",
+      "CLOUD_NETWORK": "Could not reach the server.",
+      "CLOUD_BAD_RESPONSE": "The server did not return a valid image.",
+      "CLOUD_PROMPT_TOO_LONG": "The prompt is too long (max 1000 characters).",
+      "CLOUD_HTTP": "Server error; no image was generated."
+    },
+    "export": {
+      "action": "Export",
+      "title": "Export photo",
+      "format": "Format",
+      "size": "Size (long side)",
+      "full": "Full size",
+      "quality": "Quality",
+      "save": "Save to gallery",
+      "share": "Share",
+      "saved": "Saved to gallery ({w}×{h})",
+      "failed": "Export failed",
+      "jpgTransparent": "JPG has no transparency; transparent areas become black. Choose PNG to keep transparency."
+    }
+  },
+  "home": {
+    "workspace": {
+      "video": "Video",
+      "photo": "Photo"
+    }
+  },
+  "adjust": {
+    "blur": "Blur"
+  },
+  "settings": {
+    "cloud": {
+      "title": "Cloud AI server (optional)",
+      "text": "Cloud features such as image generation only work through your own proxy server. The app contains no API keys; the key stays on the server. Only https addresses are accepted.",
+      "invalid": "Invalid address (must start with https://).",
+      "on": "Cloud features use this server.",
+      "off": "No server: cloud features are off.",
+      "placeholder": "https://your-server.example"
+    }
+  }
+}

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
   imageDurationMs: 3000,
   autosave: true,
   haptics: true,
+  cloudServerUrl: '', // isteğe bağlı bulut AI vekil sunucusu (yalnızca https); boşsa bulut özellikleri kapalı
 };
 
 let cache = null;

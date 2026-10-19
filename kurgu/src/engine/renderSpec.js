@@ -7,6 +7,7 @@ import { KEYFRAME_PROPS, packTrack } from '../model/keyframes';
 import { clipVisuals } from '../model/color';
 import { TRANSITIONS, TRANSITION_MIN_MS } from '../model/catalog';
 import { effectRenderSpec } from '../model/effects';
+import { audioFxSpec } from '../model/audio-fx';
 import { edgeSpeed, packSegments } from '../model/speed';
 
 const DEFAULT_IMAGE_SOURCE_MS = 3000;
@@ -49,6 +50,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       fadeInMs: Math.round(clip.fadeIn || 0),
       fadeOutMs: Math.round(clip.fadeOut || 0),
       denoise: clamp(clip.denoise || 0, 0, 1),
+      audioFx: audioFxSpec(clip.audioFx),
       colorMatrix: visuals.colorMatrix,
       fit: clip.transform?.fit || fit,
       rotation: clip.transform?.rotation || 0,
@@ -77,7 +79,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
   const overlays = (project.overlays || []).filter((o) => o.start < totalMs && project.media[o.mediaId]);
   const overlayAudio = overlays
     .filter((o) => o.kind === 'video' && !o.muted && (o.volume ?? 1) > 0 && project.media[o.mediaId].hasAudio !== false)
-    .map((o) => ({ id: `${o.id}#a`, mediaId: o.mediaId, start: o.start, srcIn: o.srcIn, srcOut: o.srcOut, speed: o.speed || 1, volume: o.volume ?? 1, fadeIn: o.fadeIn || 0, fadeOut: o.fadeOut || 0, denoise: 0 }));
+    .map((o) => ({ id: `${o.id}#a`, mediaId: o.mediaId, start: o.start, srcIn: o.srcIn, srcOut: o.srcOut, speed: o.speed || 1, volume: o.volume ?? 1, fadeIn: o.fadeIn || 0, fadeOut: o.fadeOut || 0, denoise: 0, audioFx: null }));
 
   const audioLanes = assignAudioLanes([...project.audio.filter((a) => a.start < totalMs && project.media[a.mediaId]), ...overlayAudio]).map((lane) =>
     lane.map((a) => {
@@ -96,6 +98,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
         fadeInMs: Math.round(a.fadeIn || 0),
         fadeOutMs: Math.round(a.fadeOut || 0),
         denoise: clamp(a.denoise || 0, 0, 1),
+        audioFx: audioFxSpec(a.audioFx),
         _endMs: Math.round(a.start + audioDuration(a)),
       };
     }).map(({ _endMs, ...rest }) => rest),

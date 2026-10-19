@@ -81,7 +81,7 @@ function mergeClip(c, patch) {
   const next = { ...c };
   for (const [k, v] of Object.entries(patch)) {
     // Anahtar kareler ve hız eğrisi bütün olarak değişir (silinen iz birleştirmeyle geri gelmesin)
-    const replace = k === 'keyframes' || k === 'speedCurve' || k === 'reversed';
+    const replace = k === 'keyframes' || k === 'speedCurve' || k === 'reversed' || k === 'audioFx';
     next[k] = !replace && v && typeof v === 'object' && !Array.isArray(v) && c[k] && typeof c[k] === 'object' ? { ...c[k], ...v } : v;
   }
   return next;

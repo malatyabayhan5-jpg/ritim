@@ -8,8 +8,12 @@ import { useNav } from '../navigation';
 import { ActionSheet, Chip, Icon, IconButton, Loading, PromptModal, Row, Txt, useToast } from '../ui';
 import { colors, font, radius, space } from '../theme';
 import {
+  deletePhoto,
   deleteProject,
+  duplicatePhoto,
   duplicateProject,
+  listPhotos,
+  renamePhoto,
   importProjectPackage,
   listProjects,
   loadProject,
@@ -23,6 +27,7 @@ import { addMediaToProject } from '../model/timeline';
 import { loadSettings } from '../storage/settings';
 import * as DocumentPicker from 'expo-document-picker';
 import { formatTimecode, ltr } from '../i18n/core';
+import { createBlankPhoto, createPhotoFromGallery } from './PhotoEditorScreen';
 
 const FILTERS = ['all', 'drafts', 'exported'];
 
@@ -68,11 +73,16 @@ export default function HomeScreen({ focused }) {
   const [busy, setBusy] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
   const [renaming, setRenaming] = useState(null);
+  const [workspace, setWorkspace] = useState('video');
+  const [photos, setPhotos] = useState(null);
 
   const refresh = useCallback(() => {
     listProjects()
       .then(setProjects)
       .catch(() => setProjects([]));
+    listPhotos()
+      .then(setPhotos)
+      .catch(() => setPhotos([]));
   }, []);
 
   useEffect(() => {
@@ -94,6 +104,34 @@ export default function HomeScreen({ focused }) {
       setBusy(null);
       toast(t('errors.generic'), 'error');
     }
+  };
+
+  const newPhoto = async (blank) => {
+    try {
+      const name = t('photo.defaultName', { date: fmt.date(Date.now()) });
+      if (!blank) setBusy(t('photo.importing'));
+      const p = blank ? await createBlankPhoto(name) : await createPhotoFromGallery(name);
+      setBusy(null);
+      if (p) nav.push('photo', { photoId: p.id });
+    } catch {
+      setBusy(null);
+      toast(t('errors.generic'), 'error');
+    }
+  };
+
+  const confirmDeletePhoto = (p) => {
+    Alert.alert(t('photo.deleteTitle'), t('photo.deleteMessage', { name: p.name || t('photo.untitled') }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: async () => {
+          await deletePhoto(p.id);
+          toast(t('photo.deleted'));
+          refresh();
+        },
+      },
+    ]);
   };
 
   const importPackage = async () => {
@@ -146,6 +184,35 @@ export default function HomeScreen({ focused }) {
         </Row>
       </Row>
 
+      <Row style={styles.workspace}>
+        {['video', 'photo'].map((w) => (
+          <Pressable key={w} testID={`workspace-${w}`} onPress={() => setWorkspace(w)} style={[styles.wsItem, workspace === w && styles.wsActive]}>
+            <Icon name={w === 'video' ? 'videocam-outline' : 'image-outline'} size={18} color={workspace === w ? colors.text : colors.textDim} />
+            <Text style={[styles.wsText, workspace === w && { color: colors.text }]}>{t(`home.workspace.${w}`)}</Text>
+          </Pressable>
+        ))}
+      </Row>
+
+      {workspace === 'photo' ? (
+        <>
+          <Pressable testID="new-photo" onPress={() => newPhoto(false)} style={({ pressed }) => [styles.newCard, { backgroundColor: '#1F8F7E' }, pressed && { opacity: 0.85 }]}>
+            <View style={styles.newIcon}>
+              <Icon name="image" size={28} />
+            </View>
+            <Text style={styles.newTitle}>{t('photo.new')}</Text>
+            <Text style={styles.newSub}>{t('photo.newHint')}</Text>
+          </Pressable>
+          <View style={[styles.quick, { flexDirection: row }]}>
+            <QuickTool icon="square-outline" label={t('photo.blank')} onPress={() => newPhoto(true)} testID="new-blank-photo" />
+            <QuickTool icon="sparkles-outline" label={t('home.aiTools')} onPress={() => nav.push('ai')} />
+          </View>
+          <Row style={styles.sectionRow}>
+            <Txt style={font.h2}>{t('photo.list')}</Txt>
+            {photos ? <Txt faint>{fmt.number(photos.length)}</Txt> : null}
+          </Row>
+        </>
+      ) : (
+      <>
       <Pressable testID="new-project" onPress={() => newProject('gallery')} style={({ pressed }) => [styles.newCard, pressed && { opacity: 0.85 }]}>
         <View style={styles.newIcon}>
           <Icon name="add" size={30} />
@@ -170,6 +237,8 @@ export default function HomeScreen({ focused }) {
           <Chip key={f} label={t(`home.filter.${f}`)} active={filter === f} onPress={() => setFilter(f)} testID={`filter-${f}`} />
         ))}
       </Row>
+      </>
+      )}
     </View>
   );
 
@@ -178,19 +247,42 @@ export default function HomeScreen({ focused }) {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <FlatList
-        data={visible}
+        data={workspace === 'photo' ? photos || [] : visible}
         keyExtractor={(p) => p.id}
         ListHeaderComponent={header}
         contentContainerStyle={{ paddingBottom: insets.bottom + space.xl }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Icon name="film-outline" size={40} color={colors.textFaint} />
+            <Icon name={workspace === 'photo' ? 'image-outline' : 'film-outline'} size={40} color={colors.textFaint} />
             <Txt dim center>
-              {t(filter === 'all' ? 'home.empty' : 'home.emptyFiltered')}
+              {workspace === 'photo' ? t('photo.empty') : t(filter === 'all' ? 'home.empty' : 'home.emptyFiltered')}
             </Txt>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }) =>
+          workspace === 'photo' ? (
+            <Pressable
+              testID={`photo-${item.id}`}
+              onPress={() => nav.push('photo', { photoId: item.id })}
+              onLongPress={() => setMenuFor({ ...item, isPhoto: true })}
+              style={({ pressed }) => [styles.card, { flexDirection: row }, pressed && { backgroundColor: colors.surface2 }]}
+            >
+              <View style={styles.cover}>{item.cover ? <Image source={{ uri: item.cover }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <Icon name="image-outline" color={colors.textFaint} />}</View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Txt numberOfLines={1} style={{ fontWeight: '600' }}>
+                  {item.name || t('photo.untitled')}
+                </Txt>
+                <Txt faint style={font.small}>
+                  {fmt.relative(item.updatedAt)}
+                </Txt>
+                <Row gap={6}>
+                  <Text style={styles.tag}>{`${fmt.number(item.width)}×${fmt.number(item.height)}`}</Text>
+                  <Text style={styles.tag}>{t('photo.layerCount', { count: item.layers })}</Text>
+                </Row>
+              </View>
+              <IconButton icon="ellipsis-horizontal" label={t('common.more')} onPress={() => setMenuFor({ ...item, isPhoto: true })} testID={`photo-menu-${item.id}`} />
+            </Pressable>
+          ) : (
           <Pressable
             testID={`project-${item.id}`}
             onPress={() => nav.push('editor', { projectId: item.id })}
@@ -217,7 +309,8 @@ export default function HomeScreen({ focused }) {
             </View>
             <IconButton icon="ellipsis-horizontal" label={t('common.more')} onPress={() => setMenuFor(item)} testID={`project-menu-${item.id}`} />
           </Pressable>
-        )}
+          )
+        }
         ListFooterComponent={<Txt faint center style={{ marginTop: space.xl, ...font.tiny }}>{t('home.version', { version })}</Txt>}
       />
 
@@ -226,7 +319,22 @@ export default function HomeScreen({ focused }) {
         title={menuFor?.name}
         onClose={() => setMenuFor(null)}
         actions={
-          menuFor
+          menuFor?.isPhoto
+            ? [
+                { key: 'open', icon: 'create-outline', label: t('home.open'), onPress: () => nav.push('photo', { photoId: menuFor.id }) },
+                { key: 'rename', icon: 'pencil-outline', label: t('home.rename'), onPress: () => setRenaming(menuFor) },
+                {
+                  key: 'duplicate',
+                  icon: 'copy-outline',
+                  label: t('home.duplicate'),
+                  onPress: async () => {
+                    await duplicatePhoto(menuFor.id, t('home.copySuffix'));
+                    refresh();
+                  },
+                },
+                { key: 'delete', icon: 'trash-outline', label: t('common.delete'), danger: true, onPress: () => confirmDeletePhoto(menuFor) },
+              ]
+            : menuFor
             ? [
                 { key: 'open', icon: 'create-outline', label: t('home.open'), onPress: () => nav.push('editor', { projectId: menuFor.id }) },
                 { key: 'rename', icon: 'pencil-outline', label: t('home.rename'), onPress: () => setRenaming(menuFor) },
@@ -252,9 +360,9 @@ export default function HomeScreen({ focused }) {
         placeholder={t('home.untitled')}
         onCancel={() => setRenaming(null)}
         onSubmit={async (name) => {
-          const id = renaming.id;
+          const { id, isPhoto } = renaming;
           setRenaming(null);
-          await renameProject(id, name);
+          await (isPhoto ? renamePhoto(id, name) : renameProject(id, name));
           refresh();
         }}
       />
@@ -306,5 +414,9 @@ const styles = StyleSheet.create({
   coverDur: { position: 'absolute', bottom: 3, right: 4, color: colors.text, fontSize: 10, fontWeight: '700', textShadowColor: '#000', textShadowRadius: 3 },
   tag: { color: colors.textDim, fontSize: 11, backgroundColor: colors.surface2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
   empty: { alignItems: 'center', gap: space.md, padding: space.xxl },
+  workspace: { marginHorizontal: space.lg, marginBottom: space.sm, backgroundColor: colors.surface, borderRadius: radius.pill, padding: 3 },
+  wsItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, borderRadius: radius.pill },
+  wsActive: { backgroundColor: colors.surface3 },
+  wsText: { color: colors.textDim, fontWeight: '700', fontSize: 14 },
   busy: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.overlay },
 });

@@ -1,0 +1,213 @@
+{
+  "photo": {
+    "new": "Yeni fotoğraf düzenle",
+    "newHint": "Galeriden bir fotoğraf seçin",
+    "blank": "Boş kanvas",
+    "list": "Fotoğraf projeleri",
+    "empty": "Henüz fotoğraf projesi yok.",
+    "untitled": "Adsız fotoğraf",
+    "defaultName": "Fotoğraf {date}",
+    "layerCount_one": "{n} katman",
+    "layerCount_other": "{n} katman",
+    "deleteTitle": "Fotoğraf projesi silinsin mi?",
+    "deleteMessage": "\"{name}\" ve yalnızca bu projede kullanılan kopyalar kalıcı olarak silinecek. Galerinizdeki orijinal fotoğraf etkilenmez.",
+    "deleted": "Fotoğraf projesi silindi",
+    "importing": "Fotoğraf alınıyor…",
+    "recovered": "Proje yedekten kurtarıldı",
+    "saveFailed": "Proje kaydedilemedi",
+    "textDefault": "Metin",
+    "layer": {
+      "image": "Görsel {n}"
+    },
+    "tool": {
+      "addImage": "Görsel ekle",
+      "addText": "Metin",
+      "sticker": "Çıkartma",
+      "addShape": "Şekil",
+      "canvas": "Boyut",
+      "background": "Arka plan",
+      "generate": "AI üret",
+      "adjust": "Ayarla",
+      "filters": "Filtreler",
+      "crop": "Kırp",
+      "ai": "AI araçları",
+      "hsl": "HSL",
+      "grade": "Renk derecele",
+      "style": "Katman",
+      "front": "Öne",
+      "back": "Arkaya",
+      "hide": "Gizle",
+      "show": "Göster",
+      "duplicate": "Çoğalt",
+      "delete": "Sil",
+      "editText": "Düzenle",
+      "shape": "Şekil"
+    },
+    "canvas": {
+      "original": "Orijinal",
+      "square": "Kare",
+      "portrait45": "Dikey gönderi",
+      "story": "Hikâye",
+      "landscape169": "Yatay 16:9",
+      "thumbnail": "Video kapağı",
+      "cover31": "Kapak 3:1",
+      "photo32": "Fotoğraf 3:2",
+      "photo23": "Fotoğraf 2:3",
+      "a4": "A4 (300 dpi)",
+      "current": "Kanvas: {w}×{h} piksel"
+    },
+    "bg": {
+      "color": "Renk",
+      "border": "Çerçeve",
+      "transparent": "Saydam",
+      "transparentHint": "Saydam alanlar yalnızca PNG dışa aktarmada korunur.",
+      "borderWidth": "Çerçeve kalınlığı",
+      "borderRadius": "Köşe yuvarlaklığı"
+    },
+    "hsl": {
+      "red": "Kırmızı",
+      "orange": "Turuncu",
+      "yellow": "Sarı",
+      "green": "Yeşil",
+      "aqua": "Camgöbeği",
+      "blue": "Mavi",
+      "purple": "Mor",
+      "magenta": "Macenta",
+      "hue": "Ton",
+      "saturation": "Doygunluk",
+      "luminance": "Parlaklık"
+    },
+    "grade": {
+      "shadowHue": "Gölge tonu",
+      "shadowSat": "Gölge doygunluğu",
+      "highHue": "Parlak alan tonu",
+      "highSat": "Parlak alan doygunluğu",
+      "balance": "Denge"
+    },
+    "crop": {
+      "free": "Serbest",
+      "original": "Orijinal",
+      "zoom": "Yakınlaştır",
+      "panX": "Yatay konum",
+      "panY": "Dikey konum",
+      "straighten": "Düzelt",
+      "rotateLeft": "Sola döndür",
+      "rotateRight": "Sağa döndür",
+      "flipH": "Yatay çevir",
+      "flipV": "Dikey çevir",
+      "reset": "Sıfırla"
+    },
+    "style": {
+      "opacity": "Saydamlık",
+      "blend": "Karışım modu",
+      "scale": "Ölçek",
+      "rotation": "Döndürme",
+      "center": "Ortala",
+      "fill": "Kanvasa sığdır",
+      "blendHint": "Karışım modu katmanı alttaki katmanlarla birleştirir. Android 9 ve öncesinde yalnızca temel modlar desteklenir."
+    },
+    "blend": {
+      "normal": "Normal",
+      "multiply": "Çarp",
+      "screen": "Ekran",
+      "overlay": "Bindirme",
+      "darken": "Koyulaştır",
+      "lighten": "Açıklaştır",
+      "add": "Ekle",
+      "difference": "Fark",
+      "softLight": "Yumuşak ışık",
+      "color": "Renk",
+      "luminosity": "Parlaklık"
+    },
+    "shape": {
+      "tab": {
+        "shape": "Şekil",
+        "fill": "Dolgu",
+        "stroke": "Kontur",
+        "size": "Boyut"
+      },
+      "rect": "Dikdörtgen",
+      "roundRect": "Yuvarlak köşe",
+      "ellipse": "Elips",
+      "triangle": "Üçgen",
+      "star": "Yıldız",
+      "heart": "Kalp",
+      "line": "Çizgi",
+      "arrow": "Ok",
+      "strokeWidth": "Kontur kalınlığı",
+      "width": "Genişlik",
+      "height": "Yükseklik",
+      "radius": "Köşe"
+    },
+    "ai": {
+      "removeBg": "Arka planı kaldır",
+      "removePerson": "Kişiyi kaldır",
+      "erase": "Nesne sil",
+      "clearMask": "Maskeyi kaldır",
+      "restore": "Orijinale dön",
+      "edge": "Kenar yumuşaklığı",
+      "threshold": "Eşik",
+      "onDeviceNote": "Arka plan kaldırma cihaz içinde çalışır (kişi ayırma modeli; yalnızca insanları ayırır). Nesne silme klasik doldurma yöntemidir, üretken AI değildir; düz ve dokulu zeminlerde en iyi sonucu verir. Fotoğraflar cihazdan çıkmaz.",
+      "segmenting": "Kişi ayrılıyor…",
+      "noPerson": "Bu görselde kişi bulunamadı.",
+      "maskDone": "Maske uygulandı",
+      "failed": "İşlem başarısız oldu",
+      "erasing": "Nesne siliniyor…",
+      "eraseHint": "Silmek istediğiniz nesnenin çevresine parmağınızla dikdörtgen çizin.",
+      "eraseApply": "Sil",
+      "eraseNote": "Sonuç yeni bir kopyaya yazılır; orijinale her zaman dönebilirsiniz.",
+      "eraseTooSmall": "Seçim çok küçük veya görselin dışında.",
+      "eraseDone": "Nesne silindi",
+      "generate": "Metinden görsel üret (bulut)",
+      "generateAction": "Üret",
+      "generating": "Sunucuda görsel üretiliyor…",
+      "cloudOff": "Bağlı değil",
+      "cloudConfigured": "Sunucu ayarlı",
+      "cloudOffHint": "Görsel üretme bir bulut sunucusu gerektirir ve şu an bağlı değil. Ayarlar > Bulut AI sunucusu bölümünden kendi sunucunuzu ekleyebilirsiniz. Bağlantı olmadan hiçbir görsel üretilmez.",
+      "generateHint": "İsteminiz ayarlardaki sunucunuza gönderilir; sonuç yeni bir katman olarak eklenir.",
+      "promptPlaceholder": "Ne üretmek istiyorsunuz?"
+    },
+    "cloudErrors": {
+      "CLOUD_NOT_CONFIGURED": "Bulut sunucusu ayarlı değil.",
+      "CLOUD_UNAUTHORIZED": "Sunucu isteği reddetti (yetki).",
+      "CLOUD_RATE_LIMIT": "Çok fazla istek; biraz sonra deneyin.",
+      "CLOUD_TIMEOUT": "Sunucu zamanında yanıt vermedi.",
+      "CLOUD_NETWORK": "Sunucuya bağlanılamadı.",
+      "CLOUD_BAD_RESPONSE": "Sunucu geçerli bir görsel döndürmedi.",
+      "CLOUD_PROMPT_TOO_LONG": "İstem çok uzun (en fazla 1000 karakter).",
+      "CLOUD_HTTP": "Sunucu hatası; görsel üretilemedi."
+    },
+    "export": {
+      "action": "Dışa aktar",
+      "title": "Fotoğrafı dışa aktar",
+      "format": "Biçim",
+      "size": "Boyut (uzun kenar)",
+      "full": "Tam boyut",
+      "quality": "Kalite",
+      "save": "Galeriye kaydet",
+      "share": "Paylaş",
+      "saved": "Galeriye kaydedildi ({w}×{h})",
+      "failed": "Dışa aktarma başarısız oldu",
+      "jpgTransparent": "JPG saydamlığı desteklemez; saydam alanlar siyah olur. Saydamlık için PNG seçin."
+    }
+  },
+  "home": {
+    "workspace": {
+      "video": "Video",
+      "photo": "Fotoğraf"
+    }
+  },
+  "adjust": {
+    "blur": "Bulanıklık"
+  },
+  "settings": {
+    "cloud": {
+      "title": "Bulut AI sunucusu (isteğe bağlı)",
+      "text": "Görsel üretme gibi bulut özellikleri yalnızca kendi vekil sunucunuz üzerinden çalışır. Uygulama API anahtarı içermez; anahtar sunucuda tutulur. Yalnızca https adresleri kabul edilir.",
+      "invalid": "Geçersiz adres (https:// ile başlamalı).",
+      "on": "Bulut özellikleri bu sunucuyu kullanır.",
+      "off": "Sunucu yok: bulut özellikleri kapalı.",
+      "placeholder": "https://sunucunuz.ornek"
+    }
+  }
+}

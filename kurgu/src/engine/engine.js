@@ -202,6 +202,35 @@ export function reverseVideo(media, fromMs, toMs, outPath, maxSide, onProgress) 
   return withAiProgress(onProgress, (engine) => engine.reverseVideo(mediaUri(media), fromMs, toMs, outPath, maxSide));
 }
 
+// --- Fotoğraf düzenleyici ---
+
+/** Fotoğraf projesini çizer; { path, width, height }. format: 'jpg' | 'png'. */
+export function renderPhoto(spec, outPath, maxSide, format = 'jpg', quality = 90) {
+  return requireEngine().renderPhoto(JSON.stringify(spec), outPath, maxSide, format, quality);
+}
+
+/** Cihaz içi kişi maskesi (gri PNG); { path, coverage, width, height }. */
+export async function segmentPerson(media, outPath) {
+  try {
+    return await requireEngine().segmentPerson(mediaUri(media), outPath);
+  } catch (e) {
+    throw new EngineError(e?.code || 'AI_FAILED', e?.message);
+  }
+}
+
+/** Dikdörtgen bölgedeki nesneyi klasik boyamayla siler; yeni görsel { path, width, height }. */
+export async function eraseRect(media, rect, outPath) {
+  try {
+    return await requireEngine().eraseRect(mediaUri(media), rect.x0, rect.y0, rect.x1, rect.y1, outPath);
+  } catch (e) {
+    throw new EngineError(e?.code || 'AI_FAILED', e?.message);
+  }
+}
+
+export function saveImageToGallery(path, displayName) {
+  return requireEngine().saveImageToGallery(path, displayName);
+}
+
 // --- Seslendirme kaydı (mikrofon) ---
 
 /** Mikrofon izni ister; { granted } döner. */

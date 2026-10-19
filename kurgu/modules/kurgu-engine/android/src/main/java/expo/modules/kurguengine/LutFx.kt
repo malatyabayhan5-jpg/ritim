@@ -33,6 +33,21 @@ class CubeLut(
   val domainMin: FloatArray,
   val domainMax: FloatArray,
 ) {
+  /** CPU için düz dizi: (b·size + g)·size + r sırası, kanal başına 0..1 (fotoğraf düzenleyici). */
+  fun rgbFloats(): FloatArray {
+    val out = FloatArray(size * size * size * 3)
+    for (b in 0 until size) {
+      val tx = (b % cols) * size
+      val ty = (b / cols) * size
+      for (g in 0 until size) for (r in 0 until size) {
+        val o = ((ty + g) * width + tx + r) * 4
+        val i = ((b * size + g) * size + r) * 3
+        for (k in 0 until 3) out[i + k] = (rgba[o + k].toInt() and 0xFF) / 255f
+      }
+    }
+    return out
+  }
+
   companion object {
     private val cache = ConcurrentHashMap<String, CubeLut>()
 

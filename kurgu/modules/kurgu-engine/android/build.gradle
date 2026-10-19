@@ -62,4 +62,6 @@ dependencies {
   implementation "androidx.media3:media3-effect:$media3Version"
   implementation "androidx.media3:media3-common:$media3Version"
   implementation "androidx.media3:media3-exoplayer:$media3Version"
+  // Cihaz içi görsel modeli (kişi ayırma) için TensorFlow Lite çalışma zamanı (Apache 2.0)
+  implementation "org.tensorflow:tensorflow-lite:2.16.1"
 }

@@ -69,6 +69,23 @@ class KurguEngineModule : Module() {
       }
     }
 
+    // --- Fotoğraf düzenleyici ---
+    AsyncFunction("renderPhoto") { specJson: String, outPath: String, maxSide: Int, format: String, quality: Int, promise: Promise ->
+      background("photo", promise) { PhotoRenderer.render(context, specJson, outPath, maxSide, format, quality) }
+    }
+
+    AsyncFunction("segmentPerson") { uri: String, outPath: String, promise: Promise ->
+      background("segment", promise) { Segmenter.segmentPerson(context, uri, outPath) }
+    }
+
+    AsyncFunction("eraseRect") { uri: String, x0: Double, y0: Double, x1: Double, y1: Double, outPath: String, promise: Promise ->
+      background("erase", promise) { Segmenter.eraseRect(context, uri, x0, y0, x1, y1, outPath) }
+    }
+
+    AsyncFunction("saveImageToGallery") { path: String, displayName: String ->
+      PhotoRenderer.saveImageToGallery(context, path, displayName)
+    }
+
     // --- Seslendirme kaydı ---
     AsyncFunction("requestMicPermission") { promise: Promise ->
       Permissions.askForPermissionsWithPermissionsManager(appContext.permissions, promise, Manifest.permission.RECORD_AUDIO)
