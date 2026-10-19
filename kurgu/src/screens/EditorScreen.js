@@ -21,6 +21,8 @@ import {
   VolumePanel,
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
+import OverlayHandle from '../editor/OverlayHandle';
+import LayerPanel from '../editor/LayerPanel';
 import FxPanel from '../editor/FxPanel';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel from '../editor/CaptionsPanel';
@@ -30,7 +32,7 @@ import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { cancelAi, captionModels, downloadCaptionModel, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { cancelAi, captionModels, downloadCaptionModel, keyColor, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -164,7 +166,7 @@ export default function EditorScreen({ params, focused }) {
   // --- Render tanımı (önizleme) ---
   const spec = useMemo(() => {
     if (!project) return null;
-    const visible = missing.size ? { ...project, main: project.main.filter((c) => !missing.has(c.mediaId)), audio: project.audio.filter((a) => !missing.has(a.mediaId)) } : project;
+    const visible = missing.size ? { ...project, main: project.main.filter((c) => !missing.has(c.mediaId)), audio: project.audio.filter((a) => !missing.has(a.mediaId)), overlays: (project.overlays || []).filter((o) => !missing.has(o.mediaId)) } : project;
     return buildRenderSpec(visible, mediaUri, { rtl });
   }, [project, missing, rtl]);
 
@@ -208,14 +210,15 @@ export default function EditorScreen({ params, focused }) {
   const selectedAudio = selection?.type === 'audio' ? project?.audio.find((a) => a.id === selection.id) : null;
   const selectedText = selection?.type === 'text' ? project?.texts.find((x) => x.id === selection.id) : null;
   const selectedEffect = selection?.type === 'effect' ? (project?.effectLayers || []).find((x) => x.id === selection.id) : null;
+  const selectedOverlay = selection?.type === 'overlay' ? (project?.overlays || []).find((x) => x.id === selection.id) : null;
 
   useEffect(() => {
     // Silinen öğe seçili kalmasın
-    if (selection && !selectedMain && !selectedAudio && !selectedText && !selectedEffect) {
+    if (selection && !selectedMain && !selectedAudio && !selectedText && !selectedEffect && !selectedOverlay) {
       setSelection(null);
       setPanel(null);
     }
-  }, [selection, selectedMain, selectedAudio, selectedText, selectedEffect]);
+  }, [selection, selectedMain, selectedAudio, selectedText, selectedEffect, selectedOverlay]);
 
   const clipAtPlayhead = () => (project ? TL.clipAt(project, position)?.clip : null);
 
@@ -262,6 +265,10 @@ export default function EditorScreen({ params, focused }) {
       const r = TL.splitEffectLayerAt(project, selectedEffect.id, position);
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
+    } else if (selectedOverlay) {
+      const r = TL.splitOverlayAt(project, selectedOverlay.id, position);
+      if (r.changed) apply(r.project);
+      else toast(t('editor.cannotSplit'));
     } else {
       const r = TL.splitMainAt(project, position);
       if (r.changed) {
@@ -277,6 +284,7 @@ export default function EditorScreen({ params, focused }) {
     else if (selectedAudio) apply((p) => TL.deleteAudio(p, selectedAudio.id));
     else if (selectedText) apply((p) => TL.deleteText(p, selectedText.id));
     else if (selectedEffect) apply((p) => TL.deleteEffectLayer(p, selectedEffect.id));
+    else if (selectedOverlay) apply((p) => TL.deleteOverlay(p, selectedOverlay.id));
     setSelection(null);
     setPanel(null);
     haptic();
@@ -288,6 +296,8 @@ export default function EditorScreen({ params, focused }) {
     else if (selectedAudio) r = TL.duplicateAudio(project, selectedAudio.id);
     else if (selectedText) r = TL.duplicateText(project, selectedText.id);
     else if (selectedEffect) r = TL.duplicateEffectLayer(project, selectedEffect.id);
+    else if (selectedOverlay) r = TL.duplicateOverlay(project, selectedOverlay.id);
+    if (r?.error === 'LANES_FULL') toast(t('layer.lanesFull'));
     if (r?.newId) {
       apply(r.project);
       setSelection({ type: selection.type, id: r.newId });
@@ -313,6 +323,33 @@ export default function EditorScreen({ params, focused }) {
       setBusy(null);
       toast(t('errors.generic'), 'error');
     }
+  };
+
+  // Üst katman (resim içinde resim): tek video/görsel, oynatma kafasında.
+  const addOverlay = async () => {
+    try {
+      const media = await doImport(await pickFromGallery({ multiple: false }));
+      const m = media.find((x) => x.kind === 'video' || x.kind === 'image');
+      if (!m) return;
+      const r = TL.addOverlay(project, m, position);
+      if (r.error === 'LANES_FULL') return toast(t('layer.lanesFull'));
+      apply(r.project);
+      setSelection({ type: 'overlay', id: r.newId });
+      setSub(null);
+    } catch {
+      setBusy(null);
+      toast(t('errors.generic'), 'error');
+    }
+  };
+
+  const detectKeyColor = async () => {
+    const o = selectedOverlay;
+    if (!o) return;
+    const local = Math.max(0, Math.min(position - o.start, TL.overlayDuration(o) - 1));
+    const hex = await keyColor(project.media[o.mediaId], o.kind === 'image' ? 0 : o.srcIn + local * (o.speed || 1));
+    if (!hex) return toast(t('layer.keyNotFound'));
+    apply((p) => TL.updateOverlay(p, o.id, { chroma: { color: hex, on: true } }));
+    toast(t('layer.keyFound', { color: hex }));
   };
 
   const addAudio = async () => {
@@ -554,7 +591,13 @@ export default function EditorScreen({ params, focused }) {
     }
     const base = trimBase.current;
     if (!base) return;
-    const fn = { main: TL.trimMain, audio: TL.trimAudio, text: TL.trimText, effect: TL.trimEffectLayer }[kind];
+    const fn = {
+      main: TL.trimMain,
+      audio: TL.trimAudio,
+      text: TL.trimText,
+      effect: TL.trimEffectLayer,
+      overlay: (p, i, e, d) => TL.trimOverlay(p, i, e, d, p.media[p.overlays.find((o) => o.id === i)?.mediaId]?.durationMs || Infinity),
+    }[kind];
     const next = fn(base, id, edge, deltaMs);
     if (phase === 'move') {
       setHist((h) => ({ ...h, present: next }));
@@ -645,6 +688,28 @@ export default function EditorScreen({ params, focused }) {
               </Txt>
             </View>
           )}
+          {selectedOverlay && fitted.w > 0 ? (
+            <OverlayHandle
+              item={selectedOverlay}
+              media={project.media[selectedOverlay.mediaId]}
+              values={['x', 'y', 'scale', 'rotation'].reduce((acc, k) => ({ ...acc, [k]: TL.overlayPropAt(selectedOverlay, k, position - selectedOverlay.start) }), {})}
+              boxW={fitted.w}
+              boxH={fitted.h}
+              visible={position >= selectedOverlay.start && position <= selectedOverlay.start + TL.overlayDuration(selectedOverlay)}
+              onChange={(v) =>
+                apply((p) => {
+                  let o = p.overlays.find((x) => x.id === selectedOverlay.id);
+                  let next = p;
+                  for (const k of ['x', 'y', 'scale', 'rotation']) {
+                    if (v[k] === TL.overlayPropAt(o, k, position - o.start)) continue;
+                    next = TL.updateOverlay(next, o.id, TL.overlayPropPatch(o, k, v[k], position - o.start));
+                    o = next.overlays.find((x) => x.id === o.id);
+                  }
+                  return next;
+                }, 'ovl-drag')
+              }
+            />
+          ) : null}
           {selectedText && fitted.w > 0 ? (
             <TextHandle
               item={selectedText}
@@ -700,6 +765,7 @@ export default function EditorScreen({ params, focused }) {
           onMoveAudio={(id, start) => apply((p) => TL.updateAudio(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
           onMoveText={(id, start) => apply((p) => TL.updateText(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
           onMoveEffect={(id, start) => apply((p) => TL.updateEffectLayer(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
+          onMoveOverlay={(id, start) => apply((p) => TL.moveOverlay(p, id, TL.snapTime(p, start, 12 / pxPerMs, [position])))}
           effectName={(effectId) => t(`fx.${effectId}.name`)}
           onZoom={zoom}
           onTransitionPress={(clipId) => {
@@ -801,6 +867,21 @@ export default function EditorScreen({ params, focused }) {
         T('delete', 'trash-outline', remove),
       ];
     }
+    if (selectedOverlay) {
+      const isImage = selectedOverlay.kind === 'image';
+      return [
+        T('layerEdit', 'move-outline', () => openPanel('layer')),
+        T('mask', 'ellipse-outline', () => openPanel('layerMask')),
+        T('chromaKey', 'color-wand-outline', () => openPanel('layerChroma')),
+        T('split', 'cut-outline', split),
+        !isImage ? T('volume', 'volume-high-outline', () => openPanel('ovVolume')) : null,
+        !isImage ? T('speed', 'speedometer-outline', () => openPanel('ovSpeed')) : null,
+        T('filters', 'color-filter-outline', () => openPanel('ovFilters')),
+        T('adjust', 'options-outline', () => openPanel('ovAdjust')),
+        T('duplicate', 'copy-outline', duplicate),
+        T('delete', 'trash-outline', remove),
+      ];
+    }
     if (selectedEffect) {
       return [
         T('adjust', 'options-outline', () => openPanel('fxLayer')),
@@ -823,6 +904,7 @@ export default function EditorScreen({ params, focused }) {
       T('edit', 'cut-outline', () => ensureClipSelected()),
       T('audio', 'musical-notes-outline', () => setSub('audio')),
       T('text', 'text-outline', () => setSub('text')),
+      T('overlay', 'layers-outline', addOverlay),
       T('effects', 'sparkles-outline', () => {
         setSelection(null);
         openPanel('fxLayer');
@@ -924,6 +1006,34 @@ export default function EditorScreen({ params, focused }) {
             onClose={close}
           />
         );
+      case 'layer':
+      case 'layerMask':
+      case 'layerChroma':
+        return (
+          selectedOverlay && (
+            <LayerPanel
+              key={`${selectedOverlay.id}-${panel}`}
+              item={selectedOverlay}
+              localMs={Math.max(0, position - selectedOverlay.start)}
+              initialTab={{ layer: 'position', layerMask: 'mask', layerChroma: 'chroma' }[panel]}
+              onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)}
+              onLane={(dir) => {
+                const lane = selectedOverlay.lane + dir;
+                apply((p) => TL.swapOverlayLanes(p, selectedOverlay.lane, lane));
+              }}
+              onDetectKey={detectKeyColor}
+              onClose={close}
+            />
+          )
+        );
+      case 'ovVolume':
+        return selectedOverlay && <VolumePanel item={selectedOverlay} maxFadeMs={Math.min(5000, TL.overlayDuration(selectedOverlay) / 2)} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onClose={close} />;
+      case 'ovSpeed':
+        return selectedOverlay && <SpeedPanel clip={selectedOverlay} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, { speed: Math.max(TL.SPEED_MIN, Math.min(TL.SPEED_MAX, patch.speed)) }), key)} onClose={close} />;
+      case 'ovFilters':
+        return selectedOverlay && <FilterPanel clip={selectedOverlay} luts={{}} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} />;
+      case 'ovAdjust':
+        return selectedOverlay && <AdjustPanel clip={selectedOverlay} only={['brightness', 'contrast', 'saturation', 'exposure', 'temperature', 'tint']} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} />;
       case 'transform':
         return selectedMain && <TransformPanel clip={selectedMain} canvasFit={project.canvas.fit} onChange={updMain} onClose={close} />;
       case 'transition': {

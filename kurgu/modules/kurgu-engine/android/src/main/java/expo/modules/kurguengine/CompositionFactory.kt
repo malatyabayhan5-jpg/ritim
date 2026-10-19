@@ -5,6 +5,10 @@ import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.OverlaySettings
+import androidx.media3.common.VideoCompositorSettings
+import androidx.media3.common.util.Size
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.GainProcessor
 import androidx.media3.common.audio.SpeedProvider
@@ -26,26 +30,50 @@ import kotlin.math.max
  * RenderSpec -> Media3 Composition. Önizleme (CompositionPlayer) ve dışa aktarma
  * (Transformer) aynı fonksiyonu kullanır; aralarındaki tek fark çıktı boyutudur.
  *
- * Sıra 0: ana video izi (video + ses). Sonraki sıralar: yalnızca ses şeritleri
- * (müzik, ses efekti, seslendirme). Metinler, geçişler ve genel efektler
- * kompozisyon düzeyinde uygulanır.
+ * Katmansız proje: sıra 0 ana video izi (video + ses), sonrakiler yalnızca ses
+ * şeritleri (müzik, ses efekti, seslendirme). Katmanlı proje: saydam saat dizisi,
+ * katman şeritleri (üstten alta), ana iz, ses şeritleri. Metinler, geçişler ve
+ * genel efektler kompozisyon düzeyinde (birleştirilmiş görüntüye) uygulanır.
  */
 @OptIn(UnstableApi::class)
 object CompositionFactory {
   private val AUDIO_VIDEO: Set<Int> = setOf(C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_VIDEO)
   private val AUDIO_ONLY: Set<Int> = setOf(C.TRACK_TYPE_AUDIO)
+  private val VIDEO_ONLY: Set<Int> = setOf(C.TRACK_TYPE_VIDEO)
 
-  fun build(spec: RenderSpec, outWidth: Int = spec.width, outHeight: Int = spec.height, forExport: Boolean = false, live: Boolean = false): Composition {
+  /** Katman varsa çok girişli birleştirici gerekir (önizlemede MultipleInputVideoGraph). */
+  fun needsCompositor(spec: RenderSpec): Boolean = spec.layers.isNotEmpty()
+
+  /**
+   * @param padUri saydam dolgu görseli (TransparentPad); yalnızca katman varsa kullanılır.
+   */
+  fun build(
+    spec: RenderSpec,
+    outWidth: Int = spec.width,
+    outHeight: Int = spec.height,
+    forExport: Boolean = false,
+    live: Boolean = false,
+    padUri: String? = null,
+  ): Composition {
     require(spec.main.isNotEmpty()) { "EMPTY_TIMELINE" }
     val w = even(outWidth)
     val h = even(outHeight)
 
     val mainItems = spec.main.map { mainItem(it, w, h, spec.fps, live) }
-    val sequences = mutableListOf(
-      EditedMediaItemSequence.Builder(AUDIO_VIDEO).addItems(mainItems).build(),
-    )
-
     val totalUs = spec.main.sumOf { clipOutUs(it.srcInMs, it.srcOutMs, it.speed) }
+    val sequences = mutableListOf<EditedMediaItemSequence>()
+    val pad = if (needsCompositor(spec)) padUri else null
+    val layered = pad != null
+    if (pad != null) {
+      // Birleştiricide ilk dizi birincil olur: en üstte çizilir ve çıktı zaman damgalarını
+      // belirler. Bu yüzden en üste kanvas boyunca süren saydam bir "saat" dizisi konur;
+      // ardından katman şeritleri (üstten alta), en altta ana iz gelir.
+      sequences.add(EditedMediaItemSequence.Builder(VIDEO_ONLY).addItem(padItem(pad, totalUs, spec.fps)).build())
+      for (lane in spec.layers.asReversed()) {
+        layerSequence(lane, pad, totalUs, w, h, spec.fps, live)?.let { sequences.add(it) }
+      }
+    }
+    sequences.add(EditedMediaItemSequence.Builder(AUDIO_VIDEO).addItems(mainItems).build())
     for (lane in spec.audioLanes) {
       val builder = EditedMediaItemSequence.Builder(AUDIO_ONLY)
       var cursorUs = 0L
@@ -92,10 +120,78 @@ object CompositionFactory {
 
     // HDR kaynaklar OpenGL ile SDR'ye ton eşlenir: efekt shader'ları SDR aralığında
     // çalışır, önizleme ile H.264 çıktısı aynı renkleri verir.
-    return Composition.Builder(sequences)
+    val builder = Composition.Builder(sequences)
       .setEffects(Effects(emptyList(), compositionEffects))
       .setHdrMode(Composition.HDR_MODE_TONE_MAP_HDR_TO_SDR_USING_OPEN_GL)
+    if (layered) builder.setVideoCompositorSettings(CanvasCompositorSettings(w, h))
+    return builder.build()
+  }
+
+  /** Saydam dolgu görseli öğesi: katman şeridindeki boşluklar (video boşlukları siyah kare üretir). */
+  private fun padItem(padUri: String, durationUs: Long, fps: Int): EditedMediaItem {
+    val ms = max(1L, durationUs / 1000L)
+    val item = MediaItem.Builder()
+      .setUri(Uri.parse(padUri))
+      .setMimeType(MimeTypes.IMAGE_PNG)
+      .setImageDurationMs(ms)
       .build()
+    return EditedMediaItem.Builder(item).setDurationUs(ms * 1000L).setFrameRate(fps).build()
+  }
+
+  /** Bir katman şeridi: öğeler zamana göre, aralar ve son saydam dolguyla; kanvas sonunda kırpılır. */
+  private fun layerSequence(lane: List<LayerClip>, padUri: String, totalUs: Long, w: Int, h: Int, fps: Int, live: Boolean): EditedMediaItemSequence? {
+    val builder = EditedMediaItemSequence.Builder(VIDEO_ONLY)
+    var cursorUs = 0L
+    var added = 0
+    for (clip in lane.sortedBy { it.startMs }) {
+      val startUs = clip.startMs * 1000L
+      if (startUs >= totalUs - 20_000) break
+      if (startUs < cursorUs) continue // çakışan öğe (JS şeritleri ayırır; güvenlik için atlanır)
+      if (startUs - cursorUs >= 1000) {
+        builder.addItem(padItem(padUri, startUs - cursorUs, fps))
+        cursorUs = startUs
+      }
+      var srcOutMs = clip.srcOutMs
+      val isImage = clip.kind == "image"
+      val maxOutUs = totalUs - cursorUs
+      if (clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed) > maxOutUs) {
+        srcOutMs = clip.srcInMs + (maxOutUs * (if (isImage) 1f else clip.speed) / 1000f).toLong()
+      }
+      if (srcOutMs - clip.srcInMs < 20) continue
+      builder.addItem(layerItem(clip, srcOutMs, w, h, fps, live))
+      cursorUs += clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed)
+      added++
+    }
+    if (added == 0) return null
+    if (totalUs - cursorUs >= 1000) builder.addItem(padItem(padUri, totalUs - cursorUs, fps))
+    return builder.build()
+  }
+
+  private fun layerItem(clip: LayerClip, srcOutMs: Long, w: Int, h: Int, fps: Int, live: Boolean): EditedMediaItem {
+    val isImage = clip.kind == "image"
+    val mediaItem = if (isImage) {
+      MediaItem.Builder().setUri(Uri.parse(clip.uri)).setImageDurationMs(max(1L, srcOutMs - clip.srcInMs)).build()
+    } else {
+      MediaItem.Builder()
+        .setUri(Uri.parse(clip.uri))
+        .setClippingConfiguration(
+          MediaItem.ClippingConfiguration.Builder().setStartPositionMs(clip.srcInMs).setEndPositionMs(srcOutMs).build(),
+        )
+        .build()
+    }
+    val video = mutableListOf<Effect>()
+    clip.colorMatrix?.let { video.add(StaticColorMatrix(it, if (live) "cm:${clip.key}" else null)) }
+    video.add(LayerFx(clip, w, h, if (live) "ly:${clip.key}" else null))
+    val builder = EditedMediaItem.Builder(mediaItem)
+      .setRemoveAudio(true) // katman sesi ses şeritlerinde ayrıca çalınır (renderSpec.js)
+      .setEffects(Effects(emptyList(), video))
+    if (isImage) {
+      builder.setDurationUs(max(1L, srcOutMs - clip.srcInMs) * 1000L).setFrameRate(fps)
+    } else {
+      builder.setDurationUs(max(clip.sourceDurationMs, srcOutMs) * 1000L)
+      if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
+    }
+    return builder.build()
   }
 
   private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean = false): EditedMediaItem {
@@ -192,4 +288,12 @@ class ConstantSpeed(private val speed: Float) : SpeedProvider {
   override fun getSpeed(timeUs: Long): Float = speed
 
   override fun getNextSpeedChangeTimeUs(timeUs: Long): Long = C.TIME_UNSET
+}
+
+/** Çıktı her zaman kanvas boyutunda; her giriş tam kare (katmanlar kendi yerleşimini çizer). */
+@OptIn(UnstableApi::class)
+class CanvasCompositorSettings(private val w: Int, private val h: Int) : VideoCompositorSettings {
+  override fun getOutputSize(inputSizes: List<Size>): Size = Size(w, h)
+
+  override fun getOverlaySettings(inputId: Int, presentationTimeUs: Long): OverlaySettings = object : OverlaySettings {}
 }

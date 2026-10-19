@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "test": "node scripts/test.mjs",
     "i18n:check": "node scripts/i18n-check.mjs",
-    "test:dsp": "rm -rf /tmp/kurgu-dsp && javac -encoding UTF-8 -d /tmp/kurgu-dsp modules/kurgu-engine/android/src/main/java/expo/modules/kurguengine/dsp/SpectralDenoiser.java tools/dsp-test/DenoiseTest.java && java -Dstdout.encoding=UTF-8 -cp /tmp/kurgu-dsp DenoiseTest"
+    "test:dsp": "rm -rf /tmp/kurgu-dsp && javac -encoding UTF-8 -d /tmp/kurgu-dsp modules/kurgu-engine/android/src/main/java/expo/modules/kurguengine/dsp/SpectralDenoiser.java tools/dsp-test/DenoiseTest.java && java -Dstdout.encoding=UTF-8 -cp /tmp/kurgu-dsp DenoiseTest && rm -rf /tmp/kurgu-anim && javac -encoding UTF-8 -d /tmp/kurgu-anim modules/kurgu-engine/android/src/main/java/expo/modules/kurguengine/anim/Keyframes.java modules/kurgu-engine/android/src/main/java/expo/modules/kurguengine/vision/KeyColor.java tools/anim-test/KeyframesTest.java tools/anim-test/KeyColorTest.java && java -Dstdout.encoding=UTF-8 -cp /tmp/kurgu-anim KeyframesTest tests/fixtures/keyframes.txt && java -Dstdout.encoding=UTF-8 -cp /tmp/kurgu-anim KeyColorTest"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

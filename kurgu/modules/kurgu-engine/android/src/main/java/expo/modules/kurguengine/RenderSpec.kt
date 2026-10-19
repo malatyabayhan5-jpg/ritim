@@ -95,6 +95,31 @@ data class TextSpec(
   val rtl: Boolean,
 )
 
+/**
+ * Üst katman öğesi (resim içinde resim / üst video / görsel). Konum NDC, ölçek
+ * kanvasa sığdırılmış boyuta göre, döndürme derece (saat yönü). Anahtar kare izleri
+ * Keyframes.java biçiminde paketlidir; iz varsa sabit değerin yerine geçer.
+ */
+data class LayerClip(
+  val key: String,
+  val uri: String,
+  val kind: String,
+  val startMs: Long,
+  val srcInMs: Long,
+  val srcOutMs: Long,
+  val sourceDurationMs: Long,
+  val speed: Float,
+  val colorMatrix: FloatArray?,
+  val xf: FloatArray, // x, y, ölçek, döndürme (derece)
+  val opacity: Float,
+  val flipH: Boolean,
+  val flipV: Boolean,
+  val crop: FloatArray, // x0, y0, x1, y1
+  val mask: FloatArray, // tür, cx, cy, açı (derece), yarı genişlik, yarı yükseklik, yumuşaklık, köşe, ters
+  val chroma: FloatArray, // r, g, b, etkin, tolerans, yumuşaklık, taşma
+  val keyframes: Map<String, FloatArray>,
+)
+
 data class RenderSpec(
   val width: Int,
   val height: Int,
@@ -106,6 +131,8 @@ data class RenderSpec(
   val texts: List<TextSpec>,
   val globalFx: FxParams,
   val effectLayers: List<ShaderFxSpec>,
+  // Alttan üste katman şeritleri; her şerit kendi dizisinde, öğeleri çakışmaz.
+  val layers: List<List<LayerClip>> = emptyList(),
 ) {
   companion object {
     fun parse(json: String): RenderSpec = parse(JSONObject(json))
@@ -128,6 +155,39 @@ data class RenderSpec(
         texts = texts,
         globalFx = parseFx(o.optJSONObject("globalFx")),
         effectLayers = o.optJSONArray("effectLayers").objects().map { parseShaderFx(it) },
+        layers = o.optJSONArray("layers").arrays().map { lane -> lane.objects().map { parseLayer(it) } }.filter { it.isNotEmpty() },
+      )
+    }
+
+    private fun floats(arr: JSONArray?, n: Int, def: FloatArray): FloatArray =
+      if (arr == null || arr.length() < n) def else FloatArray(n) { arr.optDouble(it, def.getOrElse(it) { 0f }.toDouble()).toFloat() }
+
+    private fun parseLayer(o: JSONObject): LayerClip {
+      val kf = mutableMapOf<String, FloatArray>()
+      o.optJSONObject("kf")?.let { k ->
+        for (name in k.keys()) {
+          val arr = k.optJSONArray(name) ?: continue
+          if (arr.length() >= 7 && arr.length() % 7 == 0) kf[name] = FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() }
+        }
+      }
+      return LayerClip(
+        key = o.optString("key"),
+        uri = o.getString("uri"),
+        kind = o.optString("kind", "video"),
+        startMs = o.optLong("startMs"),
+        srcInMs = o.optLong("srcInMs"),
+        srcOutMs = o.optLong("srcOutMs"),
+        sourceDurationMs = o.optLong("sourceDurationMs"),
+        speed = o.optDouble("speed", 1.0).toFloat(),
+        colorMatrix = o.optJSONArray("colorMatrix")?.let { a -> if (a.length() == 16) FloatArray(16) { a.optDouble(it, 0.0).toFloat() } else null },
+        xf = floats(o.optJSONArray("xf"), 4, floatArrayOf(0f, 0f, 1f, 0f)),
+        opacity = o.optDouble("opacity", 1.0).toFloat().coerceIn(0f, 1f),
+        flipH = o.optBoolean("flipH"),
+        flipV = o.optBoolean("flipV"),
+        crop = floats(o.optJSONArray("crop"), 4, floatArrayOf(0f, 0f, 1f, 1f)),
+        mask = floats(o.optJSONArray("mask"), 9, floatArrayOf(0f, 0f, 0f, 0f, 0.5f, 0.5f, 0.02f, 0f, 0f)),
+        chroma = floats(o.optJSONArray("chroma"), 7, floatArrayOf(0f, 1f, 0f, 0f, 0.4f, 0.3f, 0.5f)),
+        keyframes = kf,
       )
     }
 

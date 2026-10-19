@@ -2,6 +2,8 @@
 // aynı tanımı kullanır. Saf fonksiyondur; testlerde doğrudan çalıştırılır.
 
 import { assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
+import { MASK_TYPES } from '../model/schema';
+import { KEYFRAME_PROPS, packTrack } from '../model/keyframes';
 import { clipVisuals } from '../model/color';
 import { TRANSITION_MIN_MS } from '../model/catalog';
 import { effectRenderSpec } from '../model/effects';
@@ -58,7 +60,13 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     transitions.push({ type: tr.type, atMs: Math.round(layout[i].start), durationMs });
   }
 
-  const audioLanes = assignAudioLanes(project.audio.filter((a) => a.start < totalMs && project.media[a.mediaId])).map((lane) =>
+  // Üst katman videolarının sesi: ses şeritlerinde ayrı öğe olarak çalınır (görüntü katman dizisinde).
+  const overlays = (project.overlays || []).filter((o) => o.start < totalMs && project.media[o.mediaId]);
+  const overlayAudio = overlays
+    .filter((o) => o.kind === 'video' && !o.muted && (o.volume ?? 1) > 0 && project.media[o.mediaId].hasAudio !== false)
+    .map((o) => ({ id: `${o.id}#a`, mediaId: o.mediaId, start: o.start, srcIn: o.srcIn, srcOut: o.srcOut, speed: o.speed || 1, volume: o.volume ?? 1, fadeIn: o.fadeIn || 0, fadeOut: o.fadeOut || 0, denoise: 0 }));
+
+  const audioLanes = assignAudioLanes([...project.audio.filter((a) => a.start < totalMs && project.media[a.mediaId]), ...overlayAudio]).map((lane) =>
     lane.map((a) => {
       const media = project.media[a.mediaId];
       return {
@@ -113,6 +121,14 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     .map((e) => effectRenderSpec(e, e.start, Math.min(totalMs, e.start + e.duration)))
     .filter(Boolean);
 
+  const laneIds = [...new Set(overlays.map((o) => o.lane))].sort((a, b) => a - b);
+  const layers = laneIds.map((lane) =>
+    overlays
+      .filter((o) => o.lane === lane)
+      .sort((a, b) => a.start - b.start)
+      .map((o) => overlaySpec(project, o, resolveUri)),
+  );
+
   return {
     width: project.canvas.width,
     height: project.canvas.height,
@@ -123,7 +139,48 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     transitions,
     texts,
     effectLayers,
+    layers,
     globalFx: {},
+  };
+}
+
+function hexRgb(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length < 6) return [0, 1, 0];
+  return [0, 2, 4].map((i) => Math.round((parseInt(h.slice(i, i + 2), 16) / 255) * 1e4) / 1e4);
+}
+
+/** Katman -> LayerClip (RenderSpec.kt). Dizi düzenleri LayerFx.kt / _layer.glsl ile aynıdır. */
+function overlaySpec(project, o, resolveUri) {
+  const media = project.media[o.mediaId] || {};
+  const isImage = o.kind === 'image';
+  const t = o.transform || {};
+  const m = o.mask || {};
+  const c = o.chroma || {};
+  const crop = o.crop || {};
+  const kf = {};
+  for (const prop of KEYFRAME_PROPS) {
+    const packed = packTrack(o.keyframes?.[prop]);
+    if (packed) kf[prop] = packed;
+  }
+  return {
+    key: o.id,
+    uri: resolveUri(media),
+    kind: isImage ? 'image' : 'video',
+    startMs: Math.round(o.start),
+    srcInMs: Math.round(o.srcIn),
+    srcOutMs: Math.round(o.srcOut),
+    sourceDurationMs: Math.round(isImage ? o.srcOut : media.durationMs || o.srcOut),
+    speed: isImage ? 1 : o.speed || 1,
+    colorMatrix: clipVisuals(o).colorMatrix,
+    xf: [t.x || 0, t.y || 0, t.scale ?? 0.5, t.rotation || 0],
+    opacity: clamp(o.opacity ?? 1, 0, 1),
+    flipH: !!t.flipH,
+    flipV: !!t.flipV,
+    crop: [crop.x0 ?? 0, crop.y0 ?? 0, crop.x1 ?? 1, crop.y1 ?? 1],
+    mask: [Math.max(0, MASK_TYPES.indexOf(m.type || 'none')), m.x || 0, m.y || 0, m.angle || 0, m.w ?? 0.5, m.h ?? 0.5, m.feather ?? 0.02, m.round || 0, m.invert ? 1 : 0],
+    chroma: [...hexRgb(c.color), c.on ? 1 : 0, c.tolerance ?? 0.4, c.softness ?? 0.3, c.spill ?? 0.5],
+    kf,
   };
 }
 

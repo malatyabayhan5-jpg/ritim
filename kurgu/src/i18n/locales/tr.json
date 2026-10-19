@@ -126,7 +126,11 @@
     "soundFromVideo": "Videodan ses",
     "addText": "Metin ekle",
     "editText": "Düzenle",
-    "textAnimation": "Animasyon"
+    "textAnimation": "Animasyon",
+    "overlay": "Katman",
+    "layerEdit": "Konum",
+    "mask": "Maske",
+    "chromaKey": "Chroma key"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -741,5 +745,46 @@
       "NO_AUDIO": "Klipte ses bulunamadı.",
       "CAPTIONS_FAILED": "Altyazı oluşturulamadı."
     }
+  },
+  "layer": {
+    "title": "Katman",
+    "tab": {
+      "position": "Konum",
+      "mask": "Maske",
+      "chroma": "Chroma key",
+      "order": "Sıra"
+    },
+    "rotation": "Döndürme",
+    "opacity": "Opaklık",
+    "keyHint": "◆ düğmesi oynatma kafasında anahtar kare ekler veya siler. Anahtar kare varken kaydırıcı o anki kareyi değiştirir.",
+    "mask": {
+      "none": "Yok",
+      "rect": "Dikdörtgen",
+      "ellipse": "Daire",
+      "linear": "Doğrusal",
+      "mirror": "Ayna",
+      "heart": "Kalp",
+      "star": "Yıldız"
+    },
+    "maskSize": "Boyut",
+    "maskHeight": "Yükseklik",
+    "bandWidth": "Bant genişliği",
+    "feather": "Kenar yumuşaklığı",
+    "round": "Köşe yuvarlama",
+    "angle": "Açı",
+    "maskX": "Yatay konum",
+    "maskY": "Dikey konum",
+    "invert": "Ters çevir",
+    "chromaOn": "Etkin",
+    "detectKey": "Rengi algıla",
+    "tolerance": "Tolerans",
+    "edgeSoftness": "Kenar yumuşaklığı",
+    "spill": "Renk taşması giderme",
+    "bringForward": "Öne getir",
+    "sendBackward": "Arkaya gönder",
+    "blendNote": "Video katmanlarında karışım modu şimdilik yalnızca \"Normal\"dir (opaklık ve maske desteklenir).",
+    "lanesFull": "En fazla 6 katman şeridi kullanılabilir.",
+    "keyNotFound": "Kenarlarda baskın bir perde rengi bulunamadı; rengi elle seçin.",
+    "keyFound": "Anahtar renk: {color}"
   }
 }

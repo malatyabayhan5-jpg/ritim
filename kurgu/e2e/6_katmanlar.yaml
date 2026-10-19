@@ -1,0 +1,97 @@
+# Üst katman (resim içinde resim): sahne videosu üzerine fotoğraf katmanı, daire
+# maskesi, 720p dışa aktarma. Çıktı run.sh içinde layer_check.py ile denetlenir:
+# katman yalnızca 0–3 sn arasında, kanvas ortasında ve maske dışında görünmemeli.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "new-project"
+    timeout: 30000
+- tapOn:
+    id: "new-project"
+- waitForAnimationToEnd:
+    timeout: 5000
+# Sahne test videosu seçicide süresinden bulunur (7,5 sn)
+- tapOn:
+    text: "00:0[78]"
+- tapOn:
+    text: "(Add|Ekle).*"
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 90000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: "tool-back"
+    optional: true
+# Katman ekle: tekli seçicide fotoğraf seçilir (seçim hemen döner)
+- tapOn:
+    id: "tool-overlay"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "(Photo|Fotoğraf).*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "overlay-item-ovl_.*"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "overlay-handle"
+    timeout: 10000
+- takeScreenshot: 60_katman_eklendi
+# Daire maskesi
+- tapOn:
+    id: "tool-mask"
+- extendedWaitUntil:
+    visible:
+      id: "panel-layer"
+    timeout: 5000
+- tapOn:
+    id: "mask-ellipse"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 61_katman_maske
+- tapOn:
+    id: "panel-done"
+# Geri al / yinele: maske kaybolup geri gelmeli (çökme olmamalı)
+- tapOn:
+    id: "undo"
+- tapOn:
+    id: "redo"
+- tapOn:
+    id: "tool-back"
+    optional: true
+# Dışa aktar (720p)
+- tapOn:
+    id: "export-open"
+- extendedWaitUntil:
+    visible:
+      id: "export-start"
+    timeout: 20000
+- tapOn:
+    id: "res-720"
+    optional: true
+- tapOn:
+    id: "export-start"
+- tapOn:
+    text: "(Allow|ALLOW|İzin ver|İZİN VER)"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "export-done"
+    timeout: 900000
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    id: "check-duration-ok"
+- assertVisible:
+    id: "check-resolution-ok"
+- scrollUntilVisible:
+    element:
+      id: "export-finish"
+- tapOn:
+    id: "export-finish"

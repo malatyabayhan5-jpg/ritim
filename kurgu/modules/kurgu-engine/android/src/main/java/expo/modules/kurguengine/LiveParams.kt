@@ -30,5 +30,15 @@ object LiveParams {
       values["vol:${a.key}"] = floatArrayOf(a.volume, a.fadeInMs.toFloat(), a.fadeOutMs.toFloat())
     }
     spec.effectLayers.forEach { values["fx:${it.key}"] = floatArrayOf(it.amount, *it.params) }
+    for (lane in spec.layers) for (l in lane) {
+      l.colorMatrix?.let { values["cm:${l.key}"] = it }
+      val m = l.mask
+      val c = l.chroma
+      values["ly:${l.key}"] = floatArrayOf(
+        l.xf[0], l.xf[1], l.xf[2], l.xf[3], l.opacity,
+        m[1], m[2], m[3], m[4], m[5], m[6], m[7],
+        c[4], c[5], c[6],
+      )
+    }
   }
 }

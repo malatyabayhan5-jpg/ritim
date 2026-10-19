@@ -68,7 +68,10 @@ class Exporter(
     outFile = file
     failCallback = onFail
 
-    val composition: Composition = CompositionFactory.build(spec, options.width, options.height, forExport = true)
+    val composition: Composition = CompositionFactory.build(
+      spec, options.width, options.height, forExport = true,
+      padUri = if (CompositionFactory.needsCompositor(spec)) TransparentPad.uri(context) else null,
+    )
     val videoMime = when (options.codec) {
       "hevc" -> MimeTypes.VIDEO_H265
       "av1" -> MimeTypes.VIDEO_AV1

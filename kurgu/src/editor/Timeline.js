@@ -10,7 +10,7 @@ import { Image, PanResponder, Pressable, ScrollView, StyleSheet, Text, View, use
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
-import { assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
+import { assignAudioLanes, audioDuration, clipDuration, mainLayout, overlayDuration, totalDuration } from '../model/timeline';
 import { thumbnails, waveform } from '../engine/engine';
 import { formatTimecode } from '../i18n/core';
 
@@ -18,6 +18,7 @@ export const RULER_H = 22;
 export const MAIN_H = 54;
 export const AUDIO_H = 30;
 export const TEXT_H = 26;
+export const OVERLAY_H = 30;
 const HANDLE_W = 16;
 const LONG_PRESS_MS = 380;
 const TAP_SLOP = 8;
@@ -103,6 +104,7 @@ export default function Timeline({
   onMoveAudio,
   onMoveText,
   onMoveEffect,
+  onMoveOverlay,
   effectName,
   onZoom,
   onTransitionPress,
@@ -182,7 +184,12 @@ export default function Timeline({
   const visible = { from: scrollX - screenW, to: scrollX + screenW * 1.5 };
   const lockScroll = (locked) => setScrollEnabled(!locked);
 
-  const textTop = RULER_H + MAIN_H + 12 + audioLanes.length * (AUDIO_H + 4);
+  // Üst katman şeritleri ana izin üstünde; en üst şerit en üstte çizilir (önizlemedeki sırayla aynı).
+  const overlays = project.overlays || [];
+  const ovLaneCount = overlays.length ? Math.max(...overlays.map((o) => o.lane)) + 1 : 0;
+  const ovH = ovLaneCount * (OVERLAY_H + 4);
+  const mainTop = RULER_H + 4 + ovH;
+  const textTop = mainTop + MAIN_H + 8 + audioLanes.length * (AUDIO_H + 4);
   const fxTop = textTop + textLanes.count * (TEXT_H + 4);
   const tracksH = fxTop + fxLanes.count * (TEXT_H + 4) + 8;
 
@@ -218,7 +225,31 @@ export default function Timeline({
           <Ruler total={total} pxPerMs={pxPerMs} left={half} visible={visible} markers={project.markers} />
 
           {/* Ana iz */}
-          <View style={[styles.mainTrack, { left: half, top: RULER_H + 4 }]}>
+          {/* Üst katmanlar */}
+          {overlays.map((o) => (
+            <FreeItem
+              key={o.id}
+              kind="overlay"
+              item={o}
+              top={RULER_H + 4 + (ovLaneCount - 1 - o.lane) * (OVERLAY_H + 4)}
+              height={OVERLAY_H}
+              left={half}
+              start={o.start}
+              duration={overlayDuration(o)}
+              pxPerMs={pxPerMs}
+              color={colors.overlayLayer || colors.accent}
+              label={project.media[o.mediaId]?.name || ''}
+              icon={o.kind === 'image' ? 'image-outline' : 'videocam-outline'}
+              visible={visible}
+              selected={selection?.type === 'overlay' && selection.id === o.id}
+              onSelect={() => onSelect({ type: 'overlay', id: o.id })}
+              onTrim={onTrim}
+              onMove={(newStart) => onMoveOverlay(o.id, newStart)}
+              lockScroll={lockScroll}
+            />
+          ))}
+
+          <View style={[styles.mainTrack, { left: half, top: mainTop }]}>
             {layout.map(({ clip, index, start }) => (
               <MainClip
                 key={clip.id}
@@ -262,7 +293,7 @@ export default function Timeline({
                 key={a.id}
                 kind="audio"
                 item={a}
-                top={RULER_H + MAIN_H + 12 + li * (AUDIO_H + 4)}
+                top={mainTop + MAIN_H + 8 + li * (AUDIO_H + 4)}
                 height={AUDIO_H}
                 left={half}
                 start={a.start}
@@ -334,7 +365,7 @@ export default function Timeline({
       {/* Sabit oynatma kafası */}
       <View pointerEvents="none" style={[styles.playhead, { left: half - 1 }]} />
 
-      <Pressable testID="add-media" onPress={onAddMedia} style={[styles.addBtn, { top: RULER_H + 4 + (MAIN_H - 40) / 2 }]} accessibilityLabel={labels.addMedia}>
+      <Pressable testID="add-media" onPress={onAddMedia} style={[styles.addBtn, { top: mainTop + (MAIN_H - 40) / 2 }]} accessibilityLabel={labels.addMedia}>
         <Ionicons name="add" size={26} color={colors.bg} />
       </Pressable>
     </View>

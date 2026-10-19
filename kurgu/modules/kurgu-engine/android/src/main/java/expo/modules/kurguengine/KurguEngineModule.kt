@@ -29,6 +29,10 @@ class KurguEngineModule : Module() {
       MediaTools.thumbnails(context, uri, timesMs, heightPx, outDir, isImage)
     }
 
+    AsyncFunction("keyColor") { uri: String, timeMs: Double, isImage: Boolean ->
+      MediaTools.keyColor(context, uri, timeMs, isImage)
+    }
+
     AsyncFunction("waveform") { uri: String, peaksPerSecond: Int, maxPeaks: Int ->
       MediaTools.waveform(context, uri, peaksPerSecond, maxPeaks)
     }

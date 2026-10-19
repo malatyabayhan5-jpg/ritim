@@ -118,6 +118,36 @@ object MediaTools {
   }
 
   /** Verilen zamanlarda kareleri JPEG olarak yazar; var olan dosyaları yeniden üretmez. */
+  /** Chroma key anahtar rengi tahmini (vision/KeyColor). "#RRGGBB" veya bulunamazsa null. */
+  fun keyColor(context: Context, uriString: String, timeMs: Double, isImage: Boolean): String? {
+    val uri = Uri.parse(uriString)
+    val bmp: Bitmap = if (isImage) {
+      decodeScaledImage(context, uri, 360) ?: return null
+    } else {
+      val r = MediaMetadataRetriever()
+      try {
+        r.setDataSource(context, uri)
+        val us = (timeMs * 1000).toLong()
+        (if (Build.VERSION.SDK_INT >= 27) r.getScaledFrameAtTime(us, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 480, 480) else r.getFrameAtTime(us, MediaMetadataRetriever.OPTION_CLOSEST_SYNC))
+          ?: return null
+      } catch (e: Exception) {
+        return null
+      } finally {
+        r.release()
+      }
+    }
+    val small = if (bmp.width > 480 || bmp.height > 480) {
+      val k = 480f / max(bmp.width, bmp.height)
+      Bitmap.createScaledBitmap(bmp, max(1, (bmp.width * k).roundToInt()), max(1, (bmp.height * k).roundToInt()), true)
+    } else bmp
+    val px = IntArray(small.width * small.height)
+    small.getPixels(px, 0, small.width, 0, 0, small.width, small.height)
+    val c = expo.modules.kurguengine.vision.KeyColor.estimate(px, small.width, small.height)
+    if (small !== bmp) small.recycle()
+    bmp.recycle()
+    return if (c < 0) null else String.format("#%06X", c and 0xFFFFFF)
+  }
+
   fun thumbnails(context: Context, uriString: String, timesMs: List<Double>, heightPx: Int, outDir: String, isImage: Boolean): List<String?> {
     val dir = File(outDir.removePrefix("file://")).apply { mkdirs() }
     val uri = Uri.parse(uriString)

@@ -68,6 +68,7 @@ export function createProject({ name, ratio = '9:16', resolution = 1080, fps = 3
     audio: [],
     texts: [],
     effectLayers: [],
+    overlays: [],
     luts: {},
     markers: [],
     unsupported: [],
@@ -112,6 +113,43 @@ export function createAudioClip(media, start, role = 'music') {
     fadeIn: 0,
     fadeOut: 0,
     denoise: 0,
+  };
+}
+
+export const MASK_TYPES = ['none', 'rect', 'ellipse', 'linear', 'mirror', 'heart', 'star'];
+export const DEFAULT_MASK = { type: 'none', x: 0, y: 0, w: 0.5, h: 0.5, angle: 0, feather: 0.02, round: 0, invert: false };
+export const DEFAULT_CHROMA = { on: false, color: '#00B140', tolerance: 0.4, softness: 0.3, spill: 0.5 };
+
+/**
+ * Üst katman (resim içinde resim): ana izin üzerinde serbest konumlu video/görsel.
+ * transform.x/y NDC (-1..1, y yukarı), scale kanvasa sığdırılmış boyuta göre,
+ * rotation derece (saat yönü). lane: katman şeridi (büyük olan üstte çizilir).
+ * keyframes: { x, y, scale, rotation, opacity } -> [{ t, v, e }] (src/model/keyframes.js).
+ */
+export function createOverlay(media, start, lane = 0, { imageDurationMs = 3000 } = {}) {
+  const isImage = media.kind === 'image';
+  return {
+    id: newId('ovl'),
+    mediaId: media.id,
+    kind: isImage ? 'image' : 'video',
+    start: Math.max(0, Math.round(start)),
+    lane,
+    srcIn: 0,
+    srcOut: isImage ? imageDurationMs : Math.max(100, media.durationMs || 0),
+    speed: 1,
+    volume: 1,
+    muted: false,
+    fadeIn: 0,
+    fadeOut: 0,
+    transform: { x: 0, y: 0, scale: 0.5, rotation: 0, flipH: false, flipV: false },
+    opacity: 1,
+    blend: 'normal',
+    crop: { x0: 0, y0: 0, x1: 1, y1: 1 },
+    mask: { ...DEFAULT_MASK },
+    chroma: { ...DEFAULT_CHROMA },
+    filter: { id: 'none', intensity: 1 },
+    adjust: { ...DEFAULT_ADJUST },
+    keyframes: {},
   };
 }
 
@@ -194,6 +232,20 @@ export function migrateProject(raw) {
     style: { ...DEFAULT_TEXT_STYLE, ...(t.style || {}) },
   }));
   p.effectLayers = (raw.effectLayers || []).filter((e) => e && e.effectId && e.duration > 0);
+  p.overlays = (raw.overlays || []).filter((o) => o && o.mediaId && o.srcOut > o.srcIn).map((o) => {
+    const base = createOverlay({ id: o.mediaId, kind: o.kind, durationMs: o.srcOut }, o.start || 0, o.lane || 0);
+    return {
+      ...base,
+      ...o,
+      transform: { ...base.transform, ...(o.transform || {}) },
+      crop: { ...base.crop, ...(o.crop || {}) },
+      mask: { ...DEFAULT_MASK, ...(o.mask || {}) },
+      chroma: { ...DEFAULT_CHROMA, ...(o.chroma || {}) },
+      filter: { ...base.filter, ...(o.filter || {}) },
+      adjust: { ...DEFAULT_ADJUST, ...(o.adjust || {}) },
+      keyframes: o.keyframes && typeof o.keyframes === 'object' ? o.keyframes : {},
+    };
+  });
   p.luts = raw.luts && typeof raw.luts === 'object' ? raw.luts : {};
   p.markers = raw.markers || [];
   p.unsupported = raw.unsupported || [];

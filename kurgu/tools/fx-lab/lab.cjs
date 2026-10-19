@@ -51,10 +51,11 @@ function defaultParams(entry, overrides = {}) {
 }
 
 const PAGE = `<!doctype html><html><body style="margin:0"><canvas id=c></canvas><script>
-window.renderFx = async (shaders, imgUrl, frames, lut, timing) => {
+window.renderFx = async (shaders, imgUrl, frames, lut, opts = {}) => {
+  const timing = opts === true || opts.timing;
   const { frag, pre } = typeof shaders === 'string' ? { frag: shaders, pre: null } : shaders;
   const img = new Image(); img.src = imgUrl; await img.decode();
-  const c = document.getElementById('c'); c.width = img.width; c.height = img.height;
+  const c = document.getElementById('c'); c.width = opts.size ? opts.size[0] : img.width; c.height = opts.size ? opts.size[1] : img.height;
   const gl = c.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
   const vs = 'attribute vec4 aFramePosition; varying vec2 vUv; void main(){ gl_Position = aFramePosition; vUv = aFramePosition.xy * 0.5 + 0.5; }';
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
@@ -118,6 +119,12 @@ window.renderFx = async (shaders, imgUrl, frames, lut, timing) => {
     gl.uniform1f(u('uTime'), f.time); gl.uniform1f(u('uDur'), f.dur || 0); gl.uniform1f(u('uAmount'), f.amount);
     gl.uniform4f(u('uP0'), f.p[0], f.p[1], f.p[2], f.p[3]); gl.uniform4f(u('uP1'), f.p[4], f.p[5], f.p[6], f.p[7]);
     gl.uniform1f(u('uSeed'), f.seed || 0.37);
+    // Ek uniform'lar (katman shader'ı vb.): { ad: [değerler] }
+    for (const [name, v] of Object.entries(f.u || {})) {
+      const arr = Array.isArray(v) ? v : [v];
+      gl['uniform' + arr.length + 'fv'](u(name), new Float32Array(arr));
+    }
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.viewport(0, 0, c.width, c.height); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     if (timing) { gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px1); out.push(performance.now() - t0); }
     else out.push(c.toDataURL('image/png'));
@@ -247,7 +254,7 @@ async function perf() {
   // Medyan kare süresi (ilk kare ısınma olarak atılır)
   const median = (a) => { const b = a.slice(1).sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
   const measure = (shaders, p, amount) => page.evaluate(([f, img, k, pp, am]) => window.renderFx(f, img,
-    Array.from({ length: k + 1 }, (_, i) => ({ time: 0.3 + i / 30, dur: 3, amount: am, p: pp })), null, true), [shaders, dataUrl(scene), n, p, amount]);
+    Array.from({ length: k + 1 }, (_, i) => ({ time: 0.3 + i / 30, dur: 3, amount: am, p: pp })), null, { timing: true }), [shaders, dataUrl(scene), n, p, amount]);
   let page;
   await withPage(async (pg) => {
     page = pg;
@@ -263,6 +270,29 @@ async function perf() {
   fs.writeFileSync(arg('out'), JSON.stringify(out, null, 2) + '\n');
 }
 
+/**
+ * Katman shader'ı (_layer.glsl): --layer görseli --size kanvasına --u uniform'larıyla
+ * çizilir; çıktı saydam PNG (birleştirici benzetimi için arka planla Python'da karıştırılır).
+ *   node lab.cjs layer --layer fg.png --size 1080x1920 --u '{"uXf":[0,0,0.5,0]}' --out out.png
+ */
+function layerSource() {
+  const read = (f) => fs.readFileSync(path.join(FX_DIR, f), 'utf8');
+  return `${read('_common.glsl')}\n${read('_layer.glsl')}`;
+}
+
+async function layer() {
+  const [w, h] = arg('size', '1080x1920').split('x').map(Number);
+  const defaults = { uXf: [0, 0, 1, 0], uLay: [1, 0, 0, 0], uCrop: [0, 0, 1, 1], uMaskA: [0, 0, 0, 0], uMaskB: [0.5, 0.5, 0.02, 0], uMaskInv: 0, uKey: [0, 1, 0, 0], uKeyP: [0.4, 0.3, 0.5, 0] };
+  const u = { ...defaults, ...JSON.parse(arg('u', '{}')) };
+  const file = arg('layer');
+  const size = require('child_process').execFileSync('identify', ['-format', '%w %h', file]).toString().trim().split(' ').map(Number);
+  u.uSrcRes = size;
+  await withPage(async (page) => {
+    const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [layerSource(), dataUrl(file), [{ time: 0, amount: 1, p: [0, 0, 0, 0, 0, 0, 0, 0], u }], { size: [w, h] }]);
+    writePng(arg('out'), urls[0]);
+  });
+}
+
 const cmd = process.argv[2];
-({ render, motion, thumbs, lut, perf }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
+({ render, motion, thumbs, lut, perf, layer }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
   .catch((e) => { console.error(e.message || e); process.exit(1); });

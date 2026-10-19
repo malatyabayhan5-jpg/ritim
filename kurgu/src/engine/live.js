@@ -10,6 +10,8 @@
 //   cm:<klip>      4x4 renk matrisi (16) — filtre + renk ayarları
 //   lut:<klip>     [yoğunluk]
 //   vol:<öğe>      [ses düzeyi, açılma ms, kapanma ms]
+//   ly:<katman>    [x, y, ölçek, döndürme, opaklık, maske cx, cy, açı, yarı gen., yarı yük.,
+//                   yumuşaklık, köşe, chroma tolerans, kenar, taşma] (LayerFx.kt)
 
 const LIVE = 'L';
 
@@ -39,7 +41,25 @@ export function splitLive(spec) {
     }),
   );
   const effectLayers = spec.effectLayers.map((e) => liveEffect(e, live));
-  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers });
+  const layers = (spec.layers || []).map((lane) =>
+    lane.map((l) => {
+      const out = { ...l };
+      if (l.colorMatrix) {
+        live[`cm:${l.key}`] = l.colorMatrix;
+        out.colorMatrix = LIVE;
+      }
+      const m = l.mask;
+      const c = l.chroma;
+      live[`ly:${l.key}`] = [...l.xf, l.opacity, m[1], m[2], m[3], m[4], m[5], m[6], m[7], c[4], c[5], c[6]];
+      // Maske/chroma türü ve renk yapıdır (shader dalı); sayısal değerler canlıdır.
+      out.xf = LIVE;
+      out.opacity = LIVE;
+      out.mask = [m[0], LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, m[8]];
+      out.chroma = [c[0], c[1], c[2], c[3], LIVE, LIVE, LIVE];
+      return out;
+    }),
+  );
+  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers });
   return { structure, live };
 }
 

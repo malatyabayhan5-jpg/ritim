@@ -8,6 +8,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.MultipleInputVideoGraph
 import androidx.media3.transformer.CompositionPlayer
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
@@ -113,9 +114,16 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     }
   }
 
-  private fun ensurePlayer(): CompositionPlayer {
-    player?.let { return it }
-    val p = CompositionPlayer.Builder(context).build()
+  private var playerMulti = false
+
+  /** Katman varsa çok girişli video grafiği gerekir; mod değişince oynatıcı yeniden kurulur. */
+  private fun ensurePlayer(multi: Boolean): CompositionPlayer {
+    player?.let { if (playerMulti == multi) return it }
+    if (player != null) releasePlayer()
+    playerMulti = multi
+    val builder = CompositionPlayer.Builder(context)
+    if (multi) builder.setVideoGraphFactory(MultipleInputVideoGraph.Factory())
+    val p = builder.build()
     p.addListener(object : Player.Listener {
       override fun onIsPlayingChanged(isPlaying: Boolean) {
         emitState()
@@ -150,8 +158,9 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val w = (s.width * scale).roundToInt()
     val h = (s.height * scale).roundToInt()
     try {
-      val composition = CompositionFactory.build(s, w, h, forExport = false, live = true)
-      val p = ensurePlayer()
+      val multi = CompositionFactory.needsCompositor(s)
+      val composition = CompositionFactory.build(s, w, h, forExport = false, live = true, padUri = if (multi) TransparentPad.uri(context) else null)
+      val p = ensurePlayer(multi)
       val wasPlaying = p.playWhenReady
       val pos = if (p.playbackState == Player.STATE_IDLE) pendingPositionMs else p.currentPosition
       val clamped = pos.coerceIn(0L, max(0L, s.totalMs - 1))

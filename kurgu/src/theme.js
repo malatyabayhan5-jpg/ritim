@@ -20,6 +20,7 @@ export const colors = {
   audioMusic: '#1E6E8C',
   text2: '#B8862B',
   effect: '#7A4FD6',
+  overlayLayer: '#2F8F83',
   voice: '#2E8C6E',
   marker: '#FFB547',
   playhead: '#FFFFFF',

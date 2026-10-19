@@ -77,6 +77,16 @@ export function thumbnails(media, timesMs, heightPx = 96) {
   return p;
 }
 
+/** Chroma key için anahtar renk tahmini ("#RRGGBB" veya null): karenin kenar halkasındaki baskın doygun renk. */
+export async function keyColor(media, timeMs) {
+  if (!KurguEngine || !media) return null;
+  try {
+    return await schedule(() => KurguEngine.keyColor(mediaUri(media), timeMs, media.kind === 'image'));
+  } catch {
+    return null;
+  }
+}
+
 const waveMemo = new Map();
 
 /** Saniyede 20 tepe değeri; dosyada önbelleğe alınır. */

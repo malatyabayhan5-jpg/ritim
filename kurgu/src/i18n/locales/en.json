@@ -126,7 +126,11 @@
     "soundFromVideo": "Audio from video",
     "addText": "Add text",
     "editText": "Edit",
-    "textAnimation": "Animation"
+    "textAnimation": "Animation",
+    "overlay": "Overlay",
+    "layerEdit": "Position",
+    "mask": "Mask",
+    "chromaKey": "Chroma key"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -741,5 +745,46 @@
       "NO_AUDIO": "No audio was found in the clip.",
       "CAPTIONS_FAILED": "Could not generate captions."
     }
+  },
+  "layer": {
+    "title": "Overlay",
+    "tab": {
+      "position": "Position",
+      "mask": "Mask",
+      "chroma": "Chroma key",
+      "order": "Order"
+    },
+    "rotation": "Rotation",
+    "opacity": "Opacity",
+    "keyHint": "The ◆ button adds or removes a keyframe at the playhead. While keyframes exist, the slider edits the keyframe at the playhead.",
+    "mask": {
+      "none": "None",
+      "rect": "Rectangle",
+      "ellipse": "Circle",
+      "linear": "Linear",
+      "mirror": "Mirror",
+      "heart": "Heart",
+      "star": "Star"
+    },
+    "maskSize": "Size",
+    "maskHeight": "Height",
+    "bandWidth": "Band width",
+    "feather": "Feather",
+    "round": "Corner radius",
+    "angle": "Angle",
+    "maskX": "Horizontal position",
+    "maskY": "Vertical position",
+    "invert": "Invert",
+    "chromaOn": "Enabled",
+    "detectKey": "Detect color",
+    "tolerance": "Tolerance",
+    "edgeSoftness": "Edge softness",
+    "spill": "Spill removal",
+    "bringForward": "Bring forward",
+    "sendBackward": "Send backward",
+    "blendNote": "Video overlays currently support only the \"Normal\" blend mode (opacity and masks are supported).",
+    "lanesFull": "Up to 6 overlay tracks can be used.",
+    "keyNotFound": "No dominant screen color found at the edges; pick a color manually.",
+    "keyFound": "Key color: {color}"
   }
 }

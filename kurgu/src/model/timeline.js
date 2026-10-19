@@ -3,7 +3,8 @@
 // Ana iz "manyetiktir": klipler arasında boşluk olmaz. Ses ve metin katmanları
 // serbest konumludur.
 
-import { createAudioClip, createMainClip, createText, newId } from './schema';
+import { createAudioClip, createMainClip, createOverlay, createText, newId } from './schema';
+import { removeKey, setKey, shiftKeyframes, valueAt } from './keyframes';
 import { createEffectInstance, createEffectLayer } from './effects';
 
 export const MIN_CLIP_MS = 100;
@@ -395,6 +396,157 @@ export function trimText(project, id, edge, delta) {
   return updateText(project, id, { duration: Math.round(Math.max(MIN_CLIP_MS, x.duration + delta)) });
 }
 
+// --- Üst katmanlar (resim içinde resim) ---
+
+export const overlayDuration = clipDuration;
+export const MAX_OVERLAY_LANES = 6;
+
+function laneFree(project, lane, start, end, ignoreId) {
+  return !(project.overlays || []).some(
+    (o) => o.id !== ignoreId && o.lane === lane && start < o.start + overlayDuration(o) - 1 && o.start < end - 1,
+  );
+}
+
+/** [start, end) aralığının boş olduğu en alttaki şerit; yoksa yeni şerit (üst sınıra kadar). */
+export function freeOverlayLane(project, start, end, ignoreId) {
+  const lanes = new Set((project.overlays || []).map((o) => o.lane));
+  const max = lanes.size ? Math.max(...lanes) : -1;
+  for (let l = 0; l <= max; l++) if (laneFree(project, l, start, end, ignoreId)) return l;
+  return max + 1 < MAX_OVERLAY_LANES ? max + 1 : -1;
+}
+
+export function addOverlay(project, media, start) {
+  const base = createOverlay(media, start, 0);
+  const d = overlayDuration(base);
+  const total = totalDuration(project);
+  // Videonun dışına başlamasın; süre videoyu aşarsa sonda kırpılır (render tanımı).
+  const s = total > 0 ? Math.max(0, Math.min(Math.round(start), Math.round(total - Math.min(d, total)))) : Math.max(0, Math.round(start));
+  const lane = freeOverlayLane(project, s, s + d);
+  if (lane < 0) return { project, newId: null, error: 'LANES_FULL' };
+  const item = { ...base, start: s, lane };
+  return {
+    project: touch({ ...project, media: { ...project.media, [media.id]: media }, overlays: [...(project.overlays || []), item] }),
+    newId: item.id,
+  };
+}
+
+export function updateOverlay(project, id, patch) {
+  const merge = (o) => {
+    const out = { ...o, ...patch };
+    for (const k of ['transform', 'crop', 'mask', 'chroma', 'filter', 'adjust']) {
+      if (patch[k]) out[k] = { ...o[k], ...patch[k] };
+    }
+    return out;
+  };
+  return touch({ ...project, overlays: (project.overlays || []).map((o) => (o.id === id ? merge(o) : o)) });
+}
+
+export function deleteOverlay(project, id) {
+  return touch({ ...project, overlays: (project.overlays || []).filter((o) => o.id !== id) });
+}
+
+export function duplicateOverlay(project, id) {
+  const o = (project.overlays || []).find((x) => x.id === id);
+  if (!o) return { project, newId: null };
+  const start = o.start + overlayDuration(o);
+  const lane = laneFree(project, o.lane, start, start + overlayDuration(o)) ? o.lane : freeOverlayLane(project, start, start + overlayDuration(o));
+  if (lane < 0) return { project, newId: null, error: 'LANES_FULL' };
+  const copy = { ...o, id: newId('ovl'), start, lane };
+  return { project: touch({ ...project, overlays: [...project.overlays, copy] }), newId: copy.id };
+}
+
+/** Katmanı zamanda ve/veya şeritte taşır; hedef doluysa başka boş şerit aranır. */
+export function moveOverlay(project, id, start, lane) {
+  const o = (project.overlays || []).find((x) => x.id === id);
+  if (!o) return project;
+  const s = Math.max(0, Math.round(start));
+  const end = s + overlayDuration(o);
+  const want = lane ?? o.lane;
+  const target = want >= 0 && want < MAX_OVERLAY_LANES && laneFree(project, want, s, end, id) ? want : freeOverlayLane(project, s, end, id);
+  if (target < 0) return project;
+  return updateOverlay(project, id, { start: s, lane: target });
+}
+
+export function splitOverlayAt(project, id, t) {
+  const o = (project.overlays || []).find((x) => x.id === id);
+  if (!o) return { project, changed: false };
+  const offset = t - o.start;
+  const dur = overlayDuration(o);
+  if (offset < MIN_CLIP_MS || dur - offset < MIN_CLIP_MS) return { project, changed: false };
+  const speed = o.kind === 'image' ? 1 : o.speed || 1;
+  const cut = o.srcIn + offset * speed;
+  const a = { ...o, srcOut: cut, fadeOut: 0, keyframes: shiftKeyframes(o.keyframes, 0, offset) };
+  const b = { ...o, id: newId('ovl'), start: Math.round(t), srcIn: cut, fadeIn: 0, keyframes: shiftKeyframes(o.keyframes, -offset, dur - offset) };
+  return { project: touch({ ...project, overlays: project.overlays.flatMap((x) => (x.id === id ? [a, b] : [x])) }), changed: true, newId: b.id };
+}
+
+export function trimOverlay(project, id, edge, delta, sourceDurationMs = Infinity) {
+  const o = (project.overlays || []).find((x) => x.id === id);
+  if (!o) return project;
+  const speed = o.kind === 'image' ? 1 : o.speed || 1;
+  const dur = overlayDuration(o);
+  if (edge === 'start') {
+    const d = Math.max(Math.max(-o.start, o.kind === 'image' ? -Infinity : -o.srcIn / speed), Math.min(dur - MIN_CLIP_MS, delta));
+    const next = { start: Math.round(o.start + d), srcIn: o.kind === 'image' ? o.srcIn : o.srcIn + d * speed };
+    if (o.kind === 'image') next.srcOut = o.srcOut - d;
+    if (!laneFree(project, o.lane, next.start, next.start + dur - d, id)) return project;
+    return updateOverlay(project, id, { ...next, keyframes: shiftKeyframes(o.keyframes, -d, dur - d) });
+  }
+  const maxOut = o.kind === 'image' ? MAX_IMAGE_MS : sourceDurationMs;
+  const srcOut = Math.min(maxOut, Math.max(o.srcIn + MIN_CLIP_MS * speed, o.srcOut + delta * speed));
+  const newDur = (srcOut - o.srcIn) / speed;
+  if (!laneFree(project, o.lane, o.start, o.start + newDur, id)) return project;
+  return updateOverlay(project, id, { srcOut, keyframes: shiftKeyframes(o.keyframes, 0, newDur) });
+}
+
+const OVERLAY_BASE = {
+  x: (o) => o.transform?.x ?? 0,
+  y: (o) => o.transform?.y ?? 0,
+  scale: (o) => o.transform?.scale ?? 0.5,
+  rotation: (o) => o.transform?.rotation ?? 0,
+  opacity: (o) => o.opacity ?? 1,
+};
+
+/** Özelliğin katman içi `localMs` anındaki değeri (anahtar kare varsa izden). */
+export function overlayPropAt(o, prop, localMs) {
+  return valueAt(o.keyframes?.[prop], localMs, OVERLAY_BASE[prop](o));
+}
+
+/**
+ * Özellik değişikliği yaması: özellikte anahtar kare izi varsa oynatma kafasındaki
+ * kare eklenir/güncellenir, yoksa sabit değer değişir.
+ */
+export function overlayPropPatch(o, prop, value, localMs) {
+  const track = o.keyframes?.[prop];
+  if (track && track.length) return { keyframes: { ...o.keyframes, [prop]: setKey(track, localMs, value) } };
+  if (prop === 'opacity') return { opacity: value };
+  return { transform: { [prop]: value } };
+}
+
+/** Oynatma kafasında anahtar kare aç/kapat. İlk kare açılırken mevcut değer kullanılır. */
+export function toggleOverlayKey(o, prop, localMs) {
+  const track = o.keyframes?.[prop] || [];
+  const v = overlayPropAt(o, prop, localMs);
+  const exists = track.some((k) => Math.abs(k.t - localMs) <= 15);
+  const next = exists ? removeKey(track, localMs) : setKey(track, localMs, v);
+  const keyframes = { ...o.keyframes };
+  if (next.length) keyframes[prop] = next;
+  else delete keyframes[prop];
+  // İz kalmadıysa son değer sabit değere yazılır (görüntü sıçramasın).
+  const patch = { keyframes };
+  if (!next.length) Object.assign(patch, prop === 'opacity' ? { opacity: v } : { transform: { [prop]: v } });
+  return patch;
+}
+
+/** İki katman şeridinin sırasını değiştirir (öne getir / arkaya gönder). */
+export function swapOverlayLanes(project, a, b) {
+  if (a === b || a < 0 || b < 0 || a >= MAX_OVERLAY_LANES || b >= MAX_OVERLAY_LANES) return project;
+  return touch({
+    ...project,
+    overlays: (project.overlays || []).map((o) => (o.lane === a ? { ...o, lane: b } : o.lane === b ? { ...o, lane: a } : o)),
+  });
+}
+
 // --- LUT (.cube) ---
 
 /** İçe aktarılan LUT'u projeye ekler; LUT dosyası kütüphanede (media/) tutulur. */
@@ -510,5 +662,6 @@ export function usedMediaIds(project) {
   const ids = new Set();
   project.main.forEach((c) => ids.add(c.mediaId));
   project.audio.forEach((a) => ids.add(a.mediaId));
+  (project.overlays || []).forEach((o) => ids.add(o.mediaId));
   return ids;
 }
