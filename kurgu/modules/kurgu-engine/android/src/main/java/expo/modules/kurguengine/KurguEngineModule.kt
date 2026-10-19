@@ -1,9 +1,11 @@
 package expo.modules.kurguengine
 
+import android.Manifest
 import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import android.view.WindowManager
+import expo.modules.interfaces.permissions.Permissions
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Queues
@@ -65,6 +67,28 @@ class KurguEngineModule : Module() {
           sendEvent("onAiProgress", mapOf("phase" to "transcribe", "progress" to p))
         }
       }
+    }
+
+    // --- Seslendirme kaydı ---
+    AsyncFunction("requestMicPermission") { promise: Promise ->
+      Permissions.askForPermissionsWithPermissionsManager(appContext.permissions, promise, Manifest.permission.RECORD_AUDIO)
+    }
+
+    AsyncFunction("startRecording") { outPath: String ->
+      Recorder.start(context, outPath)
+      true
+    }
+
+    AsyncFunction("recordingLevel") {
+      Recorder.level()
+    }
+
+    AsyncFunction("stopRecording") {
+      Recorder.stop()
+    }
+
+    AsyncFunction("cancelRecording") {
+      Recorder.stopQuietly()
     }
 
     // Ters oynatma: kaynak aralığı sondan başa yeniden kodlanır

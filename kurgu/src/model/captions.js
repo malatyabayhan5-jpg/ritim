@@ -89,3 +89,62 @@ export const hasCaptions = (project) => project.texts.some((t) => t.caption);
 export function captionableClips(project) {
   return project.main.filter((c) => c.kind === 'video' && !c.muted && project.media[c.mediaId]?.hasAudio !== false);
 }
+
+// --- SRT (SubRip) ---
+
+const pad = (n, w = 2) => String(n).padStart(w, '0');
+
+/** ms -> "HH:MM:SS,mmm" */
+export function srtTime(ms) {
+  const t = Math.max(0, Math.round(ms));
+  const h = Math.floor(t / 3600000);
+  const m = Math.floor((t % 3600000) / 60000);
+  const s = Math.floor((t % 60000) / 1000);
+  return `${pad(h)}:${pad(m)}:${pad(s)},${pad(t % 1000, 3)}`;
+}
+
+/**
+ * Projedeki metinlerden SRT üretir. `onlyCaptions` true ise yalnızca altyazılar,
+ * değilse tüm metin katmanları (zamana göre sıralı). Satır sonları korunur.
+ */
+export function toSrt(project, { onlyCaptions = true } = {}) {
+  const items = project.texts
+    .filter((t) => (onlyCaptions ? t.caption : true) && String(t.text || '').trim())
+    .sort((a, b) => a.start - b.start);
+  return items
+    .map((t, i) => `${i + 1}\n${srtTime(t.start)} --> ${srtTime(t.start + t.duration)}\n${String(t.text).replace(/\r/g, '').trim()}\n`)
+    .join('\n');
+}
+
+/** SRT metnini ayrıştırır: [{ start, end, text }] (ms). Bozuk bloklar atlanır; WebVTT zaman biçimi de kabul edilir. */
+export function parseSrt(text) {
+  const out = [];
+  const blocks = String(text || '').replace(/^﻿/, '').replace(/\r\n?/g, '\n').split(/\n\s*\n/);
+  const time = /(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})/;
+  const ms = (h, m, s, f) => ((+h * 60 + +m) * 60 + +s) * 1000 + Math.round(+f.padEnd(3, '0'));
+  for (const b of blocks) {
+    const lines = b.split('\n').filter((l) => l.trim() !== '');
+    const i = lines.findIndex((l) => time.test(l));
+    if (i < 0) continue;
+    const m = lines[i].match(time);
+    const start = ms(m[1], m[2], m[3], m[4]);
+    const end = ms(m[5], m[6], m[7], m[8]);
+    const body = lines.slice(i + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+    if (!body || end <= start) continue;
+    out.push({ start, end, text: body });
+  }
+  return out;
+}
+
+/** SRT girdilerini altyazı metin katmanları olarak ekler (videonun dışına taşanlar kırpılır). */
+export function addSrtCaptions(project, entries, total = Infinity) {
+  const texts = [];
+  for (const e of entries) {
+    if (e.start >= total) continue;
+    const end = Math.min(e.end, total);
+    if (end - e.start < 100) continue;
+    const tx = createText(e.start, e.text, CAPTION.style);
+    texts.push({ ...tx, duration: Math.round(end - e.start), y: CAPTION.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });
+  }
+  return { project: { ...project, texts: [...project.texts, ...texts], updatedAt: Date.now() }, added: texts.length };
+}

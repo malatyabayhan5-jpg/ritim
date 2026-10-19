@@ -23,16 +23,19 @@ import {
 import TextHandle from '../editor/TextHandle';
 import OverlayHandle from '../editor/OverlayHandle';
 import LayerPanel from '../editor/LayerPanel';
+import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel from '../editor/CaptionsPanel';
-import { addClipCaptions, captionableClips, hasCaptions, removeCaptions } from '../model/captions';
+import { addClipCaptions, addSrtCaptions, captionableClips, hasCaptions, parseSrt, removeCaptions, toSrt } from '../model/captions';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
 import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { cancelAi, captionModels, downloadCaptionModel, keyColor, reverseVideo, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -354,6 +357,47 @@ export default function EditorScreen({ params, focused }) {
     if (!hex) return toast(t('layer.keyNotFound'));
     apply((p) => TL.updateOverlay(p, o.id, { chroma: { color: hex, on: true } }));
     toast(t('layer.keyFound', { color: hex }));
+  };
+
+  // --- Seslendirme (mikrofon) ---
+  const recStart = useRef(0);
+  const recPath = useRef(null);
+  const beginRecording = async () => {
+    try {
+      const perm = await requestMicPermission();
+      if (!perm.granted) {
+        toast(t(perm.canAskAgain ? 'record.denied' : 'record.blocked'), 'error');
+        return false;
+      }
+      recPath.current = `${CACHE_DIR}voice_${Date.now()}.m4a`;
+      recStart.current = position;
+      await startRecording(recPath.current);
+      // Önizleme kayıtla birlikte oynar (kulaklık önerilir)
+      previewRef.current?.play?.();
+      console.log(`[KurguUI] record start position=${Math.round(position)}`);
+      return true;
+    } catch {
+      toast(t('record.failed'), 'error');
+      return false;
+    }
+  };
+  const endRecording = async () => {
+    previewRef.current?.pause?.();
+    try {
+      const r = await stopRecording();
+      const adopted = await adoptFile(r.path, 'voice.m4a', 'audio/mp4');
+      const info = await probe(mediaUri({ path: adopted.path })).catch(() => null);
+      const media = { id: adopted.id, kind: 'audio', path: adopted.path, name: t('record.name'), size: adopted.size, durationMs: Math.round(info?.durationMs || r.durationMs), hasAudio: true, importedAt: Date.now() };
+      const res = TL.addAudio(project, media, recStart.current, 'voice');
+      apply(res.project);
+      setSelection({ type: 'audio', id: res.newId });
+      setPanel(null);
+      setSub(null);
+      console.log(`[KurguUI] record saved ms=${media.durationMs}`);
+      toast(t('record.saved'));
+    } catch (e) {
+      toast(t(e?.code === 'RECORD_TOO_SHORT' ? 'record.tooShort' : 'record.failed'), 'error');
+    }
   };
 
   const addAudio = async () => {
@@ -867,7 +911,7 @@ export default function EditorScreen({ params, focused }) {
   function renderTools() {
     const T = (key, icon, onPress, extra = {}) => <ToolButton key={key} testID={`tool-${key}`} icon={icon} label={t(`tools.${key}`)} onPress={onPress} {...extra} />;
     if (sub === 'audio') {
-      return [T('music', 'musical-notes-outline', addAudio), T('soundFromVideo', 'film-outline', () => {
+      return [T('music', 'musical-notes-outline', addAudio), T('record', 'mic-outline', () => openPanel('record')), T('soundFromVideo', 'film-outline', () => {
         const c = ensureClipSelected();
         if (c) {
           const r = TL.extractAudio(project, c.id);
@@ -1014,6 +1058,8 @@ export default function EditorScreen({ params, focused }) {
           />
         );
       }
+      case 'record':
+        return <RecordPanel onStart={beginRecording} onStop={endRecording} onClose={() => { cancelRecording(); close(); }} />;
       case 'ai':
         return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
       case 'captions':
@@ -1028,6 +1074,29 @@ export default function EditorScreen({ params, focused }) {
             onStart={startCaptions}
             onCancel={cancelCaptions}
             canRemove={hasCaptions(project)}
+            onExportSrt={async () => {
+              try {
+                const file = `${CACHE_DIR}${(project.name || 'kurgu').replace(/[^\w\-]+/g, '_').slice(0, 40) || 'kurgu'}.srt`;
+                await FS.writeAsStringAsync(file, toSrt(project));
+                if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(file, { mimeType: 'application/x-subrip', dialogTitle: t('captions.exportSrt') });
+                else toast(t('captions.srtSaved'));
+              } catch {
+                toast(t('errors.generic'), 'error');
+              }
+            }}
+            onImportSrt={async () => {
+              try {
+                const res = await DocumentPicker.getDocumentAsync({ type: ['application/x-subrip', 'text/*', '*/*'], multiple: false, copyToCacheDirectory: true });
+                if (res.canceled || !res.assets?.[0]) return;
+                const entries = parseSrt(await FS.readAsStringAsync(res.assets[0].uri));
+                if (!entries.length) return toast(t('captions.srtEmpty'), 'error');
+                const r = addSrtCaptions(project, entries, total);
+                apply(r.project);
+                toast(t('captions.srtImported', { count: r.added }));
+              } catch {
+                toast(t('errors.generic'), 'error');
+              }
+            }}
             onRemove={() => {
               apply((p) => removeCaptions(p));
               toast(t('captions.removed'));

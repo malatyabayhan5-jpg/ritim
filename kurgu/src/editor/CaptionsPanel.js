@@ -8,7 +8,7 @@ import { colors, radius, space } from '../theme';
 
 export const CAPTION_LANGS = ['auto', 'tr', 'en', 'ar'];
 
-export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose }) {
+export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose, onExportSrt, onImportSrt }) {
   const { t, fmt } = useI18n();
   const running = !!progress;
   const supported = info?.supported;
@@ -57,6 +57,11 @@ export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, on
             )}
           </>
         )}
+        {/* SRT: altyazıları dosyaya aktar / dosyadan al (tanıma gerektirmez) */}
+        <Row style={{ gap: space.sm, flexWrap: 'wrap' }}>
+          <Chip icon="download-outline" label={t('captions.importSrt')} onPress={onImportSrt} testID="srt-import" />
+          {canRemove ? <Chip icon="share-outline" label={t('captions.exportSrt')} onPress={onExportSrt} testID="srt-export" /> : null}
+        </Row>
       </View>
     </Panel>
   );

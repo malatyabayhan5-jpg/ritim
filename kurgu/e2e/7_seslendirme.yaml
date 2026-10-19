@@ -1,0 +1,47 @@
+# Seslendirme: mikrofonla 3 sn kayıt (emülatörün sanal mikrofonu), ses katmanı olarak eklenmeli.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "project-prj_.*"
+    timeout: 30000
+- tapOn:
+    id: "project-prj_.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "clip-0"
+    timeout: 30000
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-audio"
+- tapOn:
+    id: "tool-record"
+- extendedWaitUntil:
+    visible:
+      id: "record-start"
+    timeout: 5000
+- tapOn:
+    id: "record-start"
+- tapOn:
+    text: "(Allow|ALLOW|While using the app|İzin ver|Uygulamayı kullanırken).*"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "record-stop"
+    timeout: 10000
+- swipe:
+    start: "50%, 20%"
+    end: "50%, 20%"
+    duration: 3000
+- takeScreenshot: 70_kayit
+- tapOn:
+    id: "record-stop"
+- extendedWaitUntil:
+    visible:
+      id: "audio-item-.*"
+    timeout: 20000
+- takeScreenshot: 71_seslendirme_eklendi

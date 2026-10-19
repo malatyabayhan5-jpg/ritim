@@ -131,7 +131,8 @@
     "layerEdit": "Konum",
     "mask": "Maske",
     "chromaKey": "Chroma key",
-    "reverse": "Ters"
+    "reverse": "Ters",
+    "record": "Seslendir"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -778,7 +779,12 @@
       "CAPTIONS_UNSUPPORTED": "Otomatik altyazı bu cihazda kullanılamıyor.",
       "NO_AUDIO": "Klipte ses bulunamadı.",
       "CAPTIONS_FAILED": "Altyazı oluşturulamadı."
-    }
+    },
+    "importSrt": "SRT içe aktar",
+    "exportSrt": "SRT dışa aktar",
+    "srtSaved": "SRT dosyası kaydedildi",
+    "srtEmpty": "Dosyada geçerli altyazı bulunamadı",
+    "srtImported": "{count} altyazı eklendi"
   },
   "layer": {
     "title": "Katman",
@@ -845,5 +851,18 @@
     "cancelled": "Ters çevirme iptal edildi",
     "unsupported": "Ters çevirme Android 9 ve üstünde kullanılabilir",
     "suffix": "ters"
+  },
+  "record": {
+    "title": "Seslendirme",
+    "start": "Kaydı başlat",
+    "stop": "Durdur ve ekle",
+    "wait": "Hazırlanıyor…",
+    "hint": "Kayıt oynatma kafasından başlar ve video birlikte oynar. Yankıyı önlemek için kulaklık kullanın.",
+    "denied": "Kayıt için mikrofon izni gerekiyor",
+    "blocked": "Mikrofon izni kapalı; Ayarlar > Uygulamalar > Kurgu > İzinler bölümünden açabilirsiniz",
+    "failed": "Kayıt başlatılamadı veya kaydedilemedi",
+    "tooShort": "Kayıt çok kısa",
+    "saved": "Seslendirme eklendi",
+    "name": "Seslendirme"
   }
 }

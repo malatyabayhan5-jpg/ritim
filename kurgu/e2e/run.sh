@@ -52,6 +52,7 @@ screen_texts() {
 
 adb install -r "$APK" > "$OUT/install.txt" 2>&1 || { echo "APK kurulamadı"; cat "$OUT/install.txt"; }
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS > /dev/null 2>&1 || true
+adb shell pm grant $PKG android.permission.RECORD_AUDIO > /dev/null 2>&1 || true
 
 curl -fsSL "https://get.maestro.mobile.dev" | bash > "$OUT/maestro-install.txt" 2>&1
 export PATH="$PATH:$HOME/.maestro/bin"
@@ -60,7 +61,7 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 adb logcat -c
 : > "$OUT/sonuclar.txt"
 # AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
-for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans 6_katmanlar; do
+for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme; do
   [ "$flow" = 5_performans ] && adb shell dumpsys gfxinfo $PKG reset > /dev/null 2>&1
   # Katman akışından önceki dışa aktarımlar: kabul akışının çıktısı bunlardan biridir
   [ "$flow" = 6_katmanlar ] && adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort > "$OUT/once.txt"
@@ -136,7 +137,7 @@ adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPl
 cat "$OUT/sonuclar.txt"
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
-for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans 6_katmanlar; do
+for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans 6_katmanlar 7_seslendirme; do
   echo "===== $flow (son 40 satır) ====="
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done

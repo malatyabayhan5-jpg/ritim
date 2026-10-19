@@ -202,6 +202,34 @@ export function reverseVideo(media, fromMs, toMs, outPath, maxSide, onProgress) 
   return withAiProgress(onProgress, (engine) => engine.reverseVideo(mediaUri(media), fromMs, toMs, outPath, maxSide));
 }
 
+// --- Seslendirme kaydı (mikrofon) ---
+
+/** Mikrofon izni ister; { granted } döner. */
+export async function requestMicPermission() {
+  const r = await requireEngine().requestMicPermission();
+  return { granted: r?.granted === true || r?.status === 'granted', canAskAgain: r?.canAskAgain !== false };
+}
+
+export function startRecording(outPath) {
+  return requireEngine().startRecording(outPath);
+}
+
+export function recordingLevel() {
+  return KurguEngine ? KurguEngine.recordingLevel() : Promise.resolve(0);
+}
+
+export async function stopRecording() {
+  try {
+    return await requireEngine().stopRecording();
+  } catch (e) {
+    throw new EngineError(/TOO_SHORT/.test(String(e?.message)) ? 'RECORD_TOO_SHORT' : 'RECORD_FAILED', e?.message);
+  }
+}
+
+export function cancelRecording() {
+  return KurguEngine ? KurguEngine.cancelRecording() : Promise.resolve();
+}
+
 export function cancelAi() {
   return KurguEngine ? KurguEngine.cancelAi() : Promise.resolve();
 }

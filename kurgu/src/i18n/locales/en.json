@@ -131,7 +131,8 @@
     "layerEdit": "Position",
     "mask": "Mask",
     "chromaKey": "Chroma key",
-    "reverse": "Reverse"
+    "reverse": "Reverse",
+    "record": "Voiceover"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -778,7 +779,12 @@
       "CAPTIONS_UNSUPPORTED": "Auto captions are not available on this device.",
       "NO_AUDIO": "No audio was found in the clip.",
       "CAPTIONS_FAILED": "Could not generate captions."
-    }
+    },
+    "importSrt": "Import SRT",
+    "exportSrt": "Export SRT",
+    "srtSaved": "SRT file saved",
+    "srtEmpty": "No valid subtitles found in the file",
+    "srtImported": "{count} subtitles added"
   },
   "layer": {
     "title": "Overlay",
@@ -845,5 +851,18 @@
     "cancelled": "Reversing cancelled",
     "unsupported": "Reverse requires Android 9 or later",
     "suffix": "reversed"
+  },
+  "record": {
+    "title": "Voiceover",
+    "start": "Start recording",
+    "stop": "Stop and add",
+    "wait": "Preparing…",
+    "hint": "Recording starts at the playhead and the video plays along. Use headphones to avoid echo.",
+    "denied": "Microphone permission is required to record",
+    "blocked": "Microphone permission is off; enable it in Settings > Apps > Kurgu > Permissions",
+    "failed": "Recording could not be started or saved",
+    "tooShort": "Recording is too short",
+    "saved": "Voiceover added",
+    "name": "Voiceover"
   }
 }
