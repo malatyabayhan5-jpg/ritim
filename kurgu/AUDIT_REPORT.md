@@ -64,3 +64,34 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 ## Bu turda ele alınacaklar
 
 K1, K2, K3, Y1–Y7, O1 bu turda düzeltildi; O2–O5 sonraki tura planlandı. Düzeltmelerin ayrıntısı ve test sonuçları `BUG_FIXES.md` ve `PROGRESS.md` dosyalarındadır.
+
+---
+
+# Yeniden denetim — 2026-10-19
+
+Kapsam: 2026-10-18 sonrası eklenen tüm özellikler (katmanlar, geçişler, anahtar
+kareler, hız eğrisi, ters oynatma, seslendirme, ses efektleri, metin paketi,
+fotoğraf düzenleyici, bulut altyapısı). Yöntem: kod okuma, Media3 1.9.4 kaynağıyla
+karşılaştırma, CI e2e günlüklerinin (yerel istisna zincirleri dahil) incelenmesi.
+Özellik bazlı durum PROGRESS.md'de dört değerle verilmiştir.
+
+## Yeni bulgular
+
+| # | Önem | Bulgu | Durum |
+|---|---|---|---|
+| H-8 | Kritik | Ses düzeyi %100 olan klipte önizleme duruyordu (`GainProcessor` birlik sınırı) | Düzeltildi (2c48995), CI doğrulaması bekleniyor |
+| H-12 | Kritik | Geçişli projede dışa aktarma %90'da zaman aşımı | **Açık**, inceleniyor |
+| H-9 | Yüksek | Hız değişimli katman öğesi dışa aktarmayı %60'ta kilitliyordu | Düzeltildi (ac36ee5) |
+| H-10 | Yüksek | AI düğmesi araç çubuğunda görünmüyordu | Düzeltildi, E ile doğrulandı |
+| H-11 | Orta | Kişi maskesi EXIF yönlü fotoğrafta kayardı | Düzeltildi (yayımlanmadan) |
+| H-13 | Orta | Ses efekti ön ayarı değişince eski parametreler kalırdı | Düzeltildi (yayımlanmadan) |
+| A-1 | Orta | Video karışım modları yok: `MultipleInputVideoGraph` sabit `DefaultVideoCompositor` kullanır (yalnızca alfa) | Bilinçli sınırlama, belgelendi |
+| A-2 | Orta | Efekt (21) ve geçiş (44) sayıları hedefin (100 / 80) altında | Paket çalışması sürüyor |
+| A-3 | Düşük | Altyazı çevirisi cihaz içinde yalnızca İngilizceye | Belgelendi; diğer diller dış servis |
+| A-4 | Bilgi | Gerçek cihazda performans/ısı/pil ölçümü yok | Donanım gerektiriyor |
+
+## Doğrulama yöntemi notu
+
+Emülatör akışı "success" bitse bile tek tek akış satırları okunur (`sonuclar.txt`
+özeti iş günlüğüne yazılır). Bu turda bulunan iki kritik hata (H-8, H-12) iş
+"başarılı" görünürken akış satırlarında ortaya çıktı.

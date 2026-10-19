@@ -139,3 +139,78 @@ akışı (`e2e/1_kabul_akisi.yaml`, `e2e/2_dil_rtl.yaml`).
 - **Düzeltme:** `setMaxDelayBetweenMuxerSamplesMs(120_000)`: gerçekten takılan iş yine
   biter, yavaş ama ilerleyen iş tamamlanır.
 - **Test:** Emülatör kabul akışı (dışa aktarma + çıktı denetimi).
+
+---
+
+# 2026-10-19 turu
+
+Bu turdaki kayıtlar aynı biçimdedir. "CI" numaraları GitHub Actions çalıştırma
+numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
+
+## H-8 — Önizleme `ERROR_CODE_FAILED_RUNTIME_CHECK` ile duruyordu (oynatma kafası ilerlemiyordu)
+
+- **Yeniden üretme:** CI #36–#40 e2e: 1, 3, 4, 6 ve 7. akışlarda ekranda "Önizleme
+  hatası (ERROR_CODE_FAILED_RUNTIME_CHECK)"; günlükte `play position=0` (oynatma hiç
+  ilerlemiyor). CI #37'de eklenen tam neden zinciri günlüğü:
+  `IllegalStateException: Expected a valid end boundary for unity region.` →
+  `androidx.media3.common.audio.GainProcessor.queueInput(GainProcessor.java:115)`.
+- **Kök neden:** Ses düzeyi zarfı (`VolumeEnvelope`, `Fx.kt`) canlı modda (önizleme)
+  `isUnityUntil()` için her zaman `C.TIME_UNSET` dönüyordu. `GainProcessor`, kazanç
+  tam 1 iken bu değeri sorar ve `TIME_UNSET`'i geçersiz sayar (Media3 1.9.4 kaynağı,
+  `GainProcessor.java:113–115`). Ses düzeyi %100 olan her klipte önizleme ilk ses
+  tamponunda duruyordu.
+- **Düzeltme (2c48995):** Birlik bölgesi 10 ms'lik parçalar hâlinde bildirilir (canlı
+  değer değişirse en geç bir parça sonra uygulanır); sabit zarfta solma başlangıcı
+  aşılmaz; anahtar kareli düzeyde 1 ms.
+- **Test:** CI #42+ e2e (önizlemeli tüm akışlar). Sonuç PROGRESS.md Bölüm 9'da.
+
+## H-9 — Hız değişimli katman öğesi dışa aktarmayı kilitliyordu (%60)
+
+- **Yeniden üretme:** CI #33–#35: geçişli projede `ERROR_CODE_MUXING_TIMEOUT` %60'ta
+  (geçiş penceresi).
+- **Kök neden:** Geçiş kopyaları kaynak payı yoksa yarım hızla oynatılır. Transformer
+  hız değişiminde video zaman damgalarını ses işlemcisinden (`SpeedChangingAudioProcessor`)
+  türetir; sesi kaldırılmış (yalnız video) dizide bu zaman damgaları hiç çözülmez.
+- **Düzeltme (ac36ee5):** Hızı değişen öğe içeren katman şeritleri sesli dizi olur,
+  ses sıfır kazançla susturulur.
+- **Test:** CI #37+: takılma %60'tan %90'a kaydı → H-12.
+
+## H-10 — Araç çubuğunda AI düğmesi ekran dışına itiliyordu
+
+- **Yeniden üretme:** CI #32: AI akışları `tool-ai` bulunamadığı için düştü.
+- **Kök neden:** Yeni "Katman" düğmesi kök araç çubuğunu genişletti.
+- **Düzeltme (ac36ee5):** Sıra: düzenle, AI, ses, metin, katman, efekt, filtre, ayar, format.
+- **Test:** CI #37+: 3 ve 4. akışlar GEÇTİ.
+
+## H-11 — Kişi maskesi EXIF yönlü fotoğraflarda kayıyordu (yayımlanmadan bulundu)
+
+- **Yeniden üretme:** Kod incelemesi: `Segmenter.decode` EXIF yönünü uygulamıyordu,
+  `PhotoRenderer.decode` uyguluyordu; dikey çekilmiş JPEG'de maske 90° dönük kalırdı.
+- **Düzeltme:** Segmenter ve nesne silme `PhotoRenderer.decode`'u (EXIF + önbellek) kullanır.
+- **Test:** Kod yolu tek; cihazda dikey fotoğrafla doğrulama ☁️.
+
+## H-12 — Geçişli projede dışa aktarma %90'da takılıyor (açık)
+
+- **Yeniden üretme:** CI #40, kabul akışı: ilerleme %90'da 120 sn durdu →
+  `MUXING_TIMEOUT: no output sample written in the last 120000 milliseconds`.
+- **Durum:** İnceleniyor (Media3 Transformer kaynağı üzerinden). Sonraki CI'da dizi
+  yapısını günlüğe yazan tanılama eklenecek. **Çözülmedi.**
+
+## H-13 — Ses efekti ön ayarı değiştirilince eski parametreler kalıyordu (yayımlanmadan bulundu)
+
+- **Kök neden:** `mergeClip` nesne alanlarını derin birleştiriyordu; `audioFx`
+  bütün olarak değişmeliydi.
+- **Düzeltme:** `audioFx` (anahtar kareler, hız eğrisi gibi) bütün olarak değiştirilir.
+- **Test:** B (ses efekti testleri) + kod incelemesi.
+
+## H-14 — Birim test ölçümü paralel yük altında rastgele düşüyordu
+
+- **Yeniden üretme:** Yük ortalaması 14 iken "300 klip render tanımı < 25 ms" testi
+  32 ms ölçtü (normalde 5 ms).
+- **Düzeltme:** 5 turun en iyisi alınır; ölçülen değer çıktıya yazılır (2–8 ms).
+
+## H-15 — `test:dsp` paralel çalışmada paylaşılan /tmp klasörünü siliyordu
+
+- **Kök neden:** Sabit `/tmp/kurgu-*` klasörleri; aynı anda iki çalışma birbirinin
+  sınıf dosyalarını sildi ("KeyframesTest not found").
+- **Düzeltme:** `scripts/test-dsp.sh` her çalışmada `mktemp -d` kullanır.

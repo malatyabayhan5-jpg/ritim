@@ -1,102 +1,121 @@
 # Kurgu — İlerleme
 
-Son güncelleme: 2026-10-18. Durum değerleri: ✅ bitti ve test edildi · 🟡 kısmen ·
-⏳ yapılmadı. "Test edildi" ifadesinin hangi testi kastettiği her satırda yazılıdır.
+Son güncelleme: **2026-10-19**. Bu dosya özelliklerin gerçek durumunu dört değerle
+gösterir; kodun var olması tek başına "tamamlandı" sayılmaz:
 
-## Aşama 1 — Denetim ✅
-
-`AUDIT_REPORT.md`: kaynak kodun tamamı okundu, Media3 davranışları kaynak koddan
-doğrulandı, emülatörde uçtan uca akış çalıştırıldı. 3 kritik, 5 yüksek, 5 orta,
-3 düşük bulgu.
-
-## Aşama 2 — Hata düzeltme ✅ (bu turun kapsamı)
-
-`BUG_FIXES.md`: K1, K2, K3, Y1, Y2, Y3, Y4, Y5, O1 düzeltildi.
-Açık kalanlar: O2 (gerçek çapraz geçiş), O3 (%100 üzeri ses, ses efektleri),
-O4 (kare adımı), O5 (önizlemede ısınma uyarısı), D1–D3.
-
-## Aşama 3 — Araştırma ✅
-
-`RESEARCH_AND_LICENSES.md`: kaynaklar, tarih, lisanslar ve kararlar. Kullanılan tek
-üçüncü taraf shader kodu MIT lisanslı hash fonksiyonlarıdır (atıflı).
-
-## Aşama 4 — Efekt motoru ve kütüphanesi 🟡
-
-| İş | Durum | Kanıt |
-|---|---|---|
-| Veri güdümlü GPU efekt motoru (GLSL dosyası + katalog) | ✅ | Birim testleri; CI'da APK derlemesi |
-| 21 özgün efekt, 10 kategori, gerçek küçük resimler | ✅ | Efekt laboratuvarında 4 sahnede görsel QA, 30 karelik akıcılık ölçümü |
-| Klip efekt yığını (≤4) + efekt katmanı şeridi | ✅ | 12 birim testi; e2e adımları |
-| Kaydet/aç, geri al/yinele, eski projelerin taşınması | ✅ | Birim testleri |
-| Önizleme = dışa aktarma (aynı shader, aynı tohum) | ✅ (mimari) / e2e | `e2e/fx_check.py` dışa aktarılan MP4'te efektin yalnızca katman aralığında görünmesini denetler |
-| 3B LUT (.cube) içe aktarma + yoğunluk | ✅ | 6 birim testi; laboratuvarda GPU ↔ CPU referansı ≤ 1/255 (boyut 2, 17, 33, 65) |
-| Hedef sayılar (≥100 efekt, ≥100 filtre, ≥80 geçiş, ≥60 metin, ≥40 ses) | ⏳ | "Önce kalite" ilkesiyle ilk 21 amiral efekt tamamlandı; sayı hedefleri sonraki turlarda |
-| Maske, chroma key, PiP | ⏳ | Çok girdili birleştirici gerekir |
-| Gerçek çapraz geçişler (A/B klip karışımı) | ⏳ | Aynı |
-| Metin animasyon ön ayarları genişletme, ses efektleri | ⏳ | — |
-
-## Aşama 4b — Cihaz içi AI araçları ✅ (5 araç; arka plan kaldırma ve çeviri ⏳)
-
-| Araç | Durum | Kanıt |
-|---|---|---|
-| Sessizlik kaldırma | ✅ | Birim testleri + emülatör (CI #29: 2190–3850 ms kaldırıldı) |
-| Sahne algılama | ✅ | Birim testleri + emülatör (CI #29: kesmeler 2500/5000 ms) |
-| Gürültü azaltma | ✅ | `tools/dsp-test` (CI'da): duraklamada 9–18 dB düşüş, konuşma kaybı < 0,1 dB, SNR +5–9 dB, gecikme 0 |
-| Metinden konuşma | ✅ | Emülatörde ses klibi eklendi (CI #29); ses kalitesi cihazın TTS motoruna bağlı |
-| Otomatik altyazı | ✅ | Emülatörde konuşma kelimesi kelimesine doğru tanındı (CI #29); 64 bit cihaz gerekir |
-| Arka plan kaldırma, altyazı çevirisi | ⏳ | Sonraki tur |
-
-## Aşama 5 — Performans 🟡
-
-- Efekt başına performans sınıfı katalogda (`light/medium/heavy`), yoğun efektler
-  arayüzde işaretli. Shader kaynakları bir kez okunur ve önbelleğe alınır; LUT
-  dokuları dosya değişmedikçe yeniden ayrıştırılmaz.
-- **Gerçek cihazda ölçüm yapılmadı** (cihaz yok): kare süresi, ısınma, pil.
-
-## Aşama 6 — Testler
-
-| # | Senaryo | Durum |
-|---|---|---|
-| 1 | Proje oluştur → çoklu medya içe aktar | ✅ e2e |
-| 2 | Böl / kırp | ✅ e2e (böl), birim (kırp) |
-| 3 | Metin ekle | ✅ e2e |
-| 4 | Filtre | ✅ e2e |
-| 5 | Efekt katmanı ekle (çift ton) | ✅ e2e |
-| 6 | Klibe efekt (parıltı) | ✅ e2e |
-| 7 | Çoklu efekt yığını | ✅ birim |
-| 8 | Efekt parametresi değiştir + geri al/yinele | ✅ birim |
-| 9 | Geçiş | ✅ e2e |
-| 10 | Müzik/ses | 🟡 e2e (videodan ses ayırma, metinden konuşma); dosya seçiciden müzik emülatörde otomatikleşmedi |
-| 11 | Kaydet → kapat → aç, efektler korunur | ✅ birim; e2e'de efekt şeridi kontrolü eklendi |
-| 12 | MP4 dışa aktar, ffmpeg ile doğrula | ✅ e2e |
-| 13 | Efektin dışa aktarılan videoda görünmesi | ✅ e2e (`fx_check.py`) |
-| 14 | Dil değiştir (TR/EN/AR), RTL | ✅ e2e |
-| 15 | LUT içe aktar | 🟡 birim + laboratuvar; emülatörde dosya seçici otomasyonu yok |
-
-### Son CI sonucu (CI #29, 2026-10-18, Android 14 emülatörü, API 34) — 4/4 GEÇTİ
-
-| Akış | Sonuç |
+| İşaret | Anlamı |
 |---|---|
-| 3 — AI araçları: sahne algılama (kesmeler 2500/5000 ms), geri al, sessizlik kaldırma (2190–3850 ms), metinden konuşma (ses klibi eklendi) | ✅ GEÇTİ |
-| 4 — Otomatik altyazı: model indirme + SHA-256 doğrulama, cihaz içi tanıma: "Hello world! This is an automatic caption test for the video editor." | ✅ GEÇTİ |
-| 1 — Kabul: proje, içe aktarma, bölme, metin, filtre, efekt katmanı + klip efekti, geçiş, ses, kapat/aç, 720p MP4 dışa aktarma, uygulamanın süre/çözünürlük/ses denetimi | ✅ GEÇTİ |
-| 2 — Dil değişimi TR → AR (RTL) → EN → TR | ✅ GEÇTİ |
-| Dışa aktarılan MP4'ün ffmpeg ile baştan sona çözülmesi | ✅ hatasız (1280×720, 30 fps, 17,47 sn, H.264 + AAC) |
-| Efekt katmanının (çift ton) çıktıda yalnızca kendi aralığında görünmesi | ✅ 14,50–17,25 sn karelerinde palet oranı 0,97–0,99; diğer tüm karelerde 0,00 |
+| ✅ | **Tamamlandı ve test edildi** — hangi testle doğrulandığı satırda yazılıdır |
+| 🟡 | **Kısmen tamamlandı** — çalışan kısım ve eksik/doğrulanmamış kısım yazılıdır |
+| ⏳ | **Geliştirme bekliyor** — uygulamada yok ya da "Planlandı" olarak gösterilir |
+| ☁️ | **Dış servis veya donanım gerektiriyor** — bu ortamda doğrulanamaz |
 
-Notlar:
-- Emülatörün GPU'su yazılımsal (SwiftShader) olduğu için dışa aktarma testi 720p ile
-  yapılır; parıltı efektli bölüm kare başına ~4 sn sürdü. Gerçek cihazda performans
-  ölçülmedi.
-- Bu turda bulunan iki gerçek hata (Y6 yerleşim, Y7 muxer zaman aşımı) düzeltildi ve
-  bu çalıştırmayla doğrulandı.
+Test kısaltmaları: **B** birim testi (Node, CI'da her derlemede) · **J** masaüstü JVM
+testi (`npm run test:dsp`: DSP, animasyon, görüntü işleme) · **L** WebGL efekt
+laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemesi ·
+**E** Android 14 emülatöründe (API 34, yazılımsal GPU) Maestro uçtan uca akışı.
+**Gerçek Android cihazında hiçbir ölçüm veya test yapılmadı** (bu ortamda cihaz yok).
 
-## Aşama 7 — Belgeler ✅
+## 1. Kritik hatalar
 
-`docs/MIMARI.md` (efekt motoru, LUT), `docs/OZELLIKLER.md` (envanter), bu dosya,
-`BUG_FIXES.md`, `RESEARCH_AND_LICENSES.md`, `AUDIT_REPORT.md`.
+| Konu | Durum | Kanıt |
+|---|---|---|
+| Önizleme çökmesi `ERROR_CODE_FAILED_RUNTIME_CHECK` (oynatma kafası ilerlemiyordu; 1, 3, 4, 6, 7. akışlarda) | 🟡 | Kök neden CI #40 günlüğünden bulundu: canlı ses zarfı `isUnityUntil` için `TIME_UNSET` dönüyordu (Media3 `GainProcessor`). Düzeltme 2c48995; CI #42+ sonucu aşağıda |
+| Geçişli projede dışa aktarma `MUXING_TIMEOUT` (kabul akışı, %90'da takılma) | 🟡 | Hız değişimli geçiş kopyaları için ilk düzeltme ac36ee5 (%60'taki takılma giderildi); %90'daki takılma inceleniyor — bkz. BUG_FIXES.md H-12 |
+| Tüm eski bulgular (K1–K3, Y1–Y7, O1) | ✅ | BUG_FIXES.md; emülatör akışları |
 
-## Aşama 8 — Teslim
+## 2. Performans (ölçümlü)
 
-APK, GitHub Actions çalıştırmasının "Artifacts" bölümünde (`Kurgu-apk`). Herkese açık
-sürüm (release) yayımlanmadı.
+| Konu | Durum | Ölçüm / kanıt |
+|---|---|---|
+| Canlı parametreler: kaydırıcı sürüklerken önizleme yeniden kurulmaz (efekt, renk, LUT, ses düzeyi, katman) | ✅ | B (`live.test.mjs`: yapı/canlı ayrımı); E (5_performans akışı) |
+| İki geçişli ağır efektler (yarım çözünürlüklü ön geçiş): parıltı, anamorfik, eğik kaydırma, neon kenar, hareket bulanıklığı | ✅ | L: `tools/fx-lab/perf-baseline.json` (SwiftShader, göreli süre; ör. anamorfik 2 geçişte öncekinin ~0,3'ü) |
+| Render tanımı hızı (300 klip + 50 efekt) | ✅ | B: 2–8 ms/çağrı (geliştirme makinesi) |
+| Emülatör kare süreleri | 🟡 | E (CI #40, yazılımsal GPU): 139 kare, p50 34 ms, p90 109 ms, %69 takılan kare; PSS ~134 MB. **Gerçek cihaz değildir** |
+| Gerçek cihazda kare süresi, ısınma, pil | ☁️ | Cihaz yok |
+
+## 3. Çok katmanlı kurgu
+
+| Özellik | Durum | Kanıt / sınırlama |
+|---|---|---|
+| Üst katmanlar (resim içinde resim), 6 şerit, şerit değiştirme | ✅ | B; E (6_katmanlar: dışa aktarılan videoda katman konumu ve süresi `layer_check.py` ile doğrulandı, CI #37–39) |
+| Maskeler (dikdörtgen, yuvarlak dikdörtgen, elips, doğrusal, ayna, kalp, yıldız; ters, yumuşatma) | ✅ | B; E (daire maskesi dışında katman görünmüyor: 0,00) |
+| Chroma key (CbCr uzaklığı + taşma bastırma, otomatik anahtar renk) | 🟡 | B + J (`KeyColorTest`); laboratuvar; emülatörde görsel doğrulama yok |
+| Anahtar kareler: konum, ölçek, döndürme, opaklık (katman); ana iz konum/ölçek/açı/opaklık; efekt yoğunluğu; ses düzeyi | ✅ | B + J (JS ↔ Java aynı değerlendirme, `tests/fixtures/keyframes.txt`); doğrusal / Bézier / basamak |
+| Karışım modları (video) | ⏳ | Media3 1.9'un `DefaultVideoCompositor`'ı yalnızca alfa karışımı yapar ve `MultipleInputVideoGraph` içinde değiştirilemez; özel birleştirici gerekir. Fotoğraf düzenleyicide 11 karışım modu var (aşağıda) |
+| Gerçek A/B geçişleri (44 geçiş, 5 kategori) | 🟡 | B + L (her geçiş laboratuvarda karelerle denetlendi). Önizlemede çalışır; geçişli projelerde dışa aktarma takılması açık (Bölüm 1) |
+| Hız eğrileri (8 hazır + 5 noktalı düzenleme), sabit hız 0,1–10x | ✅ | B (`speed.test.mjs`: süre integrali, ters eşleme, bölme sürekliliği); D |
+| Ters oynatma (cihaz içi yeniden kodlama) | 🟡 | D; e2e 3. akışta adım var; emülatör sonucu CI günlüğünde (Bölüm 9). Android 9+ |
+| Kare dondurma | ✅ | B; E (önceki turlar) |
+
+## 4. Ses
+
+| Özellik | Durum | Kanıt / sınırlama |
+|---|---|---|
+| Mikrofonla seslendirme (izin, seviye ölçer, oynatma kafasından kayıt) | 🟡 | D; e2e 7_seslendirme akışı (CI #40'ta önizleme çökmesi nedeniyle düştü; düzeltme sonrası sonuç Bölüm 9) |
+| Ses efektleri: 14 efekt (EQ, kompresör, sınırlayıcı, kapı, doyum, bit azaltma, halka mod., bant geçiren, koro/flanger, gecikme/ping-pong, yankı, genişletici, kazanç, perde) | 🟡 | J (`AudioFxTest`, 7596 denetim: EQ tepkisi tasarıma 0,000 dB, kompresör eğrisi ±0,3 dB, sınırlayıcı tavanı aşılmaz, yankı RT60 artan, 54 ön ayarda NaN/taşma yok). Kotlin işlemcisi D; **cihazda dinlenmedi**; perde (Sonic) uzunluğu cihazda doğrulanmadı |
+| 54 ses ön ayarı (ses, müzik, efekt, temizlik) | 🟡 | B (ön ayarlar birbirinden ayrık) + J; aynı sınırlama |
+| Ses düzeyi anahtar kareleri | ✅ | B (değerlendirme, render tanımı, bölmede kaydırma); yerel taraf J ile paylaşılan `Keyframes.java` |
+| Gürültü azaltma | ✅ | J (duraklamada 9–18 dB düşüş, konuşma kaybı < 0,1 dB) |
+| SRT içe/dışa aktarma | ✅ | B (`srt.test.mjs` gidiş-dönüş, BOM, bozuk blok) |
+| %100 üzeri ses | 🟡 | Ses efektlerindeki kazanç (+12 dB, sınırlayıcıyla); düzey kaydırıcısı 0–100% |
+
+## 5. Metin, çıkartma, altyazı
+
+| Özellik | Durum | Kanıt / sınırlama |
+|---|---|---|
+| 97 metin şablonu (42 stil + 55 düzen, 13 kategori) | 🟡 | B (`text.test.mjs`: sayı, renk geçerliliği, metin/kutu karşıtlığı ≥ 3:1, üç dil). Görünüm PIL taslaklarıyla incelendi; **cihazda çizim görülmedi** |
+| Metin animasyonları: 20 giriş, 20 çıkış, 5 döngü (kelime/harf, daktilo imleci, bulanıklık, dalga…) | 🟡 | J (`TextAnimTest`, 14.131 denetim; eski animasyonlar birebir korunur; Arapça kelime bazlı). Cihazda görsel doğrulama yok |
+| Arapça / RTL | ✅ | E (2_dil_rtl akışı); B (çeviri kapsamı 1277 anahtar × 3 dil) |
+| Çıkartmalar (emoji, video ve fotoğraf) | 🟡 | Kod + B (fotoğraf modeli); emülatörde fotoğraf akışında metin adımı var |
+| Şekiller | 🟡 | Fotoğraf düzenleyicide 8 şekil ✅ (B); video zaman çizelgesinde şekil ⏳ |
+| Otomatik altyazı (whisper.cpp, cihaz içi) | ✅ | E (CI #29: konuşma kelimesi kelimesine doğru); 64 bit cihaz |
+| Altyazı düzenleme listesi (metin, zamana git, sil) | 🟡 | Kod + D; e2e adımı yok |
+| Altyazı çevirisi | 🟡 | Cihaz içinde yalnızca **İngilizceye** (whisper "translate"); D. Diğer hedef diller ☁️ |
+
+## 6. AI araçları
+
+| Araç | Durum | Kanıt / sınırlama |
+|---|---|---|
+| Sessizlik kaldırma, sahne algılama, metinden konuşma | ✅ | B + E (CI #29) |
+| Arka plan kaldırma (fotoğraf, TFLite kişi modeli) | 🟡 | D; e2e 8_fotograf modeli çalıştırır (test görselinde kişi yok → "kişi bulunamadı" beklenir). Gerçek portrede kalite cihazda görülmedi. Videoda ⏳ |
+| Nesne silme (fotoğraf, klasik doldurma) | 🟡 | J (`ImageOpsTest`: düz zemin/degrade doldurma) + D; üretken değildir, büyük alanlarda doku üretmez |
+| Otomatik iyileştirme (video + fotoğraf) | 🟡 | B (`enhance.test.mjs`) + D; cihazda görsel doğrulama yok |
+| Altyazı çevirisi | 🟡 | Yukarıda |
+| Metinden görsel üretme | ☁️ | Altyapı + örnek vekil sunucu hazır (B: sahte sağlayıcıyla); kullanıcı sunucusu ve sağlayıcı anahtarı olmadan **çalışmaz** ve arayüzde "Bağlı değil" yazar |
+| Hareket takibi, video arka plan kaldırma, AI otomatik kurgu, süper çözünürlük | ⏳ / ☁️ | Yapılmadı; uygun açık lisanslı mobil model ve gerçek cihaz ölçümü gerekir |
+
+## 7. Kütüphane boyutları (önce kalite)
+
+| Kütüphane | Hedef | Mevcut | Durum | Kanıt |
+|---|---|---|---|---|
+| Filtreler | ≥100 | 116 | ✅ | B (`filters.test.mjs`: benzersizlik, taşma/düzleşme, ten tonu, ≥ 0,04 ortalama fark) |
+| Efektler | ≥100 | 21 (+ paket çalışması sürüyor) | 🟡 | L + B; hedefe ulaşılmadı |
+| Geçişler | ≥80 | 44 (+ paket çalışması sürüyor) | 🟡 | L + B; hedefe ulaşılmadı |
+| Metin şablonları | ≥60 | 97 | ✅ (sayı) / 🟡 (cihazda görsel) | B |
+| Ses ön ayarları | ≥40 | 54 | ✅ (sayı) / 🟡 (cihazda dinleme) | B + J |
+
+## 8. Fotoğraf düzenleyici
+
+| Özellik | Durum | Kanıt / sınırlama |
+|---|---|---|
+| Çalışma alanı (Video / Fotoğraf), proje listesi, yeniden adlandır/çoğalt/onaylı sil | 🟡 | D; e2e 8_fotograf |
+| Tahribatsız katmanlar (görsel, metin, çıkartma, şekil), sıra, gizle, çoğalt, sil, geri al/yinele, otomatik kayıt, yeniden açma | ✅ (model) / 🟡 (arayüz) | B (`photo.test.mjs`: katman işlemleri, taşıma, isabet testi, döndürme/çevirme/kırpma eşlemesi); arayüz e2e 8 |
+| Kırp (9 oran, yakınlaştır, kaydır), düzelt, 90° döndür, çevir; kanvas kırpmaya uyar | ✅ (hesap) / 🟡 (çizim) | B; çizim cihazda/emülatörde 8. akışla (çıktı 1080×1080 denetimi) |
+| 10 kanvas boyutu, arka plan rengi/saydamlık, çerçeve | 🟡 | B + D |
+| Ayarlar (12 + bulanıklık), filtre/LUT, HSL (8 bant), renk dereceleme, vinyet, gren, keskinlik | 🟡 | J (`ImageOpsTest`: her işlem ölçümlü); Android Canvas çizimi D |
+| Karışım modları (11) ve opaklık | 🟡 | D; Android 9 ve öncesinde temel modlar |
+| JPG/PNG dışa aktarma, galeri (Pictures/Kurgu), paylaş | 🟡 | e2e 8 (çıktı boyutu run.sh'ta denetlenir) |
+| AI: arka plan kaldırma, nesne silme, otomatik iyileştirme, görsel üretme | Bölüm 6 | — |
+
+## 9. Son CI sonuçları
+
+CI #41–#46 (2026-10-19) çalışıyor; sonuçlar geldikçe bu bölüme yazılacak.
+Önceki tam sonuç (CI #40, düzeltmeler öncesi): 2_dil_rtl, 3_ai_araclari,
+4_otomatik_altyazi, 5_performans GEÇTİ; 1_kabul_akisi (dışa aktarma takılması),
+6_katmanlar ve 7_seslendirme (önizleme çökmesi) BAŞARISIZ.
+
+## 10. Teslim
+
+APK her CI çalıştırmasında **Actions → ilgili çalıştırma → Artifacts → `Kurgu-apk`**
+olarak üretilir. Herkese açık sürüm (release) yayımlanmadı.

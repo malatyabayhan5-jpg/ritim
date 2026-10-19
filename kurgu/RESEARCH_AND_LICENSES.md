@@ -1,6 +1,6 @@
 # Kurgu — Araştırma ve lisans kayıtları
 
-Araştırma tarihi: **2026-10-18**. Bu belge; efekt/filtre/geçiş tasarımı için
+Araştırma tarihi: **2026-10-18**, güncelleme: **2026-10-19** (bölüm 6–8). Bu belge; efekt/filtre/geçiş tasarımı için
 incelenen kaynakları, her kaynaktan ne alındığını (fikir mi, kod mu), lisansını ve
 verilen kararı listeler. İlke: **başka bir ürünün kodu, varlığı, adı veya simgesi
 kopyalanmaz**; kamuya açık bilgi yalnızca kategori/teknik fikir düzeyinde kullanılır,
@@ -65,7 +65,7 @@ Copyright (c) 2014 David Hoskins.
 | Metinden konuşma | Android TextToSpeech | Ücretsiz, cihaz içi, ek model yok; ses kalitesi cihaz motoruna bağlı |
 | Gürültü azaltma | Özgün spektral çıkarma (Java) | RNNoise (BSD) gibi modeller NDK + model gerektirir; sabit gürültü için klasik yöntem yeterli ve ölçülebilir |
 | Sessizlik / sahne | Özgün sinyal işleme | Model gerektirmez, deterministik, birim testlenebilir |
-| Arka plan kaldırma | Sonraki tur | Kare başına segmentasyon modeli (ör. MediaPipe/ML Kit) gerçek cihazda performans ölçümü gerektirir |
+| Arka plan kaldırma | Fotoğrafta yapıldı (2026-10-19, bölüm 6); videoda yapılmadı | Kare başına segmentasyon videoda gerçek cihazda performans ölçümü gerektirir; videoda chroma key kullanılabilir |
 | Otomatik kurgu, görüntü iyileştirme | Bulut gerektirir, yapılmadı | Ücretli servis ve kullanıcı anahtarı; kullanıcı onayı olmadan yapılmaz |
 
 ## 5. Maliyet ve erişim notları
@@ -76,3 +76,46 @@ Copyright (c) 2014 David Hoskins.
   erişilemedi; özetler CI'da indirilen dosyalardan alındı.
 - Gerçek Android cihaz bu ortamda yok: GPU performansı, ısınma ve pil ölçümleri
   yapılamadı. Efektlerdeki "yoğun" (heavy) etiketi örnek sayısına göre tahmindir.
+
+## 6. 2026-10-19 turunda eklenen üçüncü taraf bileşenler
+
+| Bileşen | Sürüm | Lisans | Nerede / nasıl | Karar gerekçesi |
+|---|---|---|---|---|
+| TensorFlow Lite (Java çalışma zamanı) | `org.tensorflow:tensorflow-lite:2.16.1` | Apache-2.0 | `build.gradle`; `Segmenter.kt` | Açık lisans, cihaz içi çıkarım, ek hizmet/hesap gerekmez. ML Kit Selfie Segmentation kapalı kaynak SDK olduğu için seçilmedi |
+| MediaPipe "SelfieSegmenter (square)" model ağırlıkları | float16, 249.537 bayt, SHA-256 `191ac952…8226658b` | Apache-2.0 (Google) | `assets/kurgu_ml/selfie_segmenter.tflite`, köken ve lisans notu `assets/kurgu_ml/NOTICE.txt` | Değiştirilmeden gömüldü (internet gerekmez). Yalnızca insanları ayırır; nesne/hayvan ayırmaz — arayüzde yazılı |
+| whisper.cpp "translate" görevi | (mevcut whisper.cpp v1.9.5) | MIT | `kurgu_whisper.cpp` | Cihaz içi konuşma → İngilizce altyazı. whisper yalnızca İngilizceye çevirir; başka hedef diller için açık lisanslı, mobilde çalışan, kalite/boyut dengesi kabul edilebilir bir model bu turda seçilmedi → dış servis gerektiriyor olarak işaretlendi |
+
+Uygulamaya yeni yazı tipi, görsel, ses, LUT veya efekt paketi eklenmedi.
+Çıkartmalar sistem emoji yazı tipiyle çizilir (görsel dosyası yok).
+
+## 7. Özgün olarak yazılan algoritmalar ve dayandıkları yayınlar (kod alınmadı)
+
+| Alan | Dosya | Dayanak (yalnızca yöntem) |
+|---|---|---|
+| Parametrik EQ, raf/kesme süzgeçleri | `dsp/Biquad.java`, `Equalizer.java`, `CutFilter.java` | R. Bristow-Johnson, "Audio EQ Cookbook" (formüller; kamuya açık) |
+| Kompresör | `dsp/Compressor.java` | Giannoulis, Massberg, Reiss, "Digital Dynamic Range Compressor Design", JAES 2012 (yumuşak diz, ayrık tepe dedektörü) |
+| Sınırlayıcı | `dsp/Limiter.java` | İleri bakışlı kazanç, kayan pencere minimumu (genel yöntem) |
+| Yankı (reverb) | `dsp/Reverb.java` | Schroeder/Moorer yapısı, kamu malı "Freeverb" yerleşimi (8 tarak + 4 tüm geçiren); kod yazılımcı tarafından yeniden yazıldı |
+| Diğer ses efektleri | `dsp/*.java` | Gecikme, koro/flanger, doyum (Padé tanh), bit azaltma, halka modülasyonu, kapı, M/S genişletici — ders kitabı yöntemleri |
+| Görüntü işlemleri (fotoğraf) | `vision/ImageOps.java` | Renk matrisi, ton eğrileri, HSL bantları, bölünmüş tonlama, kutu bulanıklığı (3 geçiş ≈ Gauss), keskinleştirme maskesi, vinyet, gren, 3B LUT üç doğrusal enterpolasyon |
+| Nesne silme | `ImageOps.inpaint` | Kenardan içe katman katman ağırlıklı komşu ortalaması + yumuşatma (klasik difüzyon tabanlı doldurma). Üretken model değildir |
+| Otomatik iyileştirme | `src/model/enhance.js`, `PhotoRenderer.imageStats` | Yüzdelik tabanlı ton genişletme + gri dünya beyaz dengesi (klasik) |
+| Metin animasyonları | `anim/TextAnim.java`, `TextLayer.kt` | Özgün; yay/esneklik eğrileri standart sönümlü salınım formülleri |
+| Hız eğrisi | `src/model/speed.js` | Parçalı sabit hız, harmonik ortalama ile süre korunumu (özgün) |
+| Ters oynatma | `Reverser.kt` | Android MediaCodec/MediaMuxer ile yeniden kodlama (platform API'si) |
+
+## 8. Bulut AI kararı ve güvenlik
+
+- Uygulama hiçbir API anahtarı içermez ve gizlice ücretli servis çağırmaz.
+- Görsel üretme yalnızca kullanıcının **Ayarlar → Bulut AI sunucusu** alanına kendi
+  sunucusunun (yalnızca `https://`) adresini girmesiyle etkinleşir; aksi hâlde arayüzde
+  "Bağlı değil" yazar ve düğme devre dışıdır. Sunucu yanıtı doğrulanır; hatalı/boş
+  yanıt başarı gibi gösterilmez (`src/model/cloud.js`, birim testli).
+- `server/image-proxy.mjs`: bağımlılıksız örnek vekil sunucu. Anahtar sunucunun ortam
+  değişkeninde tutulur; istek doğrulama, gövde sınırı, IP başına hız sınırı vardır.
+  Sağlayıcı tarafı "OpenAI Images API uyumlu" uç nokta biçimini konuşur (yalnızca
+  protokol; kod alınmadı). Gerçek bir sağlayıcıyla **denenmedi** — yalnızca sahte
+  sağlayıcıya karşı birim testlidir (`tests/cloud.test.mjs`). Herkese açık yayında
+  kullanıcı kimlik doğrulaması eklenmelidir.
+- Bu ortamda gerçek bir bulut AI hesabı/anahtarı yoktur; bu nedenle bulut özelliği
+  "dış servis gerektiriyor" durumundadır.
