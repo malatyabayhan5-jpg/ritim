@@ -26,6 +26,7 @@ import LayerPanel from '../editor/LayerPanel';
 import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
 import AudioFxPanel from '../editor/AudioFxPanel';
+import { StickerPanel } from '../editor/PhotoPanels';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel, { CaptionListPanel } from '../editor/CaptionsPanel';
@@ -425,6 +426,15 @@ export default function EditorScreen({ params, focused }) {
     setSelection({ type: 'text', id: r.newId });
     setSub(null);
     openPanel('text');
+  };
+
+  // Çıkartma: emoji metin öğesi olarak eklenir (gölgesiz, büyük, hafif sekme animasyonu)
+  const addSticker = (emoji) => {
+    const r = TL.addText(project, position, emoji, { size: 0.12, shadow: false, stroke: '#00000000', strokeWidth: 0, background: '#00000000' }, { animIn: 'pop', animOut: 'fade' });
+    apply(r.project);
+    setSelection({ type: 'text', id: r.newId });
+    setSub(null);
+    setPanel(null);
   };
 
   const freeze = async () => {
@@ -927,7 +937,7 @@ export default function EditorScreen({ params, focused }) {
     }
     if (sub === 'text') {
       // Araç çubuğunda temel düzenler; tüm şablonlar metin panelinin Şablonlar sekmesinde
-      return [T('addText', 'add-circle-outline', () => addText(null)), ...TEXT_LAYOUTS_BASE.map((l) => (
+      return [T('addText', 'add-circle-outline', () => addText(null)), T('sticker', 'happy-outline', () => openPanel('sticker')), ...TEXT_LAYOUTS_BASE.map((l) => (
         <ToolButton key={l.id} testID={`tool-layout-${l.id}`} icon="albums-outline" label={t(`text.layout.${l.id}`)} onPress={() => addText(l.id)} />
       ))];
     }
@@ -1069,6 +1079,8 @@ export default function EditorScreen({ params, focused }) {
         return <RecordPanel onStart={beginRecording} onStop={endRecording} onClose={() => { cancelRecording(); close(); }} />;
       case 'ai':
         return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
+      case 'sticker':
+        return <StickerPanel onPick={addSticker} onClose={close} />;
       case 'captionList':
         return (
           <CaptionListPanel

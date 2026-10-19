@@ -133,7 +133,8 @@
     "chromaKey": "Chroma key",
     "reverse": "Ters",
     "record": "Seslendir",
-    "audioFx": "Ses efekti"
+    "audioFx": "Ses efekti",
+    "sticker": "Çıkartma"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
