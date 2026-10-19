@@ -74,7 +74,7 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performan
   fi
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
-  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export)" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
+  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
   adb logcat -c
   if [ $code -eq 0 ]; then
     echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"
@@ -141,6 +141,6 @@ done
 echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== AI araçları günlüğü ====="
-cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -40
+cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -80
 echo "===== JS / yerel hata satırları ====="
 grep -E " E |Error|Exception|FATAL" "$OUT/logcat.txt" 2>/dev/null | grep -vE "Unable to resolve|chatty" | head -60

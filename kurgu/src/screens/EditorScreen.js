@@ -198,6 +198,8 @@ export default function EditorScreen({ params, focused }) {
   }, []);
 
   const togglePlay = () => {
+    // e2e tanılama: oynatma kafası konumu (logcat KurguUI)
+    console.log(`[KurguUI] ${playing ? 'pause' : 'play'} position=${Math.round(position)} total=${Math.round(total)}`);
     if (playing) previewRef.current?.pause?.();
     else {
       if (position >= total - 50) seek(0, false);
@@ -271,6 +273,7 @@ export default function EditorScreen({ params, focused }) {
       else toast(t('editor.cannotSplit'));
     } else {
       const r = TL.splitMainAt(project, position);
+      console.log(`[KurguUI] split position=${Math.round(position)} changed=${r.changed}`);
       if (r.changed) {
         apply(r.project);
         setSelection({ type: 'main', id: r.newId });
@@ -992,6 +995,7 @@ export default function EditorScreen({ params, focused }) {
                 apply((p) => TL.updateEffectLayer(p, selectedEffect.id, { effectId, values: {}, amount: 1 }));
               } else {
                 const r = TL.addEffectLayer(project, effectId, position, 3000);
+                console.log(`[KurguUI] effectLayer position=${Math.round(position)}`);
                 apply(r.project);
                 setSelection({ type: 'effect', id: r.newId });
               }
