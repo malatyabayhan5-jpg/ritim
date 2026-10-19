@@ -16,8 +16,10 @@ export const AI_TOOLS = [
   { key: 'textToSpeech', icon: 'volume-high-outline', mode: 'system', ready: true },
   { key: 'noiseReduction', icon: 'mic-outline', mode: 'onDevice', ready: true },
   { key: 'autoCaptions', icon: 'chatbox-ellipses-outline', mode: 'onDevice', ready: true },
-  { key: 'removeBackground', icon: 'person-outline', mode: 'onDevice' },
-  { key: 'translate', icon: 'language-outline', mode: 'onDevice' },
+  { key: 'removeBackground', icon: 'person-outline', mode: 'onDevice', ready: true },
+  { key: 'objectErase', icon: 'bandage-outline', mode: 'onDevice', ready: true },
+  { key: 'translate', icon: 'language-outline', mode: 'onDevice', ready: true },
+  { key: 'imageGenerate', icon: 'image-outline', mode: 'cloud' },
   { key: 'autoCut', icon: 'flash-outline', mode: 'cloud' },
   { key: 'upscale', icon: 'resize-outline', mode: 'cloud' },
 ];

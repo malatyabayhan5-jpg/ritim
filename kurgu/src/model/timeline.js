@@ -345,8 +345,8 @@ export function splitAudioAt(project, id, t) {
   const dur = audioDuration(a);
   if (offset < MIN_CLIP_MS || dur - offset < MIN_CLIP_MS) return { project, changed: false };
   const cut = a.srcIn + offset * a.speed;
-  const first = { ...a, srcOut: cut, fadeOut: 0 };
-  const second = { ...a, id: newId('aud'), start: Math.round(t), srcIn: cut, fadeIn: 0 };
+  const first = { ...a, srcOut: cut, fadeOut: 0, ...(a.keyframes ? { keyframes: shiftKeyframes(a.keyframes, 0, offset) } : {}) };
+  const second = { ...a, id: newId('aud'), start: Math.round(t), srcIn: cut, fadeIn: 0, ...(a.keyframes ? { keyframes: shiftKeyframes(a.keyframes, -offset, dur - offset) } : {}) };
   return {
     project: touch({ ...project, audio: project.audio.flatMap((x) => (x.id === id ? [first, second] : [x])) }),
     changed: true,
@@ -363,10 +363,14 @@ export function trimAudio(project, id, edge, delta) {
   if (edge === 'start') {
     const srcIn = Math.max(0, Math.min(a.srcOut - minSrc, a.srcIn + srcDelta));
     const moved = (srcIn - a.srcIn) / a.speed;
-    return updateAudio(project, id, { srcIn: Math.round(srcIn), start: Math.max(0, Math.round(a.start + moved)) });
+    const patch = { srcIn: Math.round(srcIn), start: Math.max(0, Math.round(a.start + moved)) };
+    if (a.keyframes) patch.keyframes = shiftKeyframes(a.keyframes, -moved, audioDuration({ ...a, ...patch }));
+    return updateAudio(project, id, patch);
   }
   const limit = media?.durationMs || a.srcOut;
-  return updateAudio(project, id, { srcOut: Math.round(Math.max(a.srcIn + minSrc, Math.min(limit, a.srcOut + srcDelta))) });
+  const patch = { srcOut: Math.round(Math.max(a.srcIn + minSrc, Math.min(limit, a.srcOut + srcDelta))) };
+  if (a.keyframes) patch.keyframes = shiftKeyframes(a.keyframes, 0, audioDuration({ ...a, ...patch }));
+  return updateAudio(project, id, patch);
 }
 
 /** Çakışmayan ses kliplerini şeritlere dağıtır (aralık bölümleme). */
@@ -752,4 +756,28 @@ export function usedMediaIds(project) {
   project.audio.forEach((a) => ids.add(a.mediaId));
   (project.overlays || []).forEach((o) => ids.add(o.mediaId));
   return ids;
+}
+
+// --- Ses düzeyi anahtar kareleri (ana iz klipleri ve ses öğeleri; zaman öğe içi ms) ---
+
+export function volumeAt(item, localMs) {
+  return valueAt(item.keyframes?.volume, localMs, item.volume ?? 1);
+}
+
+/** Kaydırıcı değişikliği: iz varsa oynatma kafasındaki kare, yoksa sabit düzey. */
+export function volumePatch(item, value, localMs) {
+  const track = item.keyframes?.volume;
+  if (track && track.length) return { keyframes: { ...item.keyframes, volume: setKey(track, localMs, value) }, muted: false };
+  return { volume: value, muted: false };
+}
+
+export function toggleVolumeKey(item, localMs) {
+  const track = item.keyframes?.volume || [];
+  const v = volumeAt(item, localMs);
+  const exists = track.some((k) => Math.abs(k.t - localMs) <= 15);
+  const next = exists ? removeKey(track, localMs) : setKey(track, localMs, v);
+  const keyframes = { ...item.keyframes };
+  if (next.length) keyframes.volume = next;
+  else delete keyframes.volume;
+  return next.length ? { keyframes } : { keyframes, volume: v };
 }

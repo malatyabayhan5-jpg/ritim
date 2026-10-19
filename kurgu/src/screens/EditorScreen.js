@@ -28,7 +28,7 @@ import FxPanel from '../editor/FxPanel';
 import AudioFxPanel from '../editor/AudioFxPanel';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
-import CaptionsPanel from '../editor/CaptionsPanel';
+import CaptionsPanel, { CaptionListPanel } from '../editor/CaptionsPanel';
 import { addClipCaptions, addSrtCaptions, captionableClips, hasCaptions, parseSrt, removeCaptions, toSrt } from '../model/captions';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -75,7 +75,7 @@ export default function EditorScreen({ params, focused }) {
   const [saveState, setSaveState] = useState('saved');
   const [previewError, setPreviewError] = useState(null);
   const [fxSel, setFxSel] = useState(null);
-  const [cap, setCap] = useState({ info: null, lang: null, modelId: 'base', progress: null });
+  const [cap, setCap] = useState({ info: null, lang: null, modelId: 'base', progress: null, translate: false });
   const capCancelled = useRef(false);
   const settings = useRef({ haptics: true, previewQuality: 'auto', imageDurationMs: 3000 });
   const previewRef = useRef(null);
@@ -555,7 +555,7 @@ export default function EditorScreen({ params, focused }) {
         const clip = clips[i];
         const step = (v) => setCap((c) => ({ ...c, progress: { label: t('captions.transcribing', { current: i + 1, total: clips.length, percent: pct(v) }), value: (i + v) / clips.length } }));
         step(0);
-        const res = await transcribe(project.media[clip.mediaId], clip.srcIn, clip.srcOut, cap.lang || 'auto', model.id, (phase, v) => step(phase === 'transcribe' ? v : 0));
+        const res = await transcribe(project.media[clip.mediaId], clip.srcIn, clip.srcOut, cap.lang || 'auto', model.id, (phase, v) => step(phase === 'transcribe' ? v : 0), cap.translate);
         results.push({ clipId: clip.id, segments: res.segments || [] });
       }
       console.log(`[KurguAI] captions segments=${JSON.stringify(results.map((r) => r.segments.map((s) => s.text)))}`);
@@ -1030,7 +1030,7 @@ export default function EditorScreen({ params, focused }) {
       case 'speed':
         return selectedMain && <SpeedPanel clip={selectedMain} onChange={(patch, key) => apply((p) => TL.setSpeed(p, selectedMain.id, patch.speed), key)} onCurve={(curve, key) => apply((p) => TL.setSpeedCurve(p, selectedMain.id, curve), key)} onClose={close} />;
       case 'volume':
-        return selectedMain && <VolumePanel item={selectedMain} maxFadeMs={Math.min(5000, TL.clipDuration(selectedMain) / 2)} onChange={updMain} onClose={close} />;
+        return selectedMain && <VolumePanel item={selectedMain} maxFadeMs={Math.min(5000, TL.clipDuration(selectedMain) / 2)} localMs={Math.max(0, Math.min(TL.clipDuration(selectedMain), position - TL.clipStart(project, selectedMain.id)))} onChange={updMain} onClose={close} />;
       case 'audioFx':
         return selectedMain && <AudioFxPanel value={selectedMain.audioFx} onChange={updMain} onClose={close} />;
       case 'duration':
@@ -1069,12 +1069,26 @@ export default function EditorScreen({ params, focused }) {
         return <RecordPanel onStart={beginRecording} onStop={endRecording} onClose={() => { cancelRecording(); close(); }} />;
       case 'ai':
         return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
+      case 'captionList':
+        return (
+          <CaptionListPanel
+            captions={project.texts.filter((x) => x.caption).sort((a, b) => a.start - b.start)}
+            position={position}
+            onChange={(id, text, key) => apply((p) => TL.updateText(p, id, { text }), key)}
+            onDelete={(id) => apply((p) => TL.deleteText(p, id))}
+            onSeek={(ms) => seek(ms)}
+            onClose={close}
+          />
+        );
       case 'captions':
         return (
           <CaptionsPanel
             info={cap.info}
             lang={cap.lang}
             onLang={(l) => setCap((c) => ({ ...c, lang: l }))}
+            translate={cap.translate}
+            onTranslate={(v) => setCap((c) => ({ ...c, translate: v }))}
+            onEdit={() => openPanel('captionList')}
             modelId={cap.modelId}
             onModel={(m) => setCap((c) => ({ ...c, modelId: m }))}
             progress={cap.progress}
@@ -1189,7 +1203,7 @@ export default function EditorScreen({ params, focused }) {
           />
         );
       case 'audioVolume':
-        return selectedAudio && <VolumePanel item={selectedAudio} canMute={false} maxFadeMs={Math.min(10000, TL.audioDuration(selectedAudio) / 2)} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
+        return selectedAudio && <VolumePanel item={selectedAudio} canMute={false} maxFadeMs={Math.min(10000, TL.audioDuration(selectedAudio) / 2)} localMs={Math.max(0, Math.min(TL.audioDuration(selectedAudio), position - selectedAudio.start))} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
       case 'audioFxAudio':
         return selectedAudio && <AudioFxPanel value={selectedAudio.audioFx} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
       case 'audioSpeed':

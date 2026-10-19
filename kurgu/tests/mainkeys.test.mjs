@@ -51,3 +51,33 @@ test('efekt yoğunluğu anahtar kareleri: köken pencere genişletmede sabit', (
   assert.ok(copy.startMs < fx.startMs);
   assert.equal(copy.kfOriginMs, 5000);
 });
+
+test('ses düzeyi anahtar kareleri: ekle, değerle, render tanımı, ses öğesi bölme kaydırması', () => {
+  let p = projectWith([video('v1', 8000)]);
+  const clip = p.main[0];
+  p = TL.updateMain(p, clip.id, TL.toggleVolumeKey(p.main[0], 0));
+  p = TL.updateMain(p, clip.id, TL.toggleVolumeKey(p.main[0], 4000));
+  p = TL.updateMain(p, clip.id, TL.volumePatch(p.main[0], 0.2, 4000));
+  assert.equal(p.main[0].keyframes.volume.length, 2);
+  assert.ok(Math.abs(TL.volumeAt(p.main[0], 2000) - 0.6) < 1e-6, 'doğrusal ara değer');
+  const spec = buildRenderSpec(p, (m) => `file:///${m.path}`);
+  assert.equal(spec.main[0].volumeKf.length, 14, 'iki kare × 7 değer');
+  p = TL.updateMain(p, clip.id, TL.toggleVolumeKey(p.main[0], 0));
+  p = TL.updateMain(p, clip.id, TL.toggleVolumeKey(p.main[0], 4000));
+  assert.equal(p.main[0].keyframes.volume, undefined, 'son kare silinince iz kalkar');
+  assert.ok(Math.abs(p.main[0].volume - 0.2) < 1e-6, 'o anki değer sabit düzey olur');
+
+  const au = { id: 'a1', kind: 'audio', path: 'media/a1.m4a', name: 'a', durationMs: 10000, hasAudio: true };
+  const r0 = TL.addAudio(p, au, 0);
+  p = r0.project;
+  const a = p.audio.find((x) => x.id === r0.newId);
+  p = TL.updateAudio(p, a.id, TL.toggleVolumeKey(a, 1000));
+  p = TL.updateAudio(p, a.id, TL.toggleVolumeKey(p.audio.find((x) => x.id === a.id), 6000));
+  assert.equal(buildRenderSpec(p, (m) => `file:///${m.path}`).audioLanes.flat().find((x) => x.key === a.id).volumeKf.length, 14);
+  const r = TL.splitAudioAt(p, a.id, a.start + 3000);
+  assert.ok(r.changed);
+  const second = r.project.audio.find((x) => x.id === r.newId);
+  const tr = second.keyframes.volume;
+  assert.equal(tr[0].t, 0, 'ikinci parçada iz kesim noktasından başlar');
+  assert.equal(tr[tr.length - 1].t, 3000);
+});

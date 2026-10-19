@@ -61,7 +61,7 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 adb logcat -c
 : > "$OUT/sonuclar.txt"
 # AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
-for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme; do
+for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme 8_fotograf; do
   [ "$flow" = 5_performans ] && adb shell dumpsys gfxinfo $PKG reset > /dev/null 2>&1
   # Katman akışından önceki dışa aktarımlar: kabul akışının çıktısı bunlardan biridir
   [ "$flow" = 6_katmanlar ] && adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort > "$OUT/once.txt"
@@ -75,7 +75,7 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performan
   fi
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
-  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
+  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
   # Yerel hata ayrıntıları (önizleme/dışa aktarma istisnaları) akış başına
   adb logcat -d 2>/dev/null | grep -E "KurguPreview|KurguExport|AndroidRuntime|IllegalStateException|IllegalArgumentException|ExoPlaybackException|PlaybackException|Caused by|\tat androidx.media3" | head -60 | sed "s/^/[$flow] /" >> "$OUT/yerel_hatalar.txt"
   adb logcat -c
@@ -131,13 +131,24 @@ else
   echo "Galeride (Movies/Kurgu) dışa aktarılmış video bulunamadı" >> "$OUT/sonuclar.txt"
 fi
 
+# Fotoğraf akışının çıktısı (Pictures/Kurgu): 1080×1350 kaynak 1:1 kırpıldı → 1080x1080 beklenir
+PHOTOFILE=$(adb shell ls /sdcard/Pictures/Kurgu/ 2>/dev/null | tr -d '\r' | grep -E '\.(jpg|png)$' | tail -1)
+if [ -n "$PHOTOFILE" ]; then
+  adb pull "/sdcard/Pictures/Kurgu/$PHOTOFILE" "$OUT/fotograf_cikti.jpg" > /dev/null
+  dims=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$OUT/fotograf_cikti.jpg" 2>/dev/null)
+  [ "$dims" = "1080x1080" ] && verdict="GEÇTİ" || verdict="BEKLENMEYEN BOYUT"
+  echo "Fotoğraf çıktısı: $PHOTOFILE ($dims, beklenen 1080x1080) — $verdict" >> "$OUT/sonuclar.txt"
+else
+  echo "Galeride (Pictures/Kurgu) dışa aktarılmış fotoğraf bulunamadı" >> "$OUT/sonuclar.txt"
+fi
+
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
 adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
 [ -s "$OUT/cokme.txt" ] && grep -q "$PKG" "$OUT/cokme.txt" && echo "UYARI: uygulama çökme kaydı var (cokme.txt)" >> "$OUT/sonuclar.txt"
 cat "$OUT/sonuclar.txt"
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
-for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans 6_katmanlar 7_seslendirme; do
+for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans 6_katmanlar 7_seslendirme 8_fotograf; do
   echo "===== $flow (son 40 satır) ====="
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done

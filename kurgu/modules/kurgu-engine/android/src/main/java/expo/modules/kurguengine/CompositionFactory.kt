@@ -259,8 +259,8 @@ object CompositionFactory {
     if (clip.denoise > 0.01f && clip.volume > 0f) audio.add(DenoiseProcessor(clip.denoise))
     if (clip.volume > 0f) clip.audioFx?.let { audio.addAll(audioFxProcessors(it)) }
     // Önizlemede ses düzeyi canlı değişebilsin diye işlemci her zaman eklenir.
-    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
-      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null)))
+    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs, clip.volumeKf)) {
+      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null, clip.volumeKf)))
     }
 
     val builder = EditedMediaItem.Builder(mediaItem)
@@ -294,8 +294,8 @@ object CompositionFactory {
     val audio = mutableListOf<AudioProcessor>()
     if (clip.denoise > 0.01f) audio.add(DenoiseProcessor(clip.denoise))
     clip.audioFx?.let { audio.addAll(audioFxProcessors(it)) }
-    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
-      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null)))
+    if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs, clip.volumeKf)) {
+      audio.add(GainProcessor(VolumeEnvelope(clip.volume, clip.fadeInMs * 1000L, clip.fadeOutMs * 1000L, outUs, if (live) "vol:${clip.key}" else null, clip.volumeKf)))
     }
     val builder = EditedMediaItem.Builder(mediaItem)
       .setRemoveVideo(true)

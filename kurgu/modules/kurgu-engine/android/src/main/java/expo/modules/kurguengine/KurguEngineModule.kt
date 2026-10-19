@@ -60,10 +60,10 @@ class KurguEngineModule : Module() {
       Captions.deleteModel(context, id)
     }
 
-    AsyncFunction("transcribe") { uri: String, fromMs: Double, toMs: Double, language: String, modelId: String, promise: Promise ->
+    AsyncFunction("transcribe") { uri: String, fromMs: Double, toMs: Double, language: String, modelId: String, translate: Boolean, promise: Promise ->
       background("transcribe", promise) {
         sendEvent("onAiProgress", mapOf("phase" to "audio", "progress" to 0.0))
-        Captions.transcribe(context, uri, fromMs.toLong(), toMs.toLong(), language, modelId) { p ->
+        Captions.transcribe(context, uri, fromMs.toLong(), toMs.toLong(), language, modelId, translate) { p ->
           sendEvent("onAiProgress", mapOf("phase" to "transcribe", "progress" to p))
         }
       }

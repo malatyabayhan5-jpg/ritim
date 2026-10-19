@@ -157,7 +157,8 @@
     "duration": "Duration",
     "canvasFit": "Clip placement",
     "ratioHint": "The format applies to the whole project; clips are fitted or filled according to the selected placement.",
-    "denoise": "Noise reduction"
+    "denoise": "Noise reduction",
+    "volumeKeyHint": "Volume changes over time with keyframes; the slider edits the keyframe at the playhead."
   },
   "adjust": {
     "brightness": "Brightness",
@@ -480,8 +481,8 @@
         "desc": "Transcribes speech on the device and creates timed caption layers (whisper.cpp; Turkish, English, Arabic)."
       },
       "removeBackground": {
-        "title": "Remove background",
-        "desc": "Separates people from the background (segmentation model)."
+        "title": "Remove background (photo)",
+        "desc": "Separates people from the background in the photo editor (TFLite person segmentation, people only). Video background removal is not available yet; use chroma key for video."
       },
       "noiseReduction": {
         "title": "Noise reduction",
@@ -508,8 +509,16 @@
         "desc": "Upscales and sharpens low-resolution footage."
       },
       "translate": {
-        "title": "Caption translation",
-        "desc": "Translates captions into other languages with an on-device model."
+        "title": "Caption translation (to English)",
+        "desc": "Turns speech directly into English captions on the device (whisper). Translating into other languages needs an external service and is not available yet."
+      },
+      "objectErase": {
+        "title": "Erase object (photo)",
+        "desc": "Removes the object inside a selected rectangle by filling from its surroundings (classic method, not a generative model)."
+      },
+      "imageGenerate": {
+        "title": "Generate image from text",
+        "desc": "Works only if you set up your own server in Settings; the app contains no API keys."
       }
     },
     "ready": "Available",
@@ -785,7 +794,11 @@
     "exportSrt": "Export SRT",
     "srtSaved": "SRT file saved",
     "srtEmpty": "No valid subtitles found in the file",
-    "srtImported": "{count} subtitles added"
+    "srtImported": "{count} subtitles added",
+    "translateEn": "Translate to English (on device)",
+    "translateNote": "Speech is transcribed directly into English by the whisper model. Only translation into English is possible; the \"small\" model is more accurate. Translating into other languages needs an external service.",
+    "edit": "Edit captions",
+    "listEmpty": "No captions."
   },
   "layer": {
     "title": "Overlay",

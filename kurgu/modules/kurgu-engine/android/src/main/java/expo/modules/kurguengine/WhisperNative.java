@@ -28,16 +28,19 @@ public final class WhisperNative {
 
   static native boolean available();
 
-  /** @return UTF-8 JSON {lang, segments:[{t0,t1,text}]} ya da hata/iptalde null */
-  static native byte[] transcribe(String modelPath, float[] pcm16kMono, String language, int threads);
+  /**
+   * @param translate true: konuşma İngilizceye çevrilerek yazılır (whisper "translate" görevi)
+   * @return UTF-8 JSON {lang, segments:[{t0,t1,text}]} ya da hata/iptalde null
+   */
+  static native byte[] transcribe(String modelPath, float[] pcm16kMono, String language, int threads, boolean translate);
 
   /** 0..100 */
   static native int progress();
 
   static native void abort();
 
-  public static String transcribeJson(String modelPath, float[] pcm, String language, int threads) {
-    byte[] out = transcribe(modelPath, pcm, language, threads);
+  public static String transcribeJson(String modelPath, float[] pcm, String language, int threads, boolean translate) {
+    byte[] out = transcribe(modelPath, pcm, language, threads, translate);
     return out == null ? null : new String(out, java.nio.charset.StandardCharsets.UTF_8);
   }
 

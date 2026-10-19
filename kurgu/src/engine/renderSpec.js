@@ -47,6 +47,8 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       speedSegments: isImage ? null : packSegments(clip),
       outMs: Math.round(clipDuration(clip)),
       volume: clip.muted || media.hasAudio === false ? 0 : clamp(clip.volume, 0, 1),
+      // Ses düzeyi anahtar kareleri (klip içi çıktı ms); sessizde gönderilmez
+      volumeKf: clip.muted || media.hasAudio === false ? null : packTrack(clip.keyframes?.volume),
       fadeInMs: Math.round(clip.fadeIn || 0),
       fadeOutMs: Math.round(clip.fadeOut || 0),
       denoise: clamp(clip.denoise || 0, 0, 1),
@@ -95,6 +97,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
         speedSegments: packSegments(a),
         outMs: Math.round(audioDuration(a)),
         volume: clamp(a.volume ?? 1, 0, 1),
+        volumeKf: packTrack(a.keyframes?.volume),
         fadeInMs: Math.round(a.fadeIn || 0),
         fadeOutMs: Math.round(a.fadeOut || 0),
         denoise: clamp(a.denoise || 0, 0, 1),

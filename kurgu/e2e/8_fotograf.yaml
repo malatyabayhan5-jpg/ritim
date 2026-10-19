@@ -1,0 +1,102 @@
+# Fotoğraf düzenleyici: yeni fotoğraf projesi, katman seçimi, ayar, kırpma,
+# metin, cihaz içi arka plan kaldırma (test görselinde kişi yok: "kişi bulunamadı"
+# da kabul edilir — model yüklenip çalıştığı doğrulanır), JPG dışa aktarma.
+# Çıktı run.sh içinde Pictures/Kurgu klasöründen alınıp boyutu denetlenir.
+appId: app.kurgu.editor
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "workspace-photo"
+    timeout: 30000
+- tapOn:
+    id: "workspace-photo"
+- tapOn:
+    id: "new-photo"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "(Photo taken|Fotoğraf çekildi).*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "photo-editor"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "photo-preview"
+    timeout: 30000
+- takeScreenshot: 80_fotograf_acildi
+# Görsel katmanını seç, parlaklık ayarla
+- tapOn:
+    id: "layer-image-0"
+- tapOn:
+    id: "ptool-adjust"
+- tapOn:
+    id: "adjust-brightness"
+- swipe:
+    from:
+      id: "adjust-slider"
+    direction: RIGHT
+    duration: 400
+- tapOn:
+    id: "panel-done"
+# Kırp: kare oran
+- tapOn:
+    id: "ptool-crop"
+- tapOn:
+    id: "crop-1:1"
+- tapOn:
+    id: "panel-done"
+- takeScreenshot: 81_fotograf_ayar_kirp
+# Cihaz içi arka plan kaldırma
+- tapOn:
+    id: "ptool-ai"
+- tapOn:
+    id: "ai-remove-bg"
+- extendedWaitUntil:
+    notVisible:
+      id: "busy"
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      text: "(Maske uygulandı|Bu görselde kişi bulunamadı\\.|Mask applied|No person was found in this image\\.)"
+    timeout: 10000
+- tapOn:
+    id: "panel-done"
+# Seçimi kaldır, metin ekle
+- tapOn:
+    id: "layer-image-0"
+- tapOn:
+    id: "ptool-addText"
+- extendedWaitUntil:
+    visible:
+      id: "panel-text"
+    timeout: 5000
+- tapOn:
+    id: "panel-done"
+# Geri al / yinele
+- tapOn:
+    id: "photo-undo"
+- tapOn:
+    id: "photo-redo"
+- takeScreenshot: 82_fotograf_metin
+# Dışa aktar (JPG, galeriye)
+- tapOn:
+    id: "photo-export"
+- tapOn:
+    id: "export-jpg"
+- tapOn:
+    id: "photo-save"
+- extendedWaitUntil:
+    visible:
+      text: "(Galeriye kaydedildi|Saved to gallery).*"
+    timeout: 60000
+- takeScreenshot: 83_fotograf_disa_aktarildi
+# Ana ekrana dön: proje listede
+- tapOn:
+    id: "photo-back"
+- extendedWaitUntil:
+    visible:
+      id: "photo-pho_.*"
+    timeout: 10000

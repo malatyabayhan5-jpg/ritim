@@ -189,8 +189,9 @@ export function deleteCaptionModel(id) {
 }
 
 /** Klibin kaynak aralığını tanır: { lang, segments:[{t0,t1,text}] } (ms, srcIn'e göre). */
-export async function transcribe(media, fromMs, toMs, language, modelId, onProgress) {
-  const json = await withAiProgress(onProgress, (engine) => engine.transcribe(mediaUri(media), fromMs, toMs, language, modelId));
+/** translate: true ise konuşma cihaz içinde İngilizceye çevrilerek yazılır (whisper). */
+export async function transcribe(media, fromMs, toMs, language, modelId, onProgress, translate = false) {
+  const json = await withAiProgress(onProgress, (engine) => engine.transcribe(mediaUri(media), fromMs, toMs, language, modelId, !!translate));
   return JSON.parse(json);
 }
 

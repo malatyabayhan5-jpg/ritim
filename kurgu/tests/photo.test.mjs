@@ -137,3 +137,12 @@ test('kırpma oranı: merkezden, yakınlaştırma ve sınırlar içinde', () => 
   // Orijinal oran kırpmasız
   assert.deepEqual(P.cropRect(img, 0, -1), { x0: 0, y0: 0, x1: 1, y1: 1 });
 });
+
+test('orijinal kanvas kırpmaya uyar: 4:3 görsel 1:1 kırpılınca kare kanvas', () => {
+  let p = P.photoFromMedia(img);
+  const id = p.layers[0].id;
+  p = P.setCanvasPreset(P.updateLayer(p, id, { crop: P.cropRect(img, 0, 1) }), 'original');
+  assert.deepEqual([p.canvas.width, p.canvas.height], [3000, 3000]);
+  const box = P.layerBox(p, p.layers[0]);
+  assert.deepEqual([box.w, box.h], [3000, 3000], 'kırpılmış görsel kanvası tam doldurur');
+});

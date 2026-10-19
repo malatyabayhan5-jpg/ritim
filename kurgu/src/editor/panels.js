@@ -21,7 +21,7 @@ import {
   TRANSITION_MIN_MS,
 } from '../model/catalog';
 import { DEFAULT_ADJUST } from '../model/schema';
-import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey } from '../model/timeline';
+import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey, toggleVolumeKey, volumeAt, volumePatch } from '../model/timeline';
 import { keyAt } from '../model/keyframes';
 import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
@@ -132,16 +132,30 @@ export function SpeedPanel({ clip, onChange, onCurve, onClose }) {
   );
 }
 
-export function VolumePanel({ item, maxFadeMs, onChange, onClose, canMute = true }) {
+/** `localMs` verilirse ses düzeyi anahtar kareyle (◆) zamana göre değiştirilebilir. */
+export function VolumePanel({ item, maxFadeMs, onChange, onClose, canMute = true, localMs = null }) {
   const { t, fmt } = useI18n();
   const pct = (v) => `${fmt.number(Math.round(v * 100))}%`;
   const sec = (ms) => fmt.duration(ms);
+  const keyed = localMs !== null;
+  const track = item.keyframes?.volume;
   return (
     <Panel title={t('tools.volume')} onClose={onClose} testID="panel-volume">
       <View style={styles.body}>
-        <Labeled label={t('panels.volume')}>
-          <Slider testID="volume-slider" value={item.muted ? 0 : item.volume} min={0} max={1} onChange={(v) => onChange({ volume: v, muted: false }, 'volume')} formatValue={pct} />
-        </Labeled>
+        {keyed ? (
+          <KeyRow label={t('panels.volume')} has={!!track?.length} onKey={!!keyAt(track, localMs)} onToggle={() => onChange(toggleVolumeKey(item, localMs), null)} testID="kf-volume">
+            <Slider testID="volume-slider" value={item.muted ? 0 : volumeAt(item, localMs)} min={0} max={1} onChange={(v) => onChange(volumePatch(item, v, localMs), 'volume')} formatValue={pct} />
+          </KeyRow>
+        ) : (
+          <Labeled label={t('panels.volume')}>
+            <Slider testID="volume-slider" value={item.muted ? 0 : item.volume} min={0} max={1} onChange={(v) => onChange({ volume: v, muted: false }, 'volume')} formatValue={pct} />
+          </Labeled>
+        )}
+        {keyed && track?.length ? (
+          <Txt faint style={styles.hint}>
+            {t('panels.volumeKeyHint')}
+          </Txt>
+        ) : null}
         <Labeled label={t('panels.fadeIn')}>
           <Slider value={item.fadeIn || 0} min={0} max={maxFadeMs} step={100} onChange={(v) => onChange({ fadeIn: v }, 'fadeIn')} formatValue={sec} />
         </Labeled>

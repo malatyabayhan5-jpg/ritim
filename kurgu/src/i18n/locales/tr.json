@@ -157,7 +157,8 @@
     "duration": "Süre",
     "canvasFit": "Klip yerleşimi",
     "ratioHint": "Format değişikliği tüm projeye uygulanır; klipler seçilen yerleşime göre sığdırılır veya doldurulur.",
-    "denoise": "Gürültü azaltma"
+    "denoise": "Gürültü azaltma",
+    "volumeKeyHint": "Ses düzeyi anahtar karelerle zamana göre değişiyor; kaydırıcı oynatma kafasındaki kareyi düzenler."
   },
   "adjust": {
     "brightness": "Parlaklık",
@@ -480,8 +481,8 @@
         "desc": "Konuşmayı cihaz içinde yazıya döker ve zamanlanmış altyazı katmanları oluşturur (whisper.cpp; Türkçe, İngilizce, Arapça)."
       },
       "removeBackground": {
-        "title": "Arka plan kaldırma",
-        "desc": "Kişiyi arka plandan ayırır (segmentasyon modeli)."
+        "title": "Arka plan kaldırma (fotoğraf)",
+        "desc": "Fotoğraf düzenleyicide kişiyi arka plandan ayırır (TFLite kişi ayırma modeli, yalnızca insanlar). Videoda arka plan kaldırma henüz yok; videoda chroma key kullanılabilir."
       },
       "noiseReduction": {
         "title": "Gürültü azaltma",
@@ -508,8 +509,16 @@
         "desc": "Düşük çözünürlüklü kaynakları büyütür ve netleştirir."
       },
       "translate": {
-        "title": "Altyazı çevirisi",
-        "desc": "Altyazıları cihaz içi çeviri modeliyle başka dillere çevirir."
+        "title": "Altyazı çevirisi (İngilizceye)",
+        "desc": "Konuşmayı cihaz içinde doğrudan İngilizce altyazıya çevirir (whisper). Diğer dillere çeviri dış servis gerektirir ve henüz yok."
+      },
+      "objectErase": {
+        "title": "Nesne silme (fotoğraf)",
+        "desc": "Seçilen dikdörtgendeki nesneyi çevresinden doldurarak siler (klasik yöntem, üretken model değil)."
+      },
+      "imageGenerate": {
+        "title": "Metinden görsel üretme",
+        "desc": "Yalnızca ayarlarda kendi sunucunuzu tanımlarsanız çalışır; uygulama API anahtarı içermez."
       }
     },
     "ready": "Kullanılabilir",
@@ -785,7 +794,11 @@
     "exportSrt": "SRT dışa aktar",
     "srtSaved": "SRT dosyası kaydedildi",
     "srtEmpty": "Dosyada geçerli altyazı bulunamadı",
-    "srtImported": "{count} altyazı eklendi"
+    "srtImported": "{count} altyazı eklendi",
+    "translateEn": "İngilizceye çevir (cihaz içi)",
+    "translateNote": "Konuşma whisper modeliyle doğrudan İngilizce yazıya çevrilir. Yalnızca İngilizceye çeviri yapılabilir; \"small\" modeli daha doğru sonuç verir. Başka dillere çeviri dış servis gerektirir.",
+    "edit": "Altyazıları düzenle",
+    "listEmpty": "Altyazı yok."
   },
   "layer": {
     "title": "Katman",

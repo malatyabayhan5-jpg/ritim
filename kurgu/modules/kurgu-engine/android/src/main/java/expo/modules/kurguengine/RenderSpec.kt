@@ -53,6 +53,8 @@ data class MainClip(
   val opacity: Float = 1f,
   val keyframes: Map<String, FloatArray> = emptyMap(),
   val audioFx: AudioFxSpec? = null,
+  val volumeKf: FloatArray? = null,
+  val volumeKf: FloatArray? = null,
 )
 
 data class AudioClip(
@@ -70,6 +72,7 @@ data class AudioClip(
   val speedSegments: FloatArray? = null,
   val outMs: Long = 0,
   val audioFx: AudioFxSpec? = null,
+  val volumeKf: FloatArray? = null,
 )
 
 data class TransitionSpec(
@@ -270,6 +273,7 @@ data class RenderSpec(
         fadeOutMs = o.optLong("fadeOutMs"),
         denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
         audioFx = parseAudioFx(o.optJSONObject("audioFx")),
+        volumeKf = o.optJSONArray("volumeKf")?.let { a -> FloatArray(a.length()) { a.optDouble(it, 0.0).toFloat() } }?.takeIf { it.size >= 7 },
         colorMatrix = matrix,
         fit = o.optString("fit", "fit"),
         rotation = o.optDouble("rotation", 0.0).toFloat(),
@@ -315,6 +319,7 @@ data class RenderSpec(
       fadeOutMs = o.optLong("fadeOutMs"),
       denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
       audioFx = parseAudioFx(o.optJSONObject("audioFx")),
+      volumeKf = o.optJSONArray("volumeKf")?.let { a -> FloatArray(a.length()) { a.optDouble(it, 0.0).toFloat() } }?.takeIf { it.size >= 7 },
       speedSegments = o.optJSONArray("speedSegments")?.let { a -> if (a.length() >= 2 && a.length() % 2 == 0) FloatArray(a.length()) { a.optDouble(it, 1.0).toFloat() } else null },
       outMs = o.optLong("outMs"),
     )

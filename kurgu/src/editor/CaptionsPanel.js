@@ -1,14 +1,15 @@
 // Otomatik altyazı paneli: dil ve model seçimi, model indirme onayı, ilerleme,
 // iptal ve oluşturulan altyazıları kaldırma. İşin kendisi EditorScreen'de.
 
-import { StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useI18n } from '../i18n';
-import { Button, Chip, Panel, Row, Txt } from '../ui';
+import { Button, Chip, Icon, Panel, Row, Txt } from '../ui';
+import { formatTimecode, ltr } from '../i18n/core';
 import { colors, radius, space } from '../theme';
 
 export const CAPTION_LANGS = ['auto', 'tr', 'en', 'ar'];
 
-export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose, onExportSrt, onImportSrt }) {
+export default function CaptionsPanel({ info, lang, onLang, translate, onTranslate, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose, onExportSrt, onImportSrt, onEdit }) {
   const { t, fmt } = useI18n();
   const running = !!progress;
   const supported = info?.supported;
@@ -25,6 +26,10 @@ export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, on
                 <Chip key={l} label={t(`captions.lang.${l}`)} active={lang === l} onPress={() => !running && onLang(l)} testID={`caption-lang-${l}`} />
               ))}
             </Row>
+            <Row style={{ flexWrap: 'wrap', gap: space.sm }}>
+              <Chip icon="language-outline" label={t('captions.translateEn')} active={!!translate} onPress={() => !running && onTranslate(!translate)} testID="caption-translate" />
+            </Row>
+            {translate ? <Txt faint style={styles.small}>{t('captions.translateNote')}</Txt> : null}
             <Txt dim style={styles.label}>{t('captions.model')}</Txt>
             <Row style={{ flexWrap: 'wrap', gap: space.sm }}>
               {info.models.map((m) => (
@@ -61,13 +66,54 @@ export default function CaptionsPanel({ info, lang, onLang, modelId, onModel, on
         <Row style={{ gap: space.sm, flexWrap: 'wrap' }}>
           <Chip icon="download-outline" label={t('captions.importSrt')} onPress={onImportSrt} testID="srt-import" />
           {canRemove ? <Chip icon="share-outline" label={t('captions.exportSrt')} onPress={onExportSrt} testID="srt-export" /> : null}
+          {canRemove && onEdit ? <Chip icon="create-outline" label={t('captions.edit')} onPress={onEdit} testID="caption-edit" /> : null}
         </Row>
       </View>
     </Panel>
   );
 }
 
+/**
+ * Altyazı listesi: her satırın metni yerinde düzenlenir, zamana dokununca oynatma kafası
+ * oraya gider, satır silinebilir. `onChange(id, text, key)`, `onDelete(id)`, `onSeek(ms)`.
+ */
+export function CaptionListPanel({ captions, position, onChange, onDelete, onSeek, onClose }) {
+  const { t, textAlign, row } = useI18n();
+  return (
+    <Panel title={t('captions.edit')} onClose={onClose} testID="panel-caption-list">
+      <ScrollView style={{ maxHeight: 300 }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+        {captions.length ? null : <Txt dim style={styles.small}>{t('captions.listEmpty')}</Txt>}
+        {captions.map((c, i) => {
+          const active = position >= c.start && position < c.start + c.duration;
+          return (
+            <View key={c.id} style={[styles.item, { flexDirection: row }, active && styles.itemActive]}>
+              <Pressable onPress={() => onSeek(c.start + 1)} hitSlop={6} testID={`caption-time-${i}`}>
+                <Txt style={styles.time}>{ltr(formatTimecode(c.start, { tenths: true }))}</Txt>
+              </Pressable>
+              <TextInput
+                testID={`caption-text-${i}`}
+                value={c.text}
+                onChangeText={(text) => onChange(c.id, text, `cap.${c.id}`)}
+                multiline
+                style={[styles.input, { textAlign }]}
+                placeholderTextColor={colors.textFaint}
+              />
+              <Pressable onPress={() => onDelete(c.id)} hitSlop={8} accessibilityLabel={t('common.delete')} testID={`caption-delete-${i}`}>
+                <Icon name="trash-outline" size={18} color={colors.textDim} />
+              </Pressable>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </Panel>
+  );
+}
+
 const styles = StyleSheet.create({
+  item: { alignItems: 'center', gap: space.sm, paddingVertical: 4, paddingHorizontal: 6, borderRadius: radius.md },
+  itemActive: { backgroundColor: colors.accentSoft },
+  time: { fontSize: 12, color: colors.accent2, fontVariant: ['tabular-nums'], minWidth: 56 },
+  input: { flex: 1, color: colors.text, backgroundColor: colors.bg, borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: 4, fontSize: 14, minHeight: 34 },
   body: { paddingHorizontal: space.lg, paddingBottom: space.md, gap: space.sm },
   label: { fontSize: 12, marginTop: 2 },
   small: { fontSize: 12 },

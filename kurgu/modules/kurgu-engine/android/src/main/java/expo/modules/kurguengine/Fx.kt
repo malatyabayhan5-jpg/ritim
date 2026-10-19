@@ -377,11 +377,13 @@ class VolumeEnvelope(
   private val baseFadeOutUs: Long,
   private val durationUs: Long,
   private val liveKey: String? = null,
+  /** Ses düzeyi anahtar kareleri (Keyframes.java paketli biçimi, öğe içi çıktı ms); varsa sabit düzeyin yerine geçer. */
+  private val keys: FloatArray? = null,
 ) : GainProcessor.GainProvider {
   override fun getGainFactorAtSamplePosition(samplePosition: Long, sampleRate: Int): Float {
     val posUs = samplePosition * 1_000_000L / sampleRate
     val live = LiveParams.get(liveKey)
-    val volume = live?.getOrNull(0) ?: baseVolume
+    val volume = if (keys != null) Keyframes.valueAt(keys, posUs / 1000.0, baseVolume) else live?.getOrNull(0) ?: baseVolume
     val fadeInUs = live?.getOrNull(1)?.let { (it * 1000).toLong() } ?: baseFadeInUs
     val fadeOutUs = live?.getOrNull(2)?.let { (it * 1000).toLong() } ?: baseFadeOutUs
     var g = volume
@@ -398,8 +400,9 @@ class VolumeEnvelope(
   // Birlik bölgesi en çok 10 ms'lik parçalar hâlinde bildirilir: canlı ses düzeyi
   // değişirse en geç bir parça sonra uygulanır; sabit zarfta solma başı aşılmaz.
   override fun isUnityUntil(samplePosition: Long, sampleRate: Int): Long {
-    val chunkEnd = samplePosition + max(1, sampleRate / 100)
-    if (liveKey != null) return chunkEnd
+    // Anahtar kareli düzeyde 1 ms'lik parça (eğri 1.0'dan geçerken sapma ≤ 1 ms)
+    val chunkEnd = samplePosition + max(1, sampleRate / if (keys != null) 1000 else 100)
+    if (liveKey != null || keys != null) return chunkEnd
     if (baseFadeOutUs > 0 && durationUs > 0) {
       val fadeStart = (durationUs - baseFadeOutUs) * sampleRate / 1_000_000L
       if (fadeStart > samplePosition) return min(chunkEnd, fadeStart)
@@ -408,6 +411,6 @@ class VolumeEnvelope(
   }
 
   companion object {
-    fun isNeeded(volume: Float, fadeInMs: Long, fadeOutMs: Long) = volume < 0.999f || fadeInMs > 0 || fadeOutMs > 0
+    fun isNeeded(volume: Float, fadeInMs: Long, fadeOutMs: Long, keys: FloatArray? = null) = volume < 0.999f || fadeInMs > 0 || fadeOutMs > 0 || keys != null
   }
 }

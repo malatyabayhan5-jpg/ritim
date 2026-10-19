@@ -127,7 +127,7 @@ object Captions {
    * Kaynağın [fromMs, toMs) aralığını tanır. Dönen JSON: {lang, segments:[{t0,t1,text}]}
    * (zamanlar aralık başına göre ms). onProgress(0..1).
    */
-  fun transcribe(context: Context, uri: String, fromMs: Long, toMs: Long, language: String, modelId: String, onProgress: (Double) -> Unit): String {
+  fun transcribe(context: Context, uri: String, fromMs: Long, toMs: Long, language: String, modelId: String, translate: Boolean = false, onProgress: (Double) -> Unit): String {
     if (!WhisperNative.isAvailable()) throw IllegalStateException("CAPTIONS_UNSUPPORTED")
     val m = MODELS.find { it.id == modelId } ?: throw IllegalArgumentException("MODEL_UNKNOWN")
     val file = modelFile(context, m)
@@ -147,7 +147,7 @@ object Captions {
     }
     poller.start()
     try {
-      return WhisperNative.transcribeJson(file.path, pcm, language, 0)
+      return WhisperNative.transcribeJson(file.path, pcm, language, 0, translate)
         ?: throw IllegalStateException(if (cancelled.get()) "CANCELLED" else "CAPTIONS_FAILED")
     } finally {
       poller.interrupt()

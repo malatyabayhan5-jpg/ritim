@@ -43,7 +43,7 @@ JNIEXPORT jint JNICALL Java_expo_modules_kurguengine_WhisperNative_progress(JNIE
 JNIEXPORT void JNICALL Java_expo_modules_kurguengine_WhisperNative_abort(JNIEnv *, jclass) { g_abort.store(true); }
 
 JNIEXPORT jbyteArray JNICALL Java_expo_modules_kurguengine_WhisperNative_transcribe(
-    JNIEnv *env, jclass, jstring jModel, jfloatArray jPcm, jstring jLang, jint threads) {
+    JNIEnv *env, jclass, jstring jModel, jfloatArray jPcm, jstring jLang, jint threads, jboolean jTranslate) {
   g_progress.store(0);
   g_abort.store(false);
 
@@ -65,7 +65,7 @@ JNIEXPORT jbyteArray JNICALL Java_expo_modules_kurguengine_WhisperNative_transcr
   p.print_realtime = false;
   p.print_timestamps = false;
   p.print_special = false;
-  p.translate = false;
+  p.translate = jTranslate == JNI_TRUE;  // whisper çevirisi yalnızca İngilizceye yapar
   p.no_context = true;
   p.suppress_blank = true;
   p.token_timestamps = true;

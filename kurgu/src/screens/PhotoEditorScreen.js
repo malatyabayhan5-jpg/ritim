@@ -452,7 +452,16 @@ export default function PhotoEditorScreen({ params, focused }) {
       case 'grade':
         return <GradePanel layer={sel} onChange={updSel} onClose={close} />;
       case 'crop':
-        return <CropPanel layer={sel} media={selMedia} onChange={updSel} onRotate={(dir) => apply((p) => PH.rotateQuarter(p, sel.id, dir))} onClose={close} />;
+        return (
+          <CropPanel
+            layer={sel}
+            media={selMedia}
+            // Taban görsel kırpılınca "orijinal" boyutlu kanvas da kırpılan alana uyar
+            onChange={(patch, key) => apply((p) => (patch.crop && p.canvas.preset === 'original' && p.layers.find((l) => l.type === 'image')?.id === sel.id ? PH.setCanvasPreset(PH.updateLayer(p, sel.id, patch), 'original') : PH.updateLayer(p, sel.id, patch)), key)}
+            onRotate={(dir) => apply((p) => PH.rotateQuarter(p, sel.id, dir))}
+            onClose={close}
+          />
+        );
       case 'style':
         return <LayerStylePanel layer={sel} onChange={updSel} onClose={close} />;
       case 'shape':
