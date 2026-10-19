@@ -32,7 +32,7 @@ import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { cancelAi, captionModels, downloadCaptionModel, keyColor, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { cancelAi, captionModels, downloadCaptionModel, keyColor, reverseVideo, sceneScores, speechPeaks, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -399,6 +399,51 @@ export default function EditorScreen({ params, focused }) {
       setSelection({ type: 'main', id: r.newId });
     } catch {
       toast(t('errors.generic'), 'error');
+    }
+    setBusy(null);
+  };
+
+  // Ters oynatma: klip aralığı cihazda ters kodlanır (bir kez; aynı aralık yeniden kullanılır)
+  const reverse = async () => {
+    const clip = selectedMain;
+    if (!clip || clip.kind !== 'video') return;
+    if (clip.reversed) {
+      apply((p) => TL.reverseMain(p, clip.id));
+      return toast(t('reverse.restored'));
+    }
+    const cached = TL.findReversedMedia(project, clip.mediaId, clip.srcIn, clip.srcOut);
+    if (cached) {
+      apply((p) => TL.reverseMain(p, clip.id, cached));
+      return toast(t('reverse.done'));
+    }
+    const media = project.media[clip.mediaId];
+    previewRef.current?.pause?.();
+    setBusy(t('reverse.progress', { percent: 0 }));
+    try {
+      const tmp = `${CACHE_DIR}reverse_${Date.now()}.mp4`;
+      const r = await reverseVideo(media, clip.srcIn, clip.srcOut, tmp, Math.min(1920, Math.max(media.width || 1280, media.height || 720)), (phase, p) =>
+        setBusy(t('reverse.progress', { percent: Math.round((p || 0) * 100) })),
+      );
+      const adopted = await adoptFile(r.path, 'reverse.mp4', 'video/mp4');
+      const rev = {
+        id: adopted.id,
+        kind: 'video',
+        path: adopted.path,
+        name: `${media.name} (${t('reverse.suffix')})`,
+        size: adopted.size,
+        durationMs: r.durationMs,
+        width: r.width,
+        height: r.height,
+        hasAudio: r.hasAudio,
+        importedAt: Date.now(),
+        reverseOf: { mediaId: clip.mediaId, srcIn: clip.srcIn, srcOut: clip.srcOut },
+      };
+      apply((p) => TL.reverseMain(p, clip.id, rev));
+      console.log(`[KurguUI] reverse frames=${r.frames} ms=${r.durationMs} audio=${r.hasAudio}`);
+      toast(t('reverse.done'));
+    } catch (e) {
+      toast(e?.code === 'CANCELLED' ? t('reverse.cancelled') : e?.code === 'REVERSE_UNSUPPORTED' ? t('reverse.unsupported') : t('reverse.failed'), 'error');
+      console.log(`[KurguUI] reverse failed ${e?.code} ${e?.message}`);
     }
     setBusy(null);
   };
@@ -812,7 +857,7 @@ export default function EditorScreen({ params, focused }) {
         }}
       />
       {busy ? (
-        <View style={styles.busy}>
+        <View style={styles.busy} testID="busy">
           <Loading label={busy} />
         </View>
       ) : null}
@@ -854,6 +899,7 @@ export default function EditorScreen({ params, focused }) {
         }, { badge: !!selectedMain.effects?.length }),
         T('transform', 'crop-outline', () => openPanel('transform')),
         index > 0 ? T('transition', 'git-compare-outline', () => openPanel('transition')) : null,
+        !isImage ? T('reverse', 'play-back-outline', reverse, { active: !!selectedMain.reversed }) : null,
         !isImage ? T('freeze', 'snow-outline', freeze) : null,
         !isImage ? T('extractAudio', 'musical-note-outline', () => {
           const r = TL.extractAudio(project, selectedMain.id);

@@ -130,7 +130,8 @@
     "overlay": "Overlay",
     "layerEdit": "Position",
     "mask": "Mask",
-    "chromaKey": "Chroma key"
+    "chromaKey": "Chroma key",
+    "reverse": "Reverse"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -835,5 +836,14 @@
       "burstOut": "Burst out",
       "pulse": "Pulse"
     }
+  },
+  "reverse": {
+    "progress": "Reversing… {percent}%",
+    "done": "Clip reversed",
+    "restored": "Clip restored to normal direction",
+    "failed": "Reversing failed",
+    "cancelled": "Reversing cancelled",
+    "unsupported": "Reverse requires Android 9 or later",
+    "suffix": "reversed"
   }
 }

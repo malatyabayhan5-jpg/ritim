@@ -194,6 +194,14 @@ export async function transcribe(media, fromMs, toMs, language, modelId, onProgr
   return JSON.parse(json);
 }
 
+/**
+ * Klibin kaynak aralığını ters çevrilmiş yeni bir MP4 olarak üretir (cihaz içi yeniden kodlama).
+ * Dönüş: { path, durationMs, width, height, hasAudio, frames }.
+ */
+export function reverseVideo(media, fromMs, toMs, outPath, maxSide, onProgress) {
+  return withAiProgress(onProgress, (engine) => engine.reverseVideo(mediaUri(media), fromMs, toMs, outPath, maxSide));
+}
+
 export function cancelAi() {
   return KurguEngine ? KurguEngine.cancelAi() : Promise.resolve();
 }

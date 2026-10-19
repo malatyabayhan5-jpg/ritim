@@ -67,7 +67,17 @@ class KurguEngineModule : Module() {
       }
     }
 
+    // Ters oynatma: kaynak aralığı sondan başa yeniden kodlanır
+    AsyncFunction("reverseVideo") { uri: String, fromMs: Double, toMs: Double, outPath: String, maxSide: Int, promise: Promise ->
+      background("reverse", promise) {
+        Reverser.reverse(context, uri, fromMs.toLong(), toMs.toLong(), outPath, maxSide) { p ->
+          sendEvent("onAiProgress", mapOf("phase" to "reverse", "progress" to p))
+        }
+      }
+    }
+
     AsyncFunction("cancelAi") {
+      Reverser.cancel()
       Captions.cancel()
     }
 

@@ -81,7 +81,7 @@ function mergeClip(c, patch) {
   const next = { ...c };
   for (const [k, v] of Object.entries(patch)) {
     // Anahtar kareler ve hız eğrisi bütün olarak değişir (silinen iz birleştirmeyle geri gelmesin)
-    const replace = k === 'keyframes' || k === 'speedCurve';
+    const replace = k === 'keyframes' || k === 'speedCurve' || k === 'reversed';
     next[k] = !replace && v && typeof v === 'object' && !Array.isArray(v) && c[k] && typeof c[k] === 'object' ? { ...c[k], ...v } : v;
   }
   return next;
@@ -234,6 +234,36 @@ export function setSpeed(project, clipId, speed) {
 /** Hız eğrisi (null = sabit hıza dön). */
 export function setSpeedCurve(project, clipId, curve) {
   return updateMain(project, clipId, { speedCurve: curve });
+}
+
+/**
+ * Ters oynatma. `reversedMedia` klibin [srcIn, srcOut] aralığının ters kodlanmış
+ * kopyasıdır (reverseOf ile işaretli). Klip ters medyaya bağlanır; hız eğrisi
+ * aynalanır, anahtar kareler (çıktı zamanına göre) aynen kalır. Klip zaten ters
+ * ise özgün medyaya geri döner (yeniden kodlama gerekmez).
+ */
+export function reverseMain(project, clipId, reversedMedia) {
+  const clip = project.main.find((c) => c.id === clipId);
+  if (!clip || clip.kind !== 'video') return project;
+  const mirror = (curve) => (curve?.points ? { preset: null, points: [...curve.points].reverse().map((p) => ({ x: Math.round((1 - p.x) * 1e5) / 1e5, v: p.v })) } : curve ?? null);
+  if (clip.reversed) {
+    const r = clip.reversed;
+    return updateMain(project, clipId, { mediaId: r.mediaId, srcIn: r.srcIn, srcOut: r.srcOut, reversed: null, speedCurve: mirror(clip.speedCurve) });
+  }
+  if (!reversedMedia) return project;
+  const p = touch({ ...project, media: { ...project.media, [reversedMedia.id]: reversedMedia } });
+  return updateMain(p, clipId, {
+    mediaId: reversedMedia.id,
+    srcIn: 0,
+    srcOut: Math.max(MIN_CLIP_MS, Math.round(reversedMedia.durationMs)),
+    reversed: { mediaId: clip.mediaId, srcIn: clip.srcIn, srcOut: clip.srcOut },
+    speedCurve: mirror(clip.speedCurve),
+  });
+}
+
+/** Aynı kaynak aralığının daha önce üretilmiş ters kopyası (yeniden kullanım için). */
+export function findReversedMedia(project, mediaId, srcIn, srcOut) {
+  return Object.values(project.media).find((m) => m.reverseOf && m.reverseOf.mediaId === mediaId && Math.abs(m.reverseOf.srcIn - srcIn) < 2 && Math.abs(m.reverseOf.srcOut - srcOut) < 2) || null;
 }
 
 /** Görsel kliplerin süresini doğrudan ayarlar. */

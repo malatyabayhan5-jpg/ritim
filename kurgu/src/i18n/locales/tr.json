@@ -130,7 +130,8 @@
     "overlay": "Katman",
     "layerEdit": "Konum",
     "mask": "Maske",
-    "chromaKey": "Chroma key"
+    "chromaKey": "Chroma key",
+    "reverse": "Ters"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -835,5 +836,14 @@
       "burstOut": "Hızlı çıkış",
       "pulse": "Nabız"
     }
+  },
+  "reverse": {
+    "progress": "Ters çevriliyor… %{percent}",
+    "done": "Klip ters çevrildi",
+    "restored": "Klip normal yöne döndü",
+    "failed": "Ters çevirme başarısız oldu",
+    "cancelled": "Ters çevirme iptal edildi",
+    "unsupported": "Ters çevirme Android 9 ve üstünde kullanılabilir",
+    "suffix": "ters"
   }
 }

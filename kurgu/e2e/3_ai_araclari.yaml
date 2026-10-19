@@ -87,3 +87,19 @@ appId: app.kurgu.editor
         id: "audio-item-.*"
     commands:
       - takeScreenshot: 34_seslendirme_eklendi
+# Ters oynatma: ilk klip cihazda ters kodlanır (sonuç günlükte: [KurguUI] reverse frames=...)
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "clip-0"
+- tapOn:
+    id: "tool-reverse"
+- extendedWaitUntil:
+    notVisible:
+      id: "busy"
+    timeout: 300000
+- takeScreenshot: 35_ters
+- assertVisible:
+    id: "clip-0"
+

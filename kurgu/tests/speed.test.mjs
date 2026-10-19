@@ -73,3 +73,23 @@ test('render tanımı: parçalar kesin artan, süre JS ile aynı; geçiş kopyas
   assert.deepEqual(packSegments({ kind: 'video', srcIn: 0, srcOut: 1000, speed: 2 }), null);
   assert.equal(speedSegments({ kind: 'video', srcIn: 0, srcOut: 1000, speed: 2 }).length, 1);
 });
+
+test('ters oynatma: ters medyaya bağlanır, eğri aynalanır, geri dönüş özgün aralığı verir', () => {
+  let p = projectWith([video('a', 8000)]);
+  const id = p.main[0].id;
+  p = TL.updateMain(p, id, { srcIn: 1000, srcOut: 5000 });
+  p = TL.setSpeedCurve(p, id, presetCurve('rampUp'));
+  const rev = { id: 'rev1', kind: 'video', path: 'media/rev1.mp4', durationMs: 4000, reverseOf: { mediaId: 'a', srcIn: 1000, srcOut: 5000 } };
+  const r = TL.reverseMain(p, id, rev);
+  const c = r.main[0];
+  assert.equal(c.mediaId, 'rev1');
+  assert.deepEqual([c.srcIn, c.srcOut], [0, 4000]);
+  near(curveAt(c.speedCurve.points, 0), 3, 1e-6, 'ayna');
+  near(TL.totalDuration(r), TL.totalDuration(p), 1, 'süre aynı');
+  assert.equal(TL.findReversedMedia(r, 'a', 1000, 5000).id, 'rev1');
+  const back = TL.reverseMain(r, id);
+  assert.equal(back.main[0].mediaId, 'a');
+  assert.deepEqual([back.main[0].srcIn, back.main[0].srcOut], [1000, 5000]);
+  assert.equal(back.main[0].reversed, null);
+  near(curveAt(back.main[0].speedCurve.points, 0), 0.5, 1e-6, 'çift ayna = özgün');
+});
