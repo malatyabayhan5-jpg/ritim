@@ -228,6 +228,11 @@ export async function eraseRect(media, rect, outPath) {
   }
 }
 
+/** Görüntü istatistikleri (otomatik iyileştirme için); uri: file:// veya content:// */
+export function imageStats(uri) {
+  return requireEngine().imageStats(uri);
+}
+
 export function saveImageToGallery(path, displayName) {
   return requireEngine().saveImageToGallery(path, displayName);
 }

@@ -243,7 +243,7 @@ export function FilterPanel({ clip, luts = {}, onImportLut, onChange, onApplyAll
 }
 
 /** `only`: gösterilecek ayar anahtarları (ör. katmanlarda yalnızca renk matrisi ayarları). */
-export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only }) {
+export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only, onAuto }) {
   const { t, fmt } = useI18n();
   const list = only ? ADJUSTMENTS.filter((a) => only.includes(a.key)) : ADJUSTMENTS;
   const [key, setKey] = useState(list[0].key);
@@ -267,6 +267,7 @@ export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only }) {
           formatValue={(v) => fmt.number(Math.round(v * 100))}
         />
         <Row>
+          {onAuto ? <Chip icon="color-wand-outline" label={t('panels.autoEnhance')} onPress={onAuto} testID="adjust-auto" /> : null}
           <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ adjust: { ...DEFAULT_ADJUST } })} />
           {onApplyAll ? <Chip icon="copy-outline" label={t('panels.applyToAll')} onPress={() => onApplyAll({ adjust: clip.adjust })} /> : null}
         </Row>

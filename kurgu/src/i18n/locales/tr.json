@@ -159,7 +159,9 @@
     "canvasFit": "Klip yerleşimi",
     "ratioHint": "Format değişikliği tüm projeye uygulanır; klipler seçilen yerleşime göre sığdırılır veya doldurulur.",
     "denoise": "Gürültü azaltma",
-    "volumeKeyHint": "Ses düzeyi anahtar karelerle zamana göre değişiyor; kaydırıcı oynatma kafasındaki kareyi düzenler."
+    "volumeKeyHint": "Ses düzeyi anahtar karelerle zamana göre değişiyor; kaydırıcı oynatma kafasındaki kareyi düzenler.",
+    "autoEnhance": "Otomatik",
+    "autoApplied": "Otomatik iyileştirme uygulandı; kaydırıcılarla ince ayar yapabilirsiniz."
   },
   "adjust": {
     "brightness": "Parlaklık",

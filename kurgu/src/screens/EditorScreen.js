@@ -27,6 +27,7 @@ import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
 import AudioFxPanel from '../editor/AudioFxPanel';
 import { StickerPanel } from '../editor/PhotoPanels';
+import { autoAdjust } from '../model/enhance';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel, { CaptionListPanel } from '../editor/CaptionsPanel';
@@ -38,7 +39,7 @@ import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { imageStats, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -426,6 +427,28 @@ export default function EditorScreen({ params, focused }) {
     setSelection({ type: 'text', id: r.newId });
     setSub(null);
     openPanel('text');
+  };
+
+  // Otomatik iyileştirme: klibin ortasındaki kareden istatistik → ton/beyaz dengesi ayarları
+  const autoEnhanceClip = async (clip) => {
+    const media = project.media[clip.mediaId];
+    if (!media) return;
+    try {
+      let uri = mediaUri(media);
+      if (clip.kind !== 'image') {
+        const [thumb] = await thumbnails(media, [Math.round(sourceAt(clip, TL.clipDuration(clip) / 2))], 360);
+        if (!thumb) throw new Error('FRAME');
+        uri = thumb;
+      }
+      const stats = await imageStats(uri);
+      const a = autoAdjust(stats);
+      console.log(`[KurguUI] autoEnhance ${JSON.stringify(stats)} -> ${JSON.stringify(a)}`);
+      apply((p) => TL.updateMain(p, clip.id, { adjust: a }));
+      toast(t('panels.autoApplied'));
+    } catch (e) {
+      console.log(`[KurguUI] autoEnhance failed ${e?.code} ${e?.message}`);
+      toast(t('errors.generic'), 'error');
+    }
   };
 
   // Çıkartma: emoji metin öğesi olarak eklenir (gölgesiz, büyük, hafif sekme animasyonu)
@@ -1048,7 +1071,7 @@ export default function EditorScreen({ params, focused }) {
       case 'filters':
         return target && <FilterPanel clip={target} luts={project.luts} onImportLut={() => importLut(target.id)} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
       case 'adjust':
-        return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
+        return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onAuto={() => autoEnhanceClip(target)} onClose={close} />;
       case 'fxClip': {
         if (!selectedMain) return null;
         const list = selectedMain.effects || [];

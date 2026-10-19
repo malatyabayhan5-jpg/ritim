@@ -86,7 +86,7 @@ export function BackgroundPanel({ photo, onChange, onClose }) {
 }
 
 /** Ton ayarları (bulanıklık dahil). */
-export function PhotoAdjustPanel({ layer, onChange, onClose }) {
+export function PhotoAdjustPanel({ layer, onChange, onClose, onAuto }) {
   const { t, fmt } = useI18n();
   const [key, setKey] = useState('brightness');
   const def = PHOTO_ADJUSTMENTS.find((a) => a.key === key);
@@ -100,6 +100,7 @@ export function PhotoAdjustPanel({ layer, onChange, onClose }) {
         </Hscroll>
         <Slider testID="adjust-slider" value={layer.adjust[key] || 0} min={def.min} max={def.max} center={0} onChange={(v) => onChange({ adjust: { [key]: Math.round(v * 100) / 100 } }, `adjust.${key}`)} formatValue={pct(fmt)} />
         <Row>
+          {onAuto ? <Chip icon="color-wand-outline" label={t('panels.autoEnhance')} onPress={onAuto} testID="adjust-auto" /> : null}
           <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ adjust: { ...PHOTO_ADJUST } })} />
         </Row>
       </View>

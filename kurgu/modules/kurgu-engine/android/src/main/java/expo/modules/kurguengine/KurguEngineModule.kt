@@ -82,6 +82,10 @@ class KurguEngineModule : Module() {
       background("erase", promise) { Segmenter.eraseRect(context, uri, x0, y0, x1, y1, outPath) }
     }
 
+    AsyncFunction("imageStats") { uri: String, promise: Promise ->
+      background("stats", promise) { PhotoRenderer.imageStats(context, uri) }
+    }
+
     AsyncFunction("saveImageToGallery") { path: String, displayName: String ->
       PhotoRenderer.saveImageToGallery(context, path, displayName)
     }

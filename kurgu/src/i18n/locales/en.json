@@ -159,7 +159,9 @@
     "canvasFit": "Clip placement",
     "ratioHint": "The format applies to the whole project; clips are fitted or filled according to the selected placement.",
     "denoise": "Noise reduction",
-    "volumeKeyHint": "Volume changes over time with keyframes; the slider edits the keyframe at the playhead."
+    "volumeKeyHint": "Volume changes over time with keyframes; the slider edits the keyframe at the playhead.",
+    "autoEnhance": "Auto",
+    "autoApplied": "Auto enhance applied; fine-tune with the sliders."
   },
   "adjust": {
     "brightness": "Brightness",

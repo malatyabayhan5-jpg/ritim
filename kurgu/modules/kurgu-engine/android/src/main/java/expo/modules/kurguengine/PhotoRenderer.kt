@@ -219,6 +219,52 @@ object PhotoRenderer {
     bmp.recycle()
   }
 
+  /**
+   * Otomatik iyileştirme için görüntü istatistikleri (src/model/enhance.js): luminans
+   * yüzdelikleri (%1, %50, %99), orta tonların (0.15–0.85) ortalama rengi, ortalama doygunluk.
+   * Görsel ~256 piksele küçültülerek okunur.
+   */
+  fun imageStats(context: Context, uriString: String): Map<String, Any> {
+    val bmp = decode(context, uriString, 256) ?: throw IllegalStateException("IMAGE_DECODE")
+    val w = bmp.width
+    val h = bmp.height
+    val px = IntArray(w * h)
+    bmp.getPixels(px, 0, w, 0, 0, w, h)
+    val hist = IntArray(256)
+    var sr = 0.0
+    var sg = 0.0
+    var sb = 0.0
+    var n = 0
+    var satSum = 0.0
+    for (c in px) {
+      val r = (c shr 16) and 0xFF
+      val g = (c shr 8) and 0xFF
+      val b = c and 0xFF
+      val l = (0.2126 * r + 0.7152 * g + 0.0722 * b).roundToInt().coerceIn(0, 255)
+      hist[l]++
+      val mx = max(r, max(g, b))
+      val mn = min(r, min(g, b))
+      satSum += if (mx > 0) (mx - mn).toDouble() / mx else 0.0
+      if (l in 38..217) {
+        sr += r; sg += g; sb += b; n++
+      }
+    }
+    fun pct(q: Double): Double {
+      val target = q * px.size
+      var acc = 0
+      for (i in 0 until 256) {
+        acc += hist[i]
+        if (acc >= target) return i / 255.0
+      }
+      return 1.0
+    }
+    val d = max(1, n) * 255.0
+    return mapOf(
+      "p01" to pct(0.01), "p50" to pct(0.5), "p99" to pct(0.99),
+      "mean" to listOf(sr / d, sg / d, sb / d), "sat" to satSum / max(1, px.size),
+    )
+  }
+
   /** EXIF yönü uygulanmış, uzun kenarı ~longSide olacak şekilde örneklenmiş görsel (önbellekli). */
   internal fun decode(context: Context, uriString: String, longSide: Int): Bitmap? {
     val uri = Uri.parse(uriString)

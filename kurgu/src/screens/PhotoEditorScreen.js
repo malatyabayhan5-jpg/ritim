@@ -20,7 +20,8 @@ import { canRedo, canUndo, createHistory, pushHistory, redo, undo } from '../mod
 import * as PH from '../model/photo';
 import { CACHE_DIR, EXPORTS_DIR, adoptFile, ensureDirs, loadPhoto, mediaUri, savePhoto, setPhotoCover } from '../storage/library';
 import { importLutFile, importPicked, pickFromGallery } from '../storage/importer';
-import { eraseRect, renderPhoto, saveImageToGallery, segmentPerson } from '../engine/engine';
+import { eraseRect, imageStats, renderPhoto, saveImageToGallery, segmentPerson } from '../engine/engine';
+import { autoAdjust } from '../model/enhance';
 import { cloudServer, generateImage } from '../engine/cloud';
 
 const PREVIEW_MAX = 1280;
@@ -444,7 +445,23 @@ export default function PhotoEditorScreen({ params, focused }) {
     if (!sel) return null;
     switch (panel) {
       case 'adjust':
-        return <PhotoAdjustPanel layer={sel} onChange={updSel} onClose={close} />;
+        return (
+          <PhotoAdjustPanel
+            layer={sel}
+            onChange={updSel}
+            onAuto={async () => {
+              try {
+                const stats = await imageStats(mediaUri(selMedia));
+                const a = autoAdjust(stats);
+                console.log(`[KurguPhoto] auto ${JSON.stringify(stats)} -> ${JSON.stringify(a)}`);
+                updSel({ adjust: a });
+              } catch {
+                toast(t('errors.generic'), 'error');
+              }
+            }}
+            onClose={close}
+          />
+        );
       case 'filters':
         return <FilterPanel clip={sel} luts={photo.luts} onImportLut={importLut} onChange={updSel} onClose={close} />;
       case 'hsl':
