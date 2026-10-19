@@ -118,6 +118,11 @@ data class LayerClip(
   val mask: FloatArray, // tür, cx, cy, açı (derece), yarı genişlik, yarı yükseklik, yumuşaklık, köşe, ters
   val chroma: FloatArray, // r, g, b, etkin, tolerans, yumuşaklık, taşma
   val keyframes: Map<String, FloatArray>,
+  val rot: Int = 0, // kaynak döndürme, çeyrek tur (ana izdeki 90° döndürme)
+  val fit: Int = 0, // 0 sığdır, 1 doldur
+  val tr: FloatArray? = null, // geçiş: tür, pencere başı ms, süre ms, rol (0 A, 1 B), yumuşaklık
+  val effects: List<ShaderFxSpec> = emptyList(),
+  val lut: LutSpec? = null,
 )
 
 data class RenderSpec(
@@ -188,6 +193,11 @@ data class RenderSpec(
         mask = floats(o.optJSONArray("mask"), 9, floatArrayOf(0f, 0f, 0f, 0f, 0.5f, 0.5f, 0.02f, 0f, 0f)),
         chroma = floats(o.optJSONArray("chroma"), 7, floatArrayOf(0f, 1f, 0f, 0f, 0.4f, 0.3f, 0.5f)),
         keyframes = kf,
+        rot = o.optInt("rot", 0).coerceIn(0, 3),
+        fit = o.optInt("fit", 0),
+        tr = o.optJSONArray("tr")?.let { a -> if (a.length() >= 5) FloatArray(5) { a.optDouble(it, 0.0).toFloat() } else null },
+        effects = o.optJSONArray("effects").objects().map { parseShaderFx(it) },
+        lut = o.optJSONObject("lut")?.let { l -> l.optString("uri").takeIf { it.isNotEmpty() }?.let { LutSpec(it, l.optDouble("amount", 1.0).toFloat().coerceIn(0f, 1f)) } },
       )
     }
 

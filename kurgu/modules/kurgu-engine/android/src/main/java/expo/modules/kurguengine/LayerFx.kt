@@ -15,7 +15,7 @@ import expo.modules.kurguengine.anim.Keyframes
 import kotlin.math.PI
 
 /**
- * Katman yerleşimi (assets/kurgu_fx/_layer.glsl): katman karesini kanvas boyutunda,
+ * Katman yerleşimi (assets/kurgu_fx/_layer.glsl + _transitions.glsl + _layer_main.glsl): katman karesini kanvas boyutunda,
  * dışı saydam bir kareye çizer; konum/ölçek/döndürme, kırpma, maske, chroma key ve
  * opaklık uygular. Birleştirici (DefaultVideoCompositor) bu kareyi alt katmanların
  * üzerine alfa karışımıyla koyar.
@@ -52,6 +52,9 @@ internal class LayerFxProgram(
   private val maskB = FloatArray(4)
   private val key = FloatArray(4)
   private val keyP = FloatArray(4)
+  private val lay2 = FloatArray(4)
+  private val trU = FloatArray(4)
+  private val trP = FloatArray(4)
 
   init {
     try {
@@ -99,6 +102,17 @@ internal class LayerFxProgram(
     keyP[0] = live?.get(12) ?: c[4]
     keyP[1] = live?.get(13) ?: c[5]
     keyP[2] = live?.get(14) ?: c[6]
+    lay2[0] = layer.rot.toFloat()
+    lay2[1] = layer.fit.toFloat()
+    layer.tr?.let { tr ->
+      // Geçiş ilerlemesi pencere içinde 0..1
+      val p = if (tr[2] > 0f) ((presentationTimeUs / 1000.0 - tr[1]) / tr[2]).coerceIn(0.0, 1.0) else 1.0
+      trU[0] = tr[0]
+      trU[1] = p.toFloat()
+      trU[2] = tr[3]
+      trU[3] = 0.37f
+      trP[0] = tr[4]
+    }
     try {
       program.use()
       program.setSamplerTexIdUniform("uTex", inputTexId, 0)
@@ -112,6 +126,9 @@ internal class LayerFxProgram(
       program.setFloatsUniformIfPresent("uMaskInv", floatArrayOf(m[8]))
       program.setFloatsUniformIfPresent("uKey", key)
       program.setFloatsUniformIfPresent("uKeyP", keyP)
+      program.setFloatsUniformIfPresent("uLay2", lay2)
+      program.setFloatsUniformIfPresent("uTr", trU)
+      program.setFloatsUniformIfPresent("uTrP", trP)
       program.bindAttributesAndUniforms()
       GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
     } catch (e: GlUtil.GlException) {

@@ -5,7 +5,7 @@ import { assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuratio
 import { MASK_TYPES } from '../model/schema';
 import { KEYFRAME_PROPS, packTrack } from '../model/keyframes';
 import { clipVisuals } from '../model/color';
-import { TRANSITION_MIN_MS } from '../model/catalog';
+import { TRANSITIONS, TRANSITION_MIN_MS } from '../model/catalog';
 import { effectRenderSpec } from '../model/effects';
 
 const DEFAULT_IMAGE_SOURCE_MS = 3000;
@@ -122,12 +122,13 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     .filter(Boolean);
 
   const laneIds = [...new Set(overlays.map((o) => o.lane))].sort((a, b) => a - b);
-  const layers = laneIds.map((lane) =>
+  const trLanes = transitionLayers(project, layout, main, transitions);
+  const layers = [...trLanes, ...laneIds.map((lane) =>
     overlays
       .filter((o) => o.lane === lane)
       .sort((a, b) => a.start - b.start)
       .map((o) => overlaySpec(project, o, resolveUri)),
-  );
+  )];
 
   return {
     width: project.canvas.width,
@@ -142,6 +143,87 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     layers,
     globalFx: {},
   };
+}
+
+const TR_N = Object.fromEntries(TRANSITIONS.map((x) => [x.id, x.n]));
+
+/**
+ * Gerçek A/B geçişleri: her kesmede [at - d/2, at + d/2] penceresinde giden klip (A)
+ * ve gelen klip (B) ana izin üzerinde iki katman olarak çizilir (A şeridi altta, B üstte;
+ * kullanıcı katmanlarının altında). Klibin kesim noktası ötesinde yeterli görüntü
+ * (fazlalık) varsa normal hızda oynar; yoksa pencere boyunca yarım hızla oynatılır,
+ * böylece ana izle arasında sıçrama olmaz. Görüntü ana izdeki gibi yerleşir
+ * (sığdır/doldur, ölçek, konum, çevirme, 90° döndürme, renk, LUT, efektler).
+ */
+function transitionLayers(project, layout, mainSpecs, transitions) {
+  const laneA = [];
+  const laneB = [];
+  for (const tr of transitions) {
+    const n = TR_N[tr.type];
+    if (!n) continue;
+    const i = layout.findIndex((l) => Math.round(l.start) === tr.atMs);
+    if (i < 1) continue;
+    const half = tr.durationMs / 2;
+    const win = [Math.round(tr.atMs - half), Math.round(tr.durationMs)];
+    for (const role of [0, 1]) {
+      const l = layout[role ? i : i - 1];
+      const spec = mainSpecs[role ? i : i - 1];
+      const clip = l.clip;
+      const media = project.media[clip.mediaId] || {};
+      const isImage = clip.kind === 'image';
+      const sp = isImage ? 1 : clip.speed || 1;
+      let srcIn;
+      let srcOut;
+      let speed = sp;
+      if (isImage) {
+        srcIn = 0;
+        srcOut = win[1];
+      } else if (role === 0) {
+        const tail = (media.durationMs || clip.srcOut) - clip.srcOut;
+        srcIn = clip.srcOut - half * sp;
+        if (tail >= half * sp) srcOut = clip.srcOut + half * sp;
+        else {
+          srcOut = clip.srcOut;
+          speed = sp / 2;
+        }
+      } else {
+        srcOut = clip.srcIn + half * sp;
+        if (clip.srcIn >= half * sp) srcIn = clip.srcIn - half * sp;
+        else {
+          srcIn = clip.srcIn;
+          speed = sp / 2;
+        }
+      }
+      const fit = (spec.fit || 'fit') === 'fill' ? 1 : 0;
+      const item = {
+        key: `tr:${layout[i].clip.id}:${role ? 'B' : 'A'}`,
+        uri: spec.uri,
+        kind: spec.kind,
+        startMs: win[0],
+        srcInMs: Math.round(srcIn),
+        srcOutMs: Math.round(srcOut),
+        sourceDurationMs: spec.sourceDurationMs,
+        speed,
+        colorMatrix: spec.colorMatrix,
+        xf: [spec.offsetX || 0, spec.offsetY || 0, spec.scale ?? 1, 0],
+        opacity: 1,
+        flipH: spec.flipH,
+        flipV: spec.flipV,
+        crop: [0, 0, 1, 1],
+        mask: [0, 0, 0, 0, 0.5, 0.5, 0.02, 0, 0],
+        chroma: [0, 1, 0, 0, 0.4, 0.3, 0.5],
+        kf: {},
+        rot: ((Math.round((spec.rotation || 0) / 90) % 4) + 4) % 4,
+        fit,
+        tr: [n, win[0], win[1], role, 0.2],
+        lut: spec.lut,
+        // Klip efektleri pencere boyunca sürsün (kesim noktasının ötesinde de)
+        effects: spec.effects.map((e) => ({ ...e, startMs: Math.min(e.startMs, win[0]), endMs: Math.max(e.endMs, win[0] + win[1]) })),
+      };
+      (role ? laneB : laneA).push(item);
+    }
+  }
+  return [laneA, laneB].filter((lane) => lane.length);
 }
 
 function hexRgb(hex) {

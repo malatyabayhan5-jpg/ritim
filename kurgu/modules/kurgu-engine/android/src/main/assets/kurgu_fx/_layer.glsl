@@ -3,8 +3,10 @@
 // katmanın dışı tamamen saydam bir kare. Media3 birleştiricisi bu kareyi
 // alt katmanların üzerine alfa karışımıyla koyar (karıştırılmamış alfa).
 // Android (LayerFx.kt) ve efekt laboratuvarı (lab.cjs layer) aynı dosyayı kullanır.
+// Kaynak sırası: _common + _layer + _transitions + _layer_main.
 //
-// Koordinatlar: kanvas NDC (-1..1, y yukarı). Yerel katman koordinatı l: (-1..1)^2.
+// Koordinatlar: kanvas q (x: -A..A, y: -1..1, y yukarı; A = en/boy). Konum uniform'ları
+// NDC'dir (-1..1). Yerel katman koordinatı l: (-1..1)^2.
 uniform vec2 uSrcRes;   // katman kaynağının boyutu (piksel)
 uniform vec4 uXf;       // x, y (NDC), ölçek (kanvasa sığdırılmış boyuta göre), döndürme (radyan, saat yönü)
 uniform vec4 uLay;      // opaklık, yatay çevirme (0/1), dikey çevirme (0/1), -
@@ -14,6 +16,7 @@ uniform vec4 uMaskB;    // yarı genişlik, yarı yükseklik (katman yarı yüks
 uniform float uMaskInv; // 1 = maskeyi ters çevir
 uniform vec4 uKey;      // anahtar renk r, g, b, etkin (0/1)
 uniform vec4 uKeyP;     // tolerans, kenar yumuşaklığı, taşma bastırma (0..1), -
+uniform vec4 uLay2;     // kaynak döndürme (çeyrek tur, saat yönü 0..3), sığdırma (0 sığdır, 1 doldur), -, -
 
 vec2 chromaOf(vec3 c) {
   float y = luma(c);
@@ -79,14 +82,18 @@ float maskAlpha(vec2 l, float aspL, float aaUnit) {
   return uMaskInv > 0.5 ? 1.0 - a : a;
 }
 
-void main() {
+/** Kanvas noktası q'da katmanın rengi ve alfası (maske, chroma ve opaklık dahil). */
+vec4 layerColor(vec2 q) {
   float A = aspect();
   vec2 crop = max(uCrop.zw - uCrop.xy, vec2(1e-4));
   float srcAspect = (uSrcRes.x * crop.x) / max(1.0, uSrcRes.y * crop.y);
-  // Kanvasa sığdırılmış yarı boyut (yatay birim: kanvas yarı yüksekliği)
-  vec2 ext = srcAspect > A ? vec2(A, A / srcAspect) : vec2(srcAspect, 1.0);
+  float turns = floor(uLay2.x + 0.5);
+  if (mod(turns, 2.0) > 0.5) srcAspect = 1.0 / srcAspect;
+  // Kanvasa sığdırılmış (veya doldurulmuş) yarı boyut (yatay birim: kanvas yarı yüksekliği)
+  vec2 ext;
+  if (uLay2.y > 0.5) ext = srcAspect > A ? vec2(srcAspect, 1.0) : vec2(A, A / srcAspect);
+  else ext = srcAspect > A ? vec2(A, A / srcAspect) : vec2(srcAspect, 1.0);
   ext *= max(uXf.z, 1e-4);
-  vec2 q = vec2((vUv.x * 2.0 - 1.0) * A, vUv.y * 2.0 - 1.0);
   vec2 d = q - vec2(uXf.x * A, uXf.y);
   // Saat yönünde döndürülmüş katmanın yerel koordinatı: noktayı ters yönde döndür
   vec2 l = rot2(d, uXf.w) / ext;
@@ -94,11 +101,16 @@ void main() {
   float pxL = 2.0 / (uRes.y * min(ext.x, ext.y));
   vec2 edge = (1.0 - abs(l)) / pxL;
   float inside = clamp(min(edge.x, edge.y) + 0.5, 0.0, 1.0);
-  if (inside <= 0.0) { gl_FragColor = vec4(0.0); return; }
+  if (inside <= 0.0) return vec4(0.0);
   vec2 luv = l * 0.5 + 0.5;
-  if (uLay.y > 0.5) luv.x = 1.0 - luv.x;
-  if (uLay.z > 0.5) luv.y = 1.0 - luv.y;
-  vec4 src = texture2D(uTex, clamp(uCrop.xy + luv * crop, 0.0, 1.0));
+  // Kaynak döndürme (ana izdeki 90° adımlı döndürmeyle aynı): görüntü saat yönünde döner
+  vec2 suv = luv;
+  if (turns > 0.5 && turns < 1.5) suv = vec2(1.0 - luv.y, luv.x);
+  else if (turns > 1.5 && turns < 2.5) suv = 1.0 - luv;
+  else if (turns > 2.5) suv = vec2(luv.y, 1.0 - luv.x);
+  if (uLay.y > 0.5) suv.x = 1.0 - suv.x;
+  if (uLay.z > 0.5) suv.y = 1.0 - suv.y;
+  vec4 src = texture2D(uTex, clamp(uCrop.xy + suv * crop, 0.0, 1.0));
   vec3 c = src.rgb;
   float a = src.a * inside;
   if (uKey.w > 0.5) {
@@ -117,5 +129,5 @@ void main() {
   }
   a *= maskAlpha(l, ext.x / ext.y, pxL);
   a *= clamp(uLay.x, 0.0, 1.0);
-  gl_FragColor = vec4(c, a);
+  return vec4(c, a);
 }

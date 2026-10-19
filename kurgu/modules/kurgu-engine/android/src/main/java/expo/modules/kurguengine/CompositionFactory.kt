@@ -102,13 +102,16 @@ object CompositionFactory {
     }
 
     val compositionEffects = mutableListOf<Effect>()
-    val colorTransitions = spec.transitions.filter { it.type in setOf("fade", "dissolve", "white", "flash") }
+    // Katman tabanlı (gerçek A/B) geçişler varsa eski tek görüntülü geçiş efektleri uygulanmaz.
+    val layerTransitions = layered && spec.layers.any { lane -> lane.any { it.tr != null } }
+    val transitions = if (layerTransitions) emptyList() else spec.transitions
+    val colorTransitions = transitions.filter { it.type in setOf("fade", "dissolve", "white", "flash") }
     if (colorTransitions.isNotEmpty()) compositionEffects.add(TransitionColor(colorTransitions))
-    val motionTransitions = spec.transitions.filter {
+    val motionTransitions = transitions.filter {
       it.type in setOf("zoomIn", "zoomOut", "slideLeft", "slideRight", "slideUp", "slideDown", "spin")
     }
     if (motionTransitions.isNotEmpty()) compositionEffects.add(TransitionMotion(motionTransitions))
-    val glitchTransitions = spec.transitions.filter { it.type == "glitch" }
+    val glitchTransitions = transitions.filter { it.type == "glitch" }
     if (!spec.globalFx.isNoOp || glitchTransitions.isNotEmpty()) {
       compositionEffects.add(FxEffect(spec.globalFx, glitchTransitions))
     }
@@ -181,6 +184,8 @@ object CompositionFactory {
     }
     val video = mutableListOf<Effect>()
     clip.colorMatrix?.let { video.add(StaticColorMatrix(it, if (live) "cm:${clip.key}" else null)) }
+    clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it, if (live) "lut:${clip.key}" else null)) }
+    clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     video.add(LayerFx(clip, w, h, if (live) "ly:${clip.key}" else null))
     val builder = EditedMediaItem.Builder(mediaItem)
       .setRemoveAudio(true) // katman sesi ses şeritlerinde ayrıca çalınır (renderSpec.js)

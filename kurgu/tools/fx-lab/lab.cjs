@@ -277,16 +277,40 @@ async function perf() {
  */
 function layerSource() {
   const read = (f) => fs.readFileSync(path.join(FX_DIR, f), 'utf8');
-  return `${read('_common.glsl')}\n${read('_layer.glsl')}`;
+  return ['_common.glsl', '_layer.glsl', '_transitions.glsl', '_layer_main.glsl'].map(read).join('\n');
+}
+
+const LAYER_DEFAULTS = { uXf: [0, 0, 1, 0], uLay: [1, 0, 0, 0], uLay2: [0, 0, 0, 0], uCrop: [0, 0, 1, 1], uMaskA: [0, 0, 0, 0], uMaskB: [0.5, 0.5, 0.02, 0], uMaskInv: 0, uKey: [0, 1, 0, 0], uKeyP: [0.4, 0.3, 0.5, 0], uTr: [0, 0, 0, 0.37], uTrP: [0.2, 0, 0, 0] };
+const imageSize = (file) => require('child_process').execFileSync('identify', ['-format', '%w %h', file]).toString().trim().split(' ').map(Number);
+
+/**
+ * Geçiş: A (giden) ve B (gelen) rolleri ayrı saydam PNG olarak çizilir; Python'da
+ * siyah zemin + A + B sırasıyla birleştirilir (Media3 birleştiricisiyle aynı sıra).
+ *   node lab.cjs transition --a a.png --b b.png --types 1,10 --ps 0.25,0.5,0.75 --size 720x1280 --out dir
+ */
+async function transition() {
+  const [w, h] = arg('size', '720x1280').split('x').map(Number);
+  const types = arg('types').split(',').map(Number);
+  const ps = arg('ps', '0.25,0.5,0.75').split(',').map(Number);
+  const out = arg('out');
+  const fill = Number(arg('fill', '1'));
+  fs.mkdirSync(out, { recursive: true });
+  await withPage(async (page) => {
+    for (const [role, file] of [[0, arg('a')], [1, arg('b')]]) {
+      const frames = [];
+      for (const ty of types) for (const pv of ps) frames.push({ time: 0, amount: 1, p: [0, 0, 0, 0, 0, 0, 0, 0], u: { ...LAYER_DEFAULTS, uSrcRes: imageSize(file), uLay2: [0, fill, 0, 0], uTr: [ty, pv, role, 0.37] } });
+      const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [layerSource(), dataUrl(file), frames, { size: [w, h] }]);
+      let i = 0;
+      for (const ty of types) for (const pv of ps) writePng(path.join(out, `t${ty}_p${pv}_${role ? 'B' : 'A'}.png`), urls[i++]);
+    }
+  });
 }
 
 async function layer() {
   const [w, h] = arg('size', '1080x1920').split('x').map(Number);
-  const defaults = { uXf: [0, 0, 1, 0], uLay: [1, 0, 0, 0], uCrop: [0, 0, 1, 1], uMaskA: [0, 0, 0, 0], uMaskB: [0.5, 0.5, 0.02, 0], uMaskInv: 0, uKey: [0, 1, 0, 0], uKeyP: [0.4, 0.3, 0.5, 0] };
-  const u = { ...defaults, ...JSON.parse(arg('u', '{}')) };
+  const u = { ...LAYER_DEFAULTS, ...JSON.parse(arg('u', '{}')) };
   const file = arg('layer');
-  const size = require('child_process').execFileSync('identify', ['-format', '%w %h', file]).toString().trim().split(' ').map(Number);
-  u.uSrcRes = size;
+  u.uSrcRes = imageSize(file);
   await withPage(async (page) => {
     const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [layerSource(), dataUrl(file), [{ time: 0, amount: 1, p: [0, 0, 0, 0, 0, 0, 0, 0], u }], { size: [w, h] }]);
     writePng(arg('out'), urls[0]);
@@ -294,5 +318,5 @@ async function layer() {
 }
 
 const cmd = process.argv[2];
-({ render, motion, thumbs, lut, perf, layer }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
+({ render, motion, thumbs, lut, perf, layer, transition }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
   .catch((e) => { console.error(e.message || e); process.exit(1); });

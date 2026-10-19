@@ -32,6 +32,8 @@ object LiveParams {
     spec.effectLayers.forEach { values["fx:${it.key}"] = floatArrayOf(it.amount, *it.params) }
     for (lane in spec.layers) for (l in lane) {
       l.colorMatrix?.let { values["cm:${l.key}"] = it }
+      l.lut?.let { values["lut:${l.key}"] = floatArrayOf(it.amount) }
+      l.effects.forEach { values["fx:${it.key}"] = floatArrayOf(it.amount, *it.params) }
       val m = l.mask
       val c = l.chroma
       values["ly:${l.key}"] = floatArrayOf(

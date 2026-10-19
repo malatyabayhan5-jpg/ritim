@@ -2,22 +2,56 @@
 // tanımlardır; adlar i18n anahtarlarıyla gösterilir. Yeni içerik eklemek için
 // buraya bir satır ve üç dile çeviri eklemek yeterlidir.
 
+// Geçişler: gerçek A/B karışımı. `n`, katman shader'ındaki tür numarasıdır
+// (modules/kurgu-engine/.../kurgu_fx/_transitions.glsl). Tümü özgün çizimdir.
 export const TRANSITIONS = [
-  { id: 'none', category: 'basic', icon: 'close-circle-outline' },
-  { id: 'fade', category: 'basic', icon: 'contrast-outline' },
-  { id: 'white', category: 'basic', icon: 'sunny-outline' },
-  { id: 'flash', category: 'basic', icon: 'flash-outline' },
-  { id: 'zoomIn', category: 'camera', icon: 'expand-outline' },
-  { id: 'zoomOut', category: 'camera', icon: 'contract-outline' },
-  { id: 'spin', category: 'camera', icon: 'sync-outline' },
-  { id: 'slideLeft', category: 'slide', icon: 'arrow-back-outline' },
-  { id: 'slideRight', category: 'slide', icon: 'arrow-forward-outline' },
-  { id: 'slideUp', category: 'slide', icon: 'arrow-up-outline' },
-  { id: 'slideDown', category: 'slide', icon: 'arrow-down-outline' },
-  { id: 'glitch', category: 'effect', icon: 'pulse-outline' },
+  { id: 'none', n: 0, category: 'basic', icon: 'close-circle-outline' },
+  { id: 'dissolve', n: 1, category: 'basic', icon: 'git-merge-outline' },
+  { id: 'fade', n: 2, category: 'basic', icon: 'contrast-outline' },
+  { id: 'white', n: 3, category: 'basic', icon: 'sunny-outline' },
+  { id: 'flash', n: 4, category: 'basic', icon: 'flash-outline' },
+  { id: 'blurDissolve', n: 5, category: 'basic', icon: 'water-outline' },
+  { id: 'lumaFade', n: 6, category: 'basic', icon: 'invert-mode-outline' },
+  { id: 'wipeLeft', n: 10, category: 'wipe', icon: 'arrow-back-outline' },
+  { id: 'wipeRight', n: 11, category: 'wipe', icon: 'arrow-forward-outline' },
+  { id: 'wipeUp', n: 12, category: 'wipe', icon: 'arrow-up-outline' },
+  { id: 'wipeDown', n: 13, category: 'wipe', icon: 'arrow-down-outline' },
+  { id: 'wipeDiagonal', n: 14, category: 'wipe', icon: 'trending-up-outline' },
+  { id: 'irisOpen', n: 15, category: 'wipe', icon: 'radio-button-on-outline' },
+  { id: 'irisClose', n: 16, category: 'wipe', icon: 'radio-button-off-outline' },
+  { id: 'clockWipe', n: 17, category: 'wipe', icon: 'time-outline' },
+  { id: 'blinds', n: 18, category: 'wipe', icon: 'reorder-four-outline' },
+  { id: 'checker', n: 19, category: 'wipe', icon: 'grid-outline' },
+  { id: 'noiseDissolve', n: 20, category: 'wipe', icon: 'sparkles-outline' },
+  { id: 'splitH', n: 21, category: 'wipe', icon: 'code-outline' },
+  { id: 'splitV', n: 22, category: 'wipe', icon: 'resize-outline' },
+  { id: 'heartWipe', n: 23, category: 'wipe', icon: 'heart-outline' },
+  { id: 'starWipe', n: 24, category: 'wipe', icon: 'star-outline' },
+  { id: 'stripes', n: 25, category: 'wipe', icon: 'barcode-outline' },
+  { id: 'diamond', n: 26, category: 'wipe', icon: 'diamond-outline' },
+  { id: 'slideLeft', n: 30, category: 'slide', icon: 'arrow-back-outline' },
+  { id: 'slideRight', n: 31, category: 'slide', icon: 'arrow-forward-outline' },
+  { id: 'slideUp', n: 32, category: 'slide', icon: 'arrow-up-outline' },
+  { id: 'slideDown', n: 33, category: 'slide', icon: 'arrow-down-outline' },
+  { id: 'pushLeft', n: 34, category: 'slide', icon: 'play-back-outline' },
+  { id: 'pushRight', n: 35, category: 'slide', icon: 'play-forward-outline' },
+  { id: 'pushUp', n: 36, category: 'slide', icon: 'chevron-up-circle-outline' },
+  { id: 'pushDown', n: 37, category: 'slide', icon: 'chevron-down-circle-outline' },
+  { id: 'zoomIn', n: 40, category: 'camera', icon: 'expand-outline' },
+  { id: 'zoomOut', n: 41, category: 'camera', icon: 'contract-outline' },
+  { id: 'spin', n: 42, category: 'camera', icon: 'sync-outline' },
+  { id: 'whipLeft', n: 43, category: 'camera', icon: 'play-skip-back-outline' },
+  { id: 'whipRight', n: 44, category: 'camera', icon: 'play-skip-forward-outline' },
+  { id: 'crossZoom', n: 45, category: 'camera', icon: 'scan-outline' },
+  { id: 'ripple', n: 46, category: 'camera', icon: 'water-outline' },
+  { id: 'glitch', n: 50, category: 'effect', icon: 'pulse-outline' },
+  { id: 'lightLeak', n: 51, category: 'effect', icon: 'partly-sunny-outline' },
+  { id: 'filmBurn', n: 52, category: 'effect', icon: 'flame-outline' },
+  { id: 'pixelate', n: 53, category: 'effect', icon: 'apps-outline' },
+  { id: 'rgbSplit', n: 54, category: 'effect', icon: 'color-filter-outline' },
 ];
 
-export const TRANSITION_CATEGORIES = ['basic', 'camera', 'slide', 'effect'];
+export const TRANSITION_CATEGORIES = ['basic', 'wipe', 'slide', 'camera', 'effect'];
 
 // Geçiş süresi sınırları (ms)
 export const TRANSITION_MIN_MS = 100;

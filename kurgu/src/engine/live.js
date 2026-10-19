@@ -56,6 +56,12 @@ export function splitLive(spec) {
       out.opacity = LIVE;
       out.mask = [m[0], LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, m[8]];
       out.chroma = [c[0], c[1], c[2], c[3], LIVE, LIVE, LIVE];
+      // Geçiş kopyaları ana klibin efekt anahtarlarını ve LUT yoğunluğunu paylaşır
+      if (l.effects) out.effects = l.effects.map((e) => liveEffect(e, live));
+      if (l.lut) {
+        live[`lut:${l.key}`] = [l.lut.amount];
+        out.lut = { ...l.lut, amount: LIVE };
+      }
       return out;
     }),
   );

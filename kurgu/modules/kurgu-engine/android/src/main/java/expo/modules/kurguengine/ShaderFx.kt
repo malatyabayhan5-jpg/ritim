@@ -57,8 +57,9 @@ class ShaderFx(private val spec: ShaderFxSpec, private val liveKey: String? = nu
       return define + read(context, "_common.glsl") + "\n" + read(context, "$shader.glsl") + "\n" + read(context, main)
     }
 
-    /** Katman shader'ı: ortak çekirdek + _layer.glsl (kendi main fonksiyonu var). */
-    fun layerSource(context: Context): String = read(context, "_common.glsl") + "\n" + read(context, "_layer.glsl")
+    /** Katman shader'ı: ortak çekirdek + katman + geçişler + giriş noktası. */
+    fun layerSource(context: Context): String =
+      listOf("_common.glsl", "_layer.glsl", "_transitions.glsl", "_layer_main.glsl").joinToString("\n") { read(context, it) }
 
     /** Efekt dosyası `vec4 prepass(vec2)` tanımlıyorsa iki geçişli çizilir (lab.cjs ile aynı kural). */
     fun hasPrepass(context: Context, shader: String): Boolean = PREPASS.containsMatchIn(read(context, "$shader.glsl"))
