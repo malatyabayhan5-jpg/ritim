@@ -86,8 +86,16 @@ export const TEXT_LAYOUTS_BASE = [
 export const TEXT_PRESETS = [...TEXT_PRESETS_BASE, ...TEXT_PRESETS_PACK2];
 export const TEXT_LAYOUTS = [...TEXT_LAYOUTS_BASE, ...TEXT_LAYOUTS_PACK2];
 
-export const TEXT_ANIMATIONS_IN = ['none', 'fade', 'pop', 'slideUp', 'slideLeft', 'typewriter'];
-export const TEXT_ANIMATIONS_OUT = ['none', 'fade', 'pop', 'slideUp', 'slideLeft'];
+// Metin animasyonları: yerel çizim modules/kurgu-engine/.../TextLayer.kt, hesap anim/TextAnim.java.
+// Bütün metin (katman), kelime/harf (önbellekten parça kopyası), bulanıklık ve daktilo türleri vardır.
+const TEXT_ANIMATIONS_SHARED = [
+  'slideDown', 'slideRight', 'zoomIn', 'zoomOut', 'rotate', 'bounce', 'elastic',
+  'blur', 'flicker', 'shake', 'wordRise', 'letterFade', 'wave',
+];
+export const TEXT_ANIMATIONS_IN = ['none', 'fade', 'pop', 'slideUp', 'slideLeft', 'typewriter', ...TEXT_ANIMATIONS_SHARED, 'typeCursor'];
+export const TEXT_ANIMATIONS_OUT = ['none', 'fade', 'pop', 'slideUp', 'slideLeft', ...TEXT_ANIMATIONS_SHARED, 'typewriter', 'typeCursor'];
+// Metnin ekranda kaldığı süre boyunca süren döngü animasyonları
+export const TEXT_ANIMATIONS_LOOP = ['none', 'pulse', 'float', 'swing', 'waveLoop', 'buzz'];
 
 export const FONTS = ['sans', 'display', 'condensed', 'light', 'serif', 'mono', 'casual', 'cursive'];
 

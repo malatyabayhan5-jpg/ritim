@@ -131,6 +131,17 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       animOut: t.animOut || 'none',
       animMs: t.animMs || 400,
       rtl: !!options.rtl,
+      animLoop: t.animLoop || 'none',
+      color2: t.style.color2 || '#00000000',
+      shadowColor: t.style.shadowColor || '#000000A0',
+      shadowBlur: t.style.shadowBlur ?? 0.08,
+      shadowX: t.style.shadowX ?? 0,
+      shadowY: t.style.shadowY ?? 0.05,
+      boxStyle: t.style.boxStyle || 'block',
+      boxRadius: t.style.boxRadius ?? 0.25,
+      boxPad: t.style.boxPad ?? 0.35,
+      deco: t.style.deco || 'none',
+      decoColor: t.style.decoColor || '#FFFFFFFF',
     }));
 
   const effectLayers = (project.effectLayers || [])

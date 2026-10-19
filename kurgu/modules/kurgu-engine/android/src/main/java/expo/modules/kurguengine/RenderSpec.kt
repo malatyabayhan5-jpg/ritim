@@ -103,6 +103,18 @@ data class TextSpec(
   val animOut: String,
   val animMs: Long,
   val rtl: Boolean,
+  // Sonradan eklenen isteğe bağlı alanlar; varsayılanlar eski çizimi aynen verir.
+  val animLoop: String = "none",
+  val color2: Int = 0,
+  val shadowColor: Int = 0xA0000000.toInt(), // #000000A0
+  val shadowBlur: Float = 0.08f,
+  val shadowX: Float = 0f,
+  val shadowY: Float = 0.05f,
+  val boxStyle: String = "block",
+  val boxRadius: Float = 0.25f,
+  val boxPad: Float = 0.35f,
+  val deco: String = "none",
+  val decoColor: Int = 0xFFFFFFFF.toInt(),
 )
 
 /**
@@ -332,6 +344,17 @@ data class RenderSpec(
       animOut = o.optString("animOut", "none"),
       animMs = o.optLong("animMs", 400),
       rtl = o.optBoolean("rtl"),
+      animLoop = o.optString("animLoop", "none"),
+      color2 = parseColor(o.optString("color2", "#00000000")),
+      shadowColor = parseColor(o.optString("shadowColor", "#000000A0")),
+      shadowBlur = o.optDouble("shadowBlur", 0.08).toFloat().coerceIn(0f, 1f),
+      shadowX = o.optDouble("shadowX", 0.0).toFloat().coerceIn(-0.5f, 0.5f),
+      shadowY = o.optDouble("shadowY", 0.05).toFloat().coerceIn(-0.5f, 0.5f),
+      boxStyle = o.optString("boxStyle", "block"),
+      boxRadius = o.optDouble("boxRadius", 0.25).toFloat().coerceIn(0f, 2f),
+      boxPad = o.optDouble("boxPad", 0.35).toFloat().coerceIn(0f, 2f),
+      deco = o.optString("deco", "none"),
+      decoColor = parseColor(o.optString("decoColor", "#FFFFFFFF")),
     )
 
     // "#RRGGBB" veya "#RRGGBBAA" -> ARGB int

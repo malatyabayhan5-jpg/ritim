@@ -397,12 +397,70 @@ export function ImageDurationPanel({ clip, onChange, onClose }) {
   );
 }
 
-const TEXT_TABS = ['style', 'font', 'color', 'stroke', 'layout', 'animation'];
+// Metin paneli ekleri: şablonlar (kategorili), adlı stiller ve döngü animasyonları
+import { TEXT_ANIMATIONS_LOOP, TEXT_LAYOUTS } from '../model/catalog';
+import { TEXT_LAYOUT_BASE_CATEGORY, TEXT_LAYOUT_CATEGORIES } from '../model/text-pack2';
+import { DEFAULT_TEXT_STYLE } from '../model/schema';
+
+const TEXT_TABS = ['style', 'font', 'color', 'stroke', 'layout', 'animation', 'templates'];
+const TILE_FONT = { sans: 'sans-serif', display: 'sans-serif-black', condensed: 'sans-serif-condensed', light: 'sans-serif-light', serif: 'serif', mono: 'monospace', casual: 'casual', cursive: 'cursive' };
+// Stil seçilince yalnızca görünüm sıfırlanır; boyut, hizalama, satır aralığı ve opaklık korunur.
+const { size: _s, align: _a, lineHeight: _lh, opacity: _o, ...STYLE_LOOK_RESET } = DEFAULT_TEXT_STYLE;
+const layoutCategory = (l) => l.category || TEXT_LAYOUT_BASE_CATEGORY[l.id] || 'title';
+
+/** Stil/şablon önizleme karosu: yerel çizimin yaklaşığı (renk, kutu, kontur, yazı tipi). */
+function TextStyleTile({ style, label, onPress, testID }) {
+  const s = { ...DEFAULT_TEXT_STYLE, ...style };
+  const hasBg = s.background && !s.background.endsWith('00');
+  const frame = hasBg && s.boxStyle === 'frame';
+  const transparentFill = s.color.endsWith('00');
+  const glowColor = s.stroke && !s.stroke.endsWith('00') ? s.stroke : s.shadow ? s.shadowColor : 'transparent';
+  return (
+    <Pressable onPress={onPress} style={[styles.presetTile, styles.templateTile]} testID={testID}>
+      <Text
+        numberOfLines={1}
+        style={{
+          color: argbToCss(transparentFill ? s.stroke : s.color),
+          backgroundColor: hasBg && !frame ? argbToCss(s.background) : 'transparent',
+          borderColor: frame ? argbToCss(s.background) : 'transparent',
+          borderWidth: frame ? 1.5 : 0,
+          borderRadius: hasBg ? Math.min(12, 16 * (s.boxRadius ?? 0.25)) : 0,
+          overflow: 'hidden',
+          fontFamily: TILE_FONT[s.font] || 'sans-serif',
+          fontWeight: s.bold ? '800' : '400',
+          fontStyle: s.italic ? 'italic' : 'normal',
+          textShadowColor: argbToCss(glowColor),
+          textShadowRadius: 3,
+          paddingHorizontal: 6,
+          fontSize: 16,
+        }}
+      >
+        Aa
+      </Text>
+      {label ? (
+        <Txt dim numberOfLines={1} style={styles.tileText}>
+          {label}
+        </Txt>
+      ) : null}
+    </Pressable>
+  );
+}
 
 export function TextPanel({ item, onChange, onClose, initialTab = 'style', tabs = TEXT_TABS }) {
   const { t, fmt, textAlign } = useI18n();
   const [tab, setTab] = useState(initialTab);
+  const [cat, setCat] = useState(TEXT_LAYOUT_CATEGORIES[0]);
   const st = item.style;
+  // Metin hâlâ varsayılan veya bir şablonun örnek metniyse şablon seçilince örnek metinle değişir.
+  const isSampleText = !item.text || item.text === t('text.default') || TEXT_LAYOUTS.some((l) => t(l.textKey) === item.text);
+  const applyLayout = (l) => onChange({
+    style: { ...DEFAULT_TEXT_STYLE, ...l.style },
+    y: l.y,
+    animIn: l.animIn,
+    animOut: l.animOut,
+    animLoop: l.animLoop || 'none',
+    ...(isSampleText ? { text: t(l.textKey) } : {}),
+  });
   return (
     <Panel title={t('tools.text')} onClose={onClose} testID="panel-text">
       <View style={styles.body}>
@@ -423,22 +481,7 @@ export function TextPanel({ item, onChange, onClose, initialTab = 'style', tabs 
         {tab === 'style' ? (
           <Hscroll>
             {TEXT_PRESETS.map((p) => (
-              <Pressable key={p.id} onPress={() => onChange({ style: p.style })} style={styles.presetTile} testID={`text-preset-${p.id}`}>
-                <Text
-                  style={{
-                    color: argbToCss(p.style.color),
-                    backgroundColor: p.style.background ? argbToCss(p.style.background) : 'transparent',
-                    fontWeight: p.style.bold === false ? '400' : '800',
-                    fontStyle: p.style.italic ? 'italic' : 'normal',
-                    textShadowColor: p.style.stroke ? argbToCss(p.style.stroke) : 'rgba(0,0,0,0.6)',
-                    textShadowRadius: 2,
-                    paddingHorizontal: 6,
-                    fontSize: 16,
-                  }}
-                >
-                  Aa
-                </Text>
-              </Pressable>
+              <TextStyleTile key={p.id} style={p.style} label={t(`text.preset.${p.id}`)} onPress={() => onChange({ style: { ...STYLE_LOOK_RESET, ...p.style } })} testID={`text-preset-${p.id}`} />
             ))}
           </Hscroll>
         ) : null}
@@ -514,9 +557,30 @@ export function TextPanel({ item, onChange, onClose, initialTab = 'style', tabs 
                 ))}
               </Hscroll>
             </Labeled>
+            <Labeled label={t('text.animLoop')}>
+              <Hscroll>
+                {TEXT_ANIMATIONS_LOOP.map((a) => (
+                  <Chip key={a} label={t(`text.anim.${a}`)} active={(item.animLoop || 'none') === a} onPress={() => onChange({ animLoop: a })} />
+                ))}
+              </Hscroll>
+            </Labeled>
             <Labeled label={t('text.animDuration')}>
               <Slider value={item.animMs} min={100} max={2000} step={50} onChange={(v) => onChange({ animMs: v }, 'tanim')} formatValue={(v) => fmt.duration(v)} />
             </Labeled>
+          </>
+        ) : null}
+        {tab === 'templates' ? (
+          <>
+            <Hscroll>
+              {TEXT_LAYOUT_CATEGORIES.map((c) => (
+                <Chip key={c} label={t(`text.category.${c}`)} active={cat === c} onPress={() => setCat(c)} testID={`text-category-${c}`} />
+              ))}
+            </Hscroll>
+            <Hscroll>
+              {TEXT_LAYOUTS.filter((l) => layoutCategory(l) === cat).map((l) => (
+                <TextStyleTile key={l.id} style={l.style} label={t(`text.layout.${l.id}`)} onPress={() => applyLayout(l)} testID={`text-layout-${l.id}`} />
+              ))}
+            </Hscroll>
           </>
         ) : null}
       </View>
@@ -572,6 +636,7 @@ const styles = StyleSheet.create({
   tileText: { color: colors.textDim, fontSize: 11 },
   textInput: { backgroundColor: colors.bg, color: colors.text, borderRadius: radius.md, padding: space.md, minHeight: 52, maxHeight: 110, fontSize: 16 },
   presetTile: { width: 64, height: 48, borderRadius: radius.md, backgroundColor: colors.surface3, alignItems: 'center', justifyContent: 'center' },
+  templateTile: { width: 84, height: 60, gap: 2, paddingHorizontal: 2 },
   swatch: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: colors.border },
   swatchNone: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
   swatchActive: { borderColor: colors.text, borderWidth: 3 },

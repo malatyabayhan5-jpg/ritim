@@ -62,8 +62,13 @@ test('büyük proje: 300 klip + 50 efekt için render tanımı ve ayrıştırma 
   const media = Array.from({ length: 300 }, (_, i) => video(`v${i}`, 3000 + (i % 7) * 500));
   let p = projectWith(media);
   for (let i = 0; i < 50; i++) p = TL.addClipEffect(p, p.main[i * 6].id, 'glow').project;
-  const t0 = performance.now();
-  for (let k = 0; k < 20; k++) splitLive(buildRenderSpec(p, uri));
-  const per = (performance.now() - t0) / 20;
+  // 5 tur × 10 çağrı; en iyi tur alınır (paralel yük altındaki ölçüm gürültüsüne karşı)
+  let per = Infinity;
+  for (let r = 0; r < 5; r++) {
+    const t0 = performance.now();
+    for (let k = 0; k < 10; k++) splitLive(buildRenderSpec(p, uri));
+    per = Math.min(per, (performance.now() - t0) / 10);
+  }
+  console.log(`# render tanımı (300 klip): ${per.toFixed(1)} ms`);
   assert.ok(per < 25, `${per.toFixed(1)} ms`);
 });

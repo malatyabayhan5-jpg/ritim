@@ -167,6 +167,17 @@ export const DEFAULT_TEXT_STYLE = {
   letterSpacing: 0,
   lineHeight: 1.2,
   opacity: 1,
+  // Gelişmiş görünüm (varsayılanlar eski çizimi aynen verir)
+  color2: '#00000000', // dikey geçişin alt rengi; saydamsa düz renk
+  shadowColor: '#000000A0',
+  shadowBlur: 0.08, // yazı boyuna oran
+  shadowX: 0,
+  shadowY: 0.05,
+  boxStyle: 'block', // block | lines (satır satır) | frame (çerçeve)
+  boxRadius: 0.25, // yazı boyuna oran
+  boxPad: 0.35, // kutu iç boşluğu, yazı boyuna oran
+  deco: 'none', // none | bar | underline | rules | brackets
+  decoColor: '#FFFFFFFF',
 };
 
 export function createText(start, text, style = {}) {
@@ -182,6 +193,7 @@ export function createText(start, text, style = {}) {
     rotation: 0,
     animIn: 'fade',
     animOut: 'fade',
+    animLoop: 'none',
     animMs: 400,
   };
 }

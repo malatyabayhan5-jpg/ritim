@@ -43,7 +43,7 @@ import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../stor
 import { loadSettings } from '../storage/settings';
 import { canRedo, canUndo, createHistory, pushHistory, redo, undo } from '../model/history';
 import { canvasSize } from '../model/schema';
-import { TEXT_LAYOUTS } from '../model/catalog';
+import { TEXT_LAYOUTS, TEXT_LAYOUTS_BASE } from '../model/catalog';
 import * as TL from '../model/timeline';
 import { sourceAt } from '../model/speed';
 import { importErrorText } from './HomeScreen';
@@ -420,7 +420,7 @@ export default function EditorScreen({ params, focused }) {
   const addText = (layoutId) => {
     const lay = TEXT_LAYOUTS.find((l) => l.id === layoutId);
     const text = lay ? t(lay.textKey) : t('text.default');
-    const r = TL.addText(project, position, text, lay?.style || {}, lay ? { y: lay.y, animIn: lay.animIn, animOut: lay.animOut } : {});
+    const r = TL.addText(project, position, text, lay?.style || {}, lay ? { y: lay.y, animIn: lay.animIn, animOut: lay.animOut, animLoop: lay.animLoop || 'none' } : {});
     apply(r.project);
     setSelection({ type: 'text', id: r.newId });
     setSub(null);
@@ -926,7 +926,8 @@ export default function EditorScreen({ params, focused }) {
       })];
     }
     if (sub === 'text') {
-      return [T('addText', 'add-circle-outline', () => addText(null)), ...TEXT_LAYOUTS.map((l) => (
+      // Araç çubuğunda temel düzenler; tüm şablonlar metin panelinin Şablonlar sekmesinde
+      return [T('addText', 'add-circle-outline', () => addText(null)), ...TEXT_LAYOUTS_BASE.map((l) => (
         <ToolButton key={l.id} testID={`tool-layout-${l.id}`} icon="albums-outline" label={t(`text.layout.${l.id}`)} onPress={() => addText(l.id)} />
       ))];
     }

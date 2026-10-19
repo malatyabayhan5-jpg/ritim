@@ -90,7 +90,7 @@ export default function TextHandle({ item, boxW, boxH, visible, onChange, onEdit
   const fontSize = Math.max(6, st.size * boxH);
   const cx = ((v.x + 1) / 2) * boxW;
   const cy = ((1 - v.y) / 2) * boxH;
-  const pad = fontSize * (st.background && !st.background.endsWith('00') ? 0.35 : 0.1);
+  const pad = fontSize * (st.background && !st.background.endsWith('00') ? st.boxPad ?? 0.35 : 0.1);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
