@@ -31,8 +31,9 @@ appId: app.kurgu.editor
     id: "tool-overlay"
 - waitForAnimationToEnd:
     timeout: 5000
+# Öğe erişilebilirlik metni "Photo taken on ..." ("Photos" sekmesiyle karışmasın)
 - tapOn:
-    text: "(Photo|Fotoğraf).*"
+    text: "(Photo taken|Fotoğraf çekildi).*"
     index: 0
 - extendedWaitUntil:
     visible:

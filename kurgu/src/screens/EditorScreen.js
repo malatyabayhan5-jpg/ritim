@@ -683,7 +683,10 @@ export default function EditorScreen({ params, focused }) {
               previewQuality={settings.current.previewQuality}
               onPosition={(e) => setPosition(e.nativeEvent.positionMs)}
               onPlaybackState={(e) => setPlaying(!!e.nativeEvent.isPlaying)}
-              onPreviewError={(e) => setPreviewError(e.nativeEvent.code)}
+              onPreviewError={(e) => {
+                console.log(`[KurguUI] previewError ${e.nativeEvent.code} ${e.nativeEvent.message || ''}`);
+                setPreviewError(e.nativeEvent.code);
+              }}
             />
           ) : (
             <View style={[StyleSheet.absoluteFill, styles.center]}>
@@ -906,6 +909,7 @@ export default function EditorScreen({ params, focused }) {
     }
     return [
       T('edit', 'cut-outline', () => ensureClipSelected()),
+      T('ai', 'sparkles', () => openPanel('ai')),
       T('audio', 'musical-notes-outline', () => setSub('audio')),
       T('text', 'text-outline', () => setSub('text')),
       T('overlay', 'layers-outline', addOverlay),
@@ -916,7 +920,6 @@ export default function EditorScreen({ params, focused }) {
       T('filters', 'color-filter-outline', () => ensureClipSelected() && openPanel('filters')),
       T('adjust', 'options-outline', () => ensureClipSelected() && openPanel('adjust')),
       T('ratio', 'tablet-portrait-outline', () => openPanel('ratio')),
-      T('ai', 'sparkles', () => openPanel('ai')),
     ];
   }
 

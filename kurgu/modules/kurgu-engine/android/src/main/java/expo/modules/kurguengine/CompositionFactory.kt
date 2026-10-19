@@ -146,7 +146,12 @@ object CompositionFactory {
 
   /** Bir katman şeridi: öğeler zamana göre, aralar ve son saydam dolguyla; kanvas sonunda kırpılır. */
   private fun layerSequence(lane: List<LayerClip>, padUri: String, totalUs: Long, w: Int, h: Int, fps: Int, live: Boolean): EditedMediaItemSequence? {
-    val builder = EditedMediaItemSequence.Builder(VIDEO_ONLY)
+    // Dışa aktarmada (Transformer) hız değişimi video zaman damgalarını ses işlemcisinden
+    // türetir; sesi kaldırılmış öğede zaman damgaları hiç çözülmez ve dışa aktarma kilitlenir.
+    // Bu yüzden hızı değişen öğe içeren şerit sesli dizi olur, ses sıfır kazançla susturulur
+    // (katman sesi ses şeritlerinde ayrıca çalınır).
+    val withAudio = lane.any { it.kind != "image" && abs(it.speed - 1f) > 0.001f }
+    val builder = EditedMediaItemSequence.Builder(if (withAudio) AUDIO_VIDEO else VIDEO_ONLY)
     var cursorUs = 0L
     var added = 0
     for (clip in lane.sortedBy { it.startMs }) {
@@ -164,7 +169,7 @@ object CompositionFactory {
         srcOutMs = clip.srcInMs + (maxOutUs * (if (isImage) 1f else clip.speed) / 1000f).toLong()
       }
       if (srcOutMs - clip.srcInMs < 20) continue
-      builder.addItem(layerItem(clip, srcOutMs, w, h, fps, live))
+      builder.addItem(layerItem(clip, srcOutMs, w, h, fps, live, withAudio))
       cursorUs += clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed)
       added++
     }
@@ -173,7 +178,7 @@ object CompositionFactory {
     return builder.build()
   }
 
-  private fun layerItem(clip: LayerClip, srcOutMs: Long, w: Int, h: Int, fps: Int, live: Boolean): EditedMediaItem {
+  private fun layerItem(clip: LayerClip, srcOutMs: Long, w: Int, h: Int, fps: Int, live: Boolean, mutedAudio: Boolean = false): EditedMediaItem {
     val isImage = clip.kind == "image"
     val mediaItem = if (isImage) {
       MediaItem.Builder().setUri(Uri.parse(clip.uri)).setImageDurationMs(max(1L, srcOutMs - clip.srcInMs)).build()
@@ -190,9 +195,11 @@ object CompositionFactory {
     clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it, if (live) "lut:${clip.key}" else null)) }
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     video.add(LayerFx(clip, w, h, if (live) "ly:${clip.key}" else null))
+    val outUs = clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed)
+    val audio: List<AudioProcessor> = if (mutedAudio) listOf(GainProcessor(VolumeEnvelope(0f, 0, 0, outUs))) else emptyList()
     val builder = EditedMediaItem.Builder(mediaItem)
-      .setRemoveAudio(true) // katman sesi ses şeritlerinde ayrıca çalınır (renderSpec.js)
-      .setEffects(Effects(emptyList(), video))
+      .setRemoveAudio(!mutedAudio) // katman sesi ses şeritlerinde ayrıca çalınır (renderSpec.js)
+      .setEffects(Effects(audio, video))
     if (isImage) {
       builder.setDurationUs(max(1L, srcOutMs - clip.srcInMs) * 1000L).setFrameRate(fps)
     } else {

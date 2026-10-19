@@ -135,7 +135,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       }
 
       override fun onPlayerError(error: PlaybackException) {
-        onPreviewError(mapOf("code" to error.errorCodeName, "message" to (error.message ?: "")))
+        // Tanılama: tam neden zinciri günlüğe (logcat KurguPreview)
+        android.util.Log.e("KurguPreview", "player error ${error.errorCodeName}", error)
+        var cause: Throwable? = error.cause
+        var detail = error.message ?: ""
+        while (cause != null) {
+          detail += " | ${cause.javaClass.simpleName}: ${cause.message}"
+          cause = cause.cause
+        }
+        onPreviewError(mapOf("code" to error.errorCodeName, "message" to detail.take(600)))
       }
     })
     p.setVideoSurfaceView(surfaceView)
