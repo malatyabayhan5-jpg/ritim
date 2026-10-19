@@ -87,6 +87,37 @@ appId: app.kurgu.editor
         id: "audio-item-.*"
     commands:
       - takeScreenshot: 34_seslendirme_eklendi
+      # Ses efekti ön ayarı ve ses düzeyi anahtar karesi (yerel işlem zinciri önizlemede kurulur)
+      - tapOn:
+          id: "tool-back"
+          optional: true
+      - tapOn:
+          id: "audio-item-.*"
+      - tapOn:
+          id: "tool-audioFx"
+      - tapOn:
+          id: "audiofx-cat-voice"
+      - tapOn:
+          id: "audiofx-preset-podcast"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - tapOn:
+          id: "panel-done"
+      - tapOn:
+          id: "tool-volume"
+      - tapOn:
+          id: "kf-volume"
+      - tapOn:
+          id: "panel-done"
+      - tapOn:
+          id: "play-toggle"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - tapOn:
+          id: "play-toggle"
+      - takeScreenshot: 34b_ses_efekti
+      - assertNotVisible:
+          text: ".*(ERROR_CODE|Önizleme hatası|Preview error).*"
 # Ters oynatma: ilk klip cihazda ters kodlanır (sonuç günlükte: [KurguUI] reverse frames=...)
 - tapOn:
     id: "tool-back"
