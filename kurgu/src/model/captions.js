@@ -5,6 +5,7 @@
 import { createText } from './schema';
 import { clipDuration, mainLayout } from './timeline';
 import { TEXT_LAYOUTS } from './catalog';
+import { localAt } from './speed';
 
 const CAPTION = TEXT_LAYOUTS.find((l) => l.id === 'caption');
 
@@ -67,8 +68,8 @@ export function addClipCaptions(project, clipId, segments, opts = {}) {
   const dur = clipDuration(clip);
   const texts = [];
   for (const c of captionChunks(segments, opts)) {
-    const s = start + c.t0 / clip.speed;
-    const e = Math.min(start + dur, start + c.t1 / clip.speed);
+    const s = start + localAt(clip, clip.srcIn + c.t0);
+    const e = Math.min(start + dur, start + localAt(clip, clip.srcIn + c.t1));
     if (e - s < 200 || s >= start + dur) continue;
     const t = createText(Math.round(s), c.text, { ...CAPTION.style });
     texts.push({ ...t, duration: Math.round(e - s), y: CAPTION.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });

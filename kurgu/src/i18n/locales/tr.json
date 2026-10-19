@@ -819,5 +819,21 @@
     "lanesFull": "En fazla 6 katman şeridi kullanılabilir.",
     "keyNotFound": "Kenarlarda baskın bir perde rengi bulunamadı; rengi elle seçin.",
     "keyFound": "Anahtar renk: {color}"
+  },
+  "speed": {
+    "normal": "Normal",
+    "curve": "Eğri",
+    "curveHint": "Eğri, klip boyunca hızı değiştirir; ses perdesi korunur. Çubuklar kaynak boyunca hızı gösterir (turuncu: hızlı, gri: yavaş).",
+    "preset": {
+      "none": "Eğri yok",
+      "rampUp": "Giderek hızlan",
+      "rampDown": "Giderek yavaşla",
+      "slowCenter": "Ortada ağır çekim",
+      "fastCenter": "Ortada hızlan",
+      "heroMoment": "Vurgu anı",
+      "burstIn": "Hızlı giriş",
+      "burstOut": "Hızlı çıkış",
+      "pulse": "Nabız"
+    }
   }
 }

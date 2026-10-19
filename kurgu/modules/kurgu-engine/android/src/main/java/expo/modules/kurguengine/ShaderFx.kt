@@ -26,6 +26,8 @@ data class ShaderFxSpec(
   val seed: Float,
   val startMs: Long,
   val endMs: Long,
+  val kfAmount: FloatArray? = null,
+  val kfOriginMs: Long = startMs,
 )
 
 /**
@@ -166,7 +168,8 @@ internal class ShaderFxProgram(context: Context, useHdr: Boolean, private val sp
         p1[i] = live[5 + i]
       }
     }
-    val baseAmount = live?.get(0) ?: spec.amount
+    // Yoğunluk anahtar kareleri (varsa) sabit/canlı değerin yerine geçer
+    val baseAmount = expo.modules.kurguengine.anim.Keyframes.valueAt(spec.kfAmount, tMs - spec.kfOriginMs, live?.get(0) ?: spec.amount).coerceIn(0f, 1f)
     var amount = 0f
     if (tMs >= start && tMs < end) {
       val ramp = 80.0

@@ -46,6 +46,12 @@ data class MainClip(
   val effects: List<ShaderFxSpec>,
   val lut: LutSpec?,
   val denoise: Float,
+  val speedSegments: FloatArray? = null,
+  val outMs: Long = 0,
+  val startMs: Long = 0,
+  val angle: Float = 0f, // serbest açı (derece, saat yönü), anahtar kare tabanı
+  val opacity: Float = 1f,
+  val keyframes: Map<String, FloatArray> = emptyMap(),
 )
 
 data class AudioClip(
@@ -60,6 +66,8 @@ data class AudioClip(
   val fadeInMs: Long,
   val fadeOutMs: Long,
   val denoise: Float,
+  val speedSegments: FloatArray? = null,
+  val outMs: Long = 0,
 )
 
 data class TransitionSpec(
@@ -212,6 +220,8 @@ data class RenderSpec(
         seed = o.optDouble("seed", 0.37).toFloat(),
         startMs = o.optLong("startMs"),
         endMs = o.optLong("endMs"),
+        kfAmount = o.optJSONArray("kfAmount")?.let { a -> if (a.length() >= 7 && a.length() % 7 == 0) FloatArray(a.length()) { a.optDouble(it, 0.0).toFloat() } else null },
+        kfOriginMs = o.optLong("kfOriginMs", o.optLong("startMs")),
       )
     }
 
@@ -257,7 +267,24 @@ data class RenderSpec(
         fx = parseFx(o.optJSONObject("fx")),
         effects = o.optJSONArray("effects").objects().map { parseShaderFx(it) },
         lut = o.optJSONObject("lut")?.let { l -> l.optString("uri").takeIf { it.isNotEmpty() }?.let { LutSpec(it, l.optDouble("amount", 1.0).toFloat().coerceIn(0f, 1f)) } },
+        speedSegments = o.optJSONArray("speedSegments")?.let { a -> if (a.length() >= 2 && a.length() % 2 == 0) FloatArray(a.length()) { a.optDouble(it, 1.0).toFloat() } else null },
+        outMs = o.optLong("outMs"),
+        startMs = o.optLong("startMs"),
+        angle = o.optDouble("angle", 0.0).toFloat(),
+        opacity = o.optDouble("opacity", 1.0).toFloat().coerceIn(0f, 1f),
+        keyframes = parseKeyframes(o.optJSONObject("kf")),
       )
+    }
+
+    /** Paketli anahtar kare izleri (Keyframes.java biçimi, kare başına 7 sayı). */
+    fun parseKeyframes(k: JSONObject?): Map<String, FloatArray> {
+      val kf = mutableMapOf<String, FloatArray>()
+      if (k == null) return kf
+      for (name in k.keys()) {
+        val arr = k.optJSONArray(name) ?: continue
+        if (arr.length() >= 7 && arr.length() % 7 == 0) kf[name] = FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() }
+      }
+      return kf
     }
 
     private fun parseAudio(o: JSONObject) = AudioClip(
@@ -272,6 +299,8 @@ data class RenderSpec(
       fadeInMs = o.optLong("fadeInMs"),
       fadeOutMs = o.optLong("fadeOutMs"),
       denoise = o.optDouble("denoise", 0.0).toFloat().coerceIn(0f, 1f),
+      speedSegments = o.optJSONArray("speedSegments")?.let { a -> if (a.length() >= 2 && a.length() % 2 == 0) FloatArray(a.length()) { a.optDouble(it, 1.0).toFloat() } else null },
+      outMs = o.optLong("outMs"),
     )
 
     private fun parseText(o: JSONObject) = TextSpec(

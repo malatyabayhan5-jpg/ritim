@@ -7,6 +7,7 @@
 import catalog from './fx-catalog.json';
 import pack2 from './fx-pack2.json';
 import { newId } from './schema';
+import { packTrack } from './keyframes';
 
 export const FX_CATALOG = [...catalog.effects, ...pack2.effects];
 
@@ -65,6 +66,9 @@ export function effectRenderSpec(inst, startMs, endMs, key = inst.id) {
     seed: seedOf(inst.id),
     startMs: Math.round(startMs),
     endMs: Math.round(endMs),
+    // Yoğunluk anahtar kareleri (efekt başlangıcına göre); kfOriginMs pencere genişletilse de sabit kalır
+    kfAmount: packTrack(inst.keyframes?.amount),
+    kfOriginMs: Math.round(startMs),
   };
 }
 

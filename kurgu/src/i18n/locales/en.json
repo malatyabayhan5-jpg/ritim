@@ -819,5 +819,21 @@
     "lanesFull": "Up to 6 overlay tracks can be used.",
     "keyNotFound": "No dominant screen color found at the edges; pick a color manually.",
     "keyFound": "Key color: {color}"
+  },
+  "speed": {
+    "normal": "Normal",
+    "curve": "Curve",
+    "curveHint": "The curve changes speed along the clip; pitch is preserved. Bars show speed across the source (orange: fast, gray: slow).",
+    "preset": {
+      "none": "No curve",
+      "rampUp": "Ramp up",
+      "rampDown": "Ramp down",
+      "slowCenter": "Slow-mo center",
+      "fastCenter": "Fast center",
+      "heroMoment": "Hero moment",
+      "burstIn": "Burst in",
+      "burstOut": "Burst out",
+      "pulse": "Pulse"
+    }
   }
 }

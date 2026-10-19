@@ -40,6 +40,7 @@ import { canRedo, canUndo, createHistory, pushHistory, redo, undo } from '../mod
 import { canvasSize } from '../model/schema';
 import { TEXT_LAYOUTS } from '../model/catalog';
 import * as TL from '../model/timeline';
+import { sourceAt } from '../model/speed';
 import { importErrorText } from './HomeScreen';
 
 const SPEC_DEBOUNCE_MS = 180;
@@ -386,7 +387,7 @@ export default function EditorScreen({ params, focused }) {
     const media = project.media[hit.clip.mediaId];
     setBusy(t('editor.working'));
     try {
-      const src = Math.round(hit.clip.srcIn + hit.offset * hit.clip.speed);
+      const src = Math.round(sourceAt(hit.clip, hit.offset));
       const [uri] = await thumbnails(media, [src], Math.min(1080, media.height || 1080));
       if (!uri) throw new Error('FRAME');
       const tmp = `${CACHE_DIR}freeze_${Date.now()}.jpg`;
@@ -929,7 +930,7 @@ export default function EditorScreen({ params, focused }) {
     const target = selectedMain || clipAtPlayhead();
     switch (panel) {
       case 'speed':
-        return selectedMain && <SpeedPanel clip={selectedMain} onChange={(patch, key) => apply((p) => TL.setSpeed(p, selectedMain.id, patch.speed), key)} onClose={close} />;
+        return selectedMain && <SpeedPanel clip={selectedMain} onChange={(patch, key) => apply((p) => TL.setSpeed(p, selectedMain.id, patch.speed), key)} onCurve={(curve, key) => apply((p) => TL.setSpeedCurve(p, selectedMain.id, curve), key)} onClose={close} />;
       case 'volume':
         return selectedMain && <VolumePanel item={selectedMain} maxFadeMs={Math.min(5000, TL.clipDuration(selectedMain) / 2)} onChange={updMain} onClose={close} />;
       case 'duration':
@@ -944,6 +945,7 @@ export default function EditorScreen({ params, focused }) {
         return (
           <FxPanel
             mode="clip"
+            localMs={Math.max(0, position - TL.clipStart(project, selectedMain.id))}
             instances={list}
             selectedId={fxSel}
             maxReached={list.length >= MAX_CLIP_EFFECTS}
@@ -988,6 +990,7 @@ export default function EditorScreen({ params, focused }) {
         return (
           <FxPanel
             mode="layer"
+            localMs={selectedEffect ? Math.max(0, position - selectedEffect.start) : 0}
             instances={selectedEffect ? [selectedEffect] : []}
             selectedId={selectedEffect?.id}
             onPick={(effectId) => {
@@ -1039,7 +1042,7 @@ export default function EditorScreen({ params, focused }) {
       case 'ovAdjust':
         return selectedOverlay && <AdjustPanel clip={selectedOverlay} only={['brightness', 'contrast', 'saturation', 'exposure', 'temperature', 'tint']} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} />;
       case 'transform':
-        return selectedMain && <TransformPanel clip={selectedMain} canvasFit={project.canvas.fit} onChange={updMain} onClose={close} />;
+        return selectedMain && <TransformPanel clip={selectedMain} canvasFit={project.canvas.fit} localMs={Math.max(0, position - TL.clipStart(project, selectedMain.id))} onChange={updMain} onClose={close} />;
       case 'transition': {
         if (!selectedMain) return null;
         const i = project.main.findIndex((c) => c.id === selectedMain.id);

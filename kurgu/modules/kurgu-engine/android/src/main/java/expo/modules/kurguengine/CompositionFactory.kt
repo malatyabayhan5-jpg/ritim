@@ -60,7 +60,7 @@ object CompositionFactory {
     val h = even(outHeight)
 
     val mainItems = spec.main.map { mainItem(it, w, h, spec.fps, live) }
-    val totalUs = spec.main.sumOf { clipOutUs(it.srcInMs, it.srcOutMs, it.speed) }
+    val totalUs = spec.main.sumOf { mainOutUs(it) }
     val sequences = mutableListOf<EditedMediaItemSequence>()
     val pad = if (needsCompositor(spec)) padUri else null
     val layered = pad != null
@@ -85,15 +85,18 @@ object CompositionFactory {
           builder.addGap(startUs - cursorUs)
           cursorUs = startUs
         }
-        // Şerit, videonun bitişini aşmasın: klip sonunu kırp.
+        // Şerit, videonun bitişini aşmasın: klip sonunu kırp (hız eğrili öğe kırpılamaz; sığmazsa atlanır).
         var srcOutMs = clip.srcOutMs
         val maxOutUs = totalUs - cursorUs
-        if (clipOutUs(clip.srcInMs, srcOutMs, clip.speed) > maxOutUs) {
+        val curved = clip.speedSegments != null
+        val fullOutUs = if (curved && clip.outMs > 0) clip.outMs * 1000L else clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
+        if (fullOutUs > maxOutUs) {
+          if (curved) continue
           srcOutMs = clip.srcInMs + (maxOutUs * clip.speed / 1000f).toLong()
         }
         if (srcOutMs - clip.srcInMs < 20) continue
         builder.addItem(audioItem(clip, srcOutMs, live))
-        cursorUs += clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
+        cursorUs += if (curved) fullOutUs else clipOutUs(clip.srcInMs, srcOutMs, clip.speed)
         added++
       }
       if (added == 0) continue
@@ -229,7 +232,11 @@ object CompositionFactory {
     }
     val layout = if (clip.fit == "fill") Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP else Presentation.LAYOUT_SCALE_TO_FIT
     video.add(Presentation.createForWidthAndHeight(w, h, layout))
-    if (abs(clip.scale - 1f) > 0.001f || abs(clip.offsetX) > 0.0005f || abs(clip.offsetY) > 0.0005f) {
+    val kf = clip.keyframes
+    val animated = kf.keys.any { it in setOf("x", "y", "scale", "angle") } || abs(clip.angle) > 0.01f
+    if (animated) {
+      video.add(KeyedPlacement(clip.scale, clip.offsetX, clip.offsetY, clip.angle, kf, clip.startMs))
+    } else if (abs(clip.scale - 1f) > 0.001f || abs(clip.offsetX) > 0.0005f || abs(clip.offsetY) > 0.0005f) {
       video.add(ClipPlacement(clip.scale, clip.offsetX, clip.offsetY))
     }
     clip.colorMatrix?.let { video.add(StaticColorMatrix(it, if (live) "cm:${clip.key}" else null)) }
@@ -238,9 +245,10 @@ object CompositionFactory {
     if (clip.blur > 0.01f) video.add(GaussianBlur(max(0.5f, clip.blur * h * 0.02f)))
     if (!clip.fx.isNoOp) video.add(FxEffect(clip.fx))
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
+    if (kf.containsKey("opacity") || clip.opacity < 0.999f) video.add(KeyedOpacity(clip.opacity, kf["opacity"], clip.startMs))
 
     val audio = mutableListOf<AudioProcessor>()
-    val outUs = clipOutUs(clip.srcInMs, clip.srcOutMs, clip.speed)
+    val outUs = mainOutUs(clip)
     if (clip.denoise > 0.01f && clip.volume > 0f) audio.add(DenoiseProcessor(clip.denoise))
     // Önizlemede ses düzeyi canlı değişebilsin diye işlemci her zaman eklenir.
     if (live || VolumeEnvelope.isNeeded(clip.volume, clip.fadeInMs, clip.fadeOutMs)) {
@@ -253,10 +261,16 @@ object CompositionFactory {
       builder.setDurationUs(max(1L, clip.srcOutMs - clip.srcInMs) * 1000L).setFrameRate(fps)
     } else {
       builder.setDurationUs(max(clip.sourceDurationMs, clip.srcOutMs) * 1000L)
-      if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
+      val segs = clip.speedSegments
+      if (segs != null) builder.setSpeed(SegmentSpeed(segs))
+      else if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
     }
     return builder.build()
   }
+
+  /** Ana iz öğesinin çıktı süresi: hız eğrisinde JS'nin aynı parçalarla hesapladığı süre. */
+  private fun mainOutUs(c: MainClip): Long =
+    if (c.speedSegments != null && c.outMs > 0) c.outMs * 1000L else clipOutUs(c.srcInMs, c.srcOutMs, if (c.kind == "image") 1f else c.speed)
 
   private fun audioItem(clip: AudioClip, srcOutMs: Long, live: Boolean = false): EditedMediaItem {
     val mediaItem = MediaItem.Builder()
@@ -278,7 +292,9 @@ object CompositionFactory {
       .setRemoveVideo(true)
       .setDurationUs(max(clip.sourceDurationMs, srcOutMs) * 1000L)
       .setEffects(Effects(audio, emptyList()))
-    if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
+    val segs = clip.speedSegments
+    if (segs != null) builder.setSpeed(SegmentSpeed(segs))
+    else if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
     return builder.build()
   }
 
@@ -301,4 +317,45 @@ class CanvasCompositorSettings(private val w: Int, private val h: Int) : VideoCo
   override fun getOutputSize(inputSizes: List<Size>): Size = Size(w, h)
 
   override fun getOverlaySettings(inputId: Int, presentationTimeUs: Long): OverlaySettings = object : OverlaySettings {}
+}
+
+/**
+ * Hız eğrisi: parçalı sabit hız. `segments` = [kaynak başı ms (klip başına göre), hız, ...]
+ * (src/model/speed.js packSegments). Media3 zamanı kırpılmış klibin başına göredir.
+ */
+@OptIn(UnstableApi::class)
+class SegmentSpeed(segments: FloatArray) : SpeedProvider {
+  private val startsUs: LongArray
+  private val speeds: FloatArray
+
+  init {
+    // Media3 değişim zamanlarının kesin artan olmasını ister: çakışan başlangıçlar atlanır.
+    val st = ArrayList<Long>()
+    val sp = ArrayList<Float>()
+    for (i in 0 until segments.size / 2) {
+      val us = (segments[i * 2].toDouble() * 1000.0).toLong()
+      if (st.isNotEmpty() && us <= st.last()) continue
+      st.add(us)
+      sp.add(segments[i * 2 + 1].coerceIn(0.05f, 20f))
+    }
+    if (st.isEmpty()) {
+      st.add(0L)
+      sp.add(1f)
+    }
+    startsUs = st.toLongArray()
+    speeds = sp.toFloatArray()
+  }
+
+  private fun index(timeUs: Long): Int {
+    var i = 0
+    while (i < startsUs.size - 1 && startsUs[i + 1] <= timeUs) i++
+    return i
+  }
+
+  override fun getSpeed(timeUs: Long): Float = speeds[index(timeUs)]
+
+  override fun getNextSpeedChangeTimeUs(timeUs: Long): Long {
+    val i = index(timeUs)
+    return if (i + 1 < startsUs.size) startsUs[i + 1] else C.TIME_UNSET
+  }
 }

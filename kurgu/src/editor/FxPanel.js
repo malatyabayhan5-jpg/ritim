@@ -10,8 +10,10 @@ import { Chip, Icon, Panel, Row, Slider, Txt } from '../ui';
 import { colors, radius, space } from '../theme';
 import { FX_CATALOG, FX_CATEGORIES, effectById } from '../model/effects';
 import { FX_THUMBS } from '../model/fxThumbs';
+import { keyAt, removeKey, setKey, valueAt } from '../model/keyframes';
 
-export default function FxPanel({ mode, instances, selectedId, onPick, onSelect, onUpdate, onRemove, onClose, maxReached }) {
+/** localMs: oynatma kafasının efekt başlangıcına göre konumu (yoğunluk anahtar kareleri için). */
+export default function FxPanel({ mode, instances, selectedId, onPick, onSelect, onUpdate, onRemove, onClose, maxReached, localMs = 0 }) {
   const { t, fmt } = useI18n();
   const selected = instances.find((i) => i.id === selectedId) || null;
   const [cat, setCat] = useState(() => effectById(selected?.effectId)?.category || 'all');
@@ -76,7 +78,28 @@ export default function FxPanel({ mode, instances, selectedId, onPick, onSelect,
               {t(`fx.${effect.id}.desc`)}
               {effect.perf === 'heavy' ? ` · ${t('fx.perf.heavy')}` : ''}
             </Txt>
-            <ParamSlider label={t('fx.amount')} value={selected.amount ?? 1} onChange={(v) => onUpdate(selected.id, { amount: v }, `fxamt:${selected.id}`)} format={(v) => fmt.number(Math.round(v * 100))} testID="fx-amount" />
+            <ParamSlider
+              label={t('fx.amount')}
+              value={valueAt(selected.keyframes?.amount, localMs, selected.amount ?? 1)}
+              onChange={(v) => {
+                const track = selected.keyframes?.amount;
+                // Anahtar kare varsa oynatma kafasındaki kare düzenlenir
+                if (track?.length) onUpdate(selected.id, { keyframes: { ...selected.keyframes, amount: setKey(track, localMs, v) } }, `fxamt:${selected.id}`);
+                else onUpdate(selected.id, { amount: v }, `fxamt:${selected.id}`);
+              }}
+              format={(v) => fmt.number(Math.round(v * 100))}
+              testID="fx-amount"
+              keyState={selected.keyframes?.amount?.length ? (keyAt(selected.keyframes.amount, localMs) ? 'on' : 'has') : 'none'}
+              onToggleKey={() => {
+                const track = selected.keyframes?.amount || [];
+                const v = valueAt(track, localMs, selected.amount ?? 1);
+                const next = keyAt(track, localMs) ? removeKey(track, localMs) : setKey(track, localMs, v);
+                const keyframes = { ...selected.keyframes };
+                if (next.length) keyframes.amount = next;
+                else delete keyframes.amount;
+                onUpdate(selected.id, next.length ? { keyframes } : { keyframes, amount: v }, null);
+              }}
+            />
             {effect.params.map((p) => (
               <ParamSlider
                 key={p.key}
@@ -95,7 +118,7 @@ export default function FxPanel({ mode, instances, selectedId, onPick, onSelect,
   );
 }
 
-function ParamSlider({ label, value, min = 0, max = 1, onChange, format, testID }) {
+function ParamSlider({ label, value, min = 0, max = 1, onChange, format, testID, keyState, onToggleKey }) {
   return (
     <View style={styles.param}>
       <Txt dim style={styles.paramLabel} numberOfLines={1}>
@@ -104,6 +127,11 @@ function ParamSlider({ label, value, min = 0, max = 1, onChange, format, testID 
       <View style={{ flex: 1 }}>
         <Slider value={value} min={min} max={max} onChange={(v) => onChange(Math.round(v * 100) / 100)} formatValue={format} testID={testID} />
       </View>
+      {onToggleKey ? (
+        <Pressable testID={testID ? `${testID}-key` : undefined} hitSlop={10} onPress={onToggleKey} accessibilityLabel={label}>
+          <Icon name={keyState === 'on' ? 'diamond' : 'diamond-outline'} size={16} color={keyState === 'none' ? colors.textDim : colors.accent} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

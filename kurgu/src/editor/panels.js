@@ -21,7 +21,9 @@ import {
   TRANSITION_MIN_MS,
 } from '../model/catalog';
 import { DEFAULT_ADJUST } from '../model/schema';
-import { SPEED_MAX, SPEED_MIN } from '../model/timeline';
+import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey } from '../model/timeline';
+import { keyAt } from '../model/keyframes';
+import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
 const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
 
@@ -44,31 +46,87 @@ function Labeled({ label, children }) {
   );
 }
 
-export function SpeedPanel({ clip, onChange, onClose }) {
+/**
+ * Hız paneli. `onCurve` verilirse (ana iz videoları) "Eğri" sekmesi açılır: hazır
+ * eğriler ve 5 noktanın hızı düzenlenir; sabit hız seçilince eğri kaldırılır.
+ */
+export function SpeedPanel({ clip, onChange, onCurve, onClose }) {
   const { t, fmt } = useI18n();
+  const [mode, setMode] = useState(clip.speedCurve ? 'curve' : 'normal');
   // Logaritmik kaydırıcı: 0.1x..10x
   const toSlider = (s) => Math.log10(s);
   const fromSlider = (v) => Math.round(Math.pow(10, v) * 100) / 100;
+  const curve = clip.speedCurve;
+  const handles = CURVE_HANDLES.map((x) => (curve ? curveAt(curve.points, x) : clip.speed || 1));
+  const setHandle = (i, v) =>
+    onCurve({ preset: null, points: CURVE_HANDLES.map((x, k) => ({ x, v: k === i ? v : handles[k] })) }, `curve-${i}`);
   return (
     <Panel title={t('tools.speed')} onClose={onClose} testID="panel-speed">
       <View style={styles.body}>
-        <Slider
-          testID="speed-slider"
-          value={toSlider(clip.speed)}
-          min={Math.log10(SPEED_MIN)}
-          max={Math.log10(SPEED_MAX)}
-          center={0}
-          onChange={(v) => onChange({ speed: fromSlider(v) }, 'speed')}
-          formatValue={(v) => `${fmt.number(fromSlider(v), { maximumFractionDigits: 2 })}x`}
-        />
-        <Hscroll>
-          {SPEED_PRESETS.map((s) => (
-            <Chip key={s} label={`${fmt.number(s)}x`} active={Math.abs(clip.speed - s) < 0.01} onPress={() => onChange({ speed: s })} />
-          ))}
-        </Hscroll>
-        <Txt faint style={styles.hint}>
-          {t('panels.speedHint')}
-        </Txt>
+        {onCurve ? (
+          <Hscroll>
+            <Chip label={t('speed.normal')} active={mode === 'normal'} onPress={() => setMode('normal')} testID="speed-mode-normal" />
+            <Chip label={t('speed.curve')} active={mode === 'curve'} onPress={() => setMode('curve')} testID="speed-mode-curve" />
+          </Hscroll>
+        ) : null}
+        {mode === 'normal' ? (
+          <>
+            <Slider
+              testID="speed-slider"
+              value={toSlider(clip.speed)}
+              min={Math.log10(SPEED_MIN)}
+              max={Math.log10(SPEED_MAX)}
+              center={0}
+              onChange={(v) => onChange({ speed: fromSlider(v) }, 'speed')}
+              formatValue={(v) => `${fmt.number(fromSlider(v), { maximumFractionDigits: 2 })}x`}
+            />
+            <Hscroll>
+              {SPEED_PRESETS.map((s) => (
+                <Chip key={s} label={`${fmt.number(s)}x`} active={!curve && Math.abs(clip.speed - s) < 0.01} onPress={() => onChange({ speed: s })} />
+              ))}
+            </Hscroll>
+            <Txt faint style={styles.hint}>
+              {t('panels.speedHint')}
+            </Txt>
+          </>
+        ) : (
+          <>
+            <Hscroll>
+              <Chip label={t('speed.preset.none')} active={!curve} onPress={() => onCurve(null)} testID="curve-none" />
+              {CURVE_PRESETS.map((p) => (
+                <Chip key={p.id} label={t(`speed.preset.${p.id}`)} active={curve?.preset === p.id} onPress={() => onCurve(presetCurve(p.id))} testID={`curve-${p.id}`} />
+              ))}
+            </Hscroll>
+            {/* Eğri önizlemesi: kaynak boyunca hız (logaritmik yükseklik) */}
+            <View style={styles.curveBox} testID="curve-preview">
+              {Array.from({ length: 40 }, (_, i) => {
+                const v = curve ? curveAt(curve.points, (i + 0.5) / 40) : clip.speed || 1;
+                const h = 6 + ((Math.log10(v) + 1) / 2) * 50;
+                return <View key={i} style={[styles.curveBar, { height: h, backgroundColor: v >= 1 ? colors.accent : colors.textDim }]} />;
+              })}
+            </View>
+            {curve ? (
+              <Row gap={4} style={{ justifyContent: 'space-between' }}>
+                {handles.map((v, i) => (
+                  <View key={i} style={{ flex: 1 }}>
+                    <Slider
+                      testID={`curve-handle-${i}`}
+                      value={Math.log10(v)}
+                      min={-1}
+                      max={1}
+                      center={0}
+                      onChange={(nv) => setHandle(i, Math.round(Math.pow(10, nv) * 100) / 100)}
+                      formatValue={(nv) => `${fmt.number(Math.round(Math.pow(10, nv) * 10) / 10)}x`}
+                    />
+                  </View>
+                ))}
+              </Row>
+            ) : null}
+            <Txt faint style={styles.hint}>
+              {t('speed.curveHint')}
+            </Txt>
+          </>
+        )}
       </View>
     </Panel>
   );
@@ -203,10 +261,50 @@ export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only }) {
   );
 }
 
-export function TransformPanel({ clip, canvasFit, onChange, onClose }) {
+/** Anahtar kare düğmeli kaydırıcı (◆: oynatma kafasında kare ekle/sil). */
+function KeyRow({ label, has, onKey, onToggle, children, testID }) {
+  return (
+    <View style={styles.labeled}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Txt dim style={styles.label}>
+          {label}
+        </Txt>
+        <Pressable testID={testID} hitSlop={10} onPress={onToggle} accessibilityLabel={label}>
+          <Icon name={onKey ? 'diamond' : 'diamond-outline'} size={16} color={has ? colors.accent : colors.textDim} />
+        </Pressable>
+      </Row>
+      {children}
+    </View>
+  );
+}
+
+export function TransformPanel({ clip, canvasFit, localMs = 0, onChange, onClose }) {
   const { t, fmt } = useI18n();
   const tr = clip.transform;
   const fit = tr.fit || canvasFit;
+  const keyed = (prop, label, min, max, center, format, testID) => {
+    const track = clip.keyframes?.[prop];
+    return (
+      <KeyRow
+        key={prop}
+        label={label}
+        has={!!track?.length}
+        onKey={!!keyAt(track, localMs)}
+        onToggle={() => onChange(toggleMainKey(clip, prop, localMs), null)}
+        testID={`kf-main-${prop}`}
+      >
+        <Slider
+          testID={testID}
+          value={mainPropAt(clip, prop, localMs)}
+          min={min}
+          max={max}
+          center={center}
+          onChange={(v) => onChange(mainPropPatch(clip, prop, Math.round(v * 1000) / 1000, localMs), `main-${prop}`)}
+          formatValue={format}
+        />
+      </KeyRow>
+    );
+  };
   return (
     <Panel title={t('tools.transform')} onClose={onClose} testID="panel-transform">
       <View style={styles.body}>
@@ -217,18 +315,17 @@ export function TransformPanel({ clip, canvasFit, onChange, onClose }) {
           <Chip icon="contract-outline" label={t('panels.fit')} active={fit === 'fit'} onPress={() => onChange({ transform: { fit: 'fit' } })} />
           <Chip icon="expand-outline" label={t('panels.fill')} active={fit === 'fill'} onPress={() => onChange({ transform: { fit: 'fill' } })} />
         </Hscroll>
-        <Labeled label={t('panels.scale')}>
-          <Slider value={tr.scale} min={0.2} max={4} center={1} onChange={(v) => onChange({ transform: { scale: Math.round(v * 100) / 100 } }, 'scale')} formatValue={(v) => `${fmt.number(Math.round(v * 100))}%`} />
-        </Labeled>
-        <Labeled label={t('panels.positionX')}>
-          <Slider value={tr.x} min={-1} max={1} center={0} onChange={(v) => onChange({ transform: { x: Math.round(v * 100) / 100 } }, 'posX')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
-        </Labeled>
-        <Labeled label={t('panels.positionY')}>
-          <Slider value={tr.y} min={-1} max={1} center={0} onChange={(v) => onChange({ transform: { y: Math.round(v * 100) / 100 } }, 'posY')} formatValue={(v) => fmt.number(Math.round(v * 100))} />
-        </Labeled>
+        {keyed('scale', t('panels.scale'), 0.2, 4, 1, (v) => `${fmt.number(Math.round(v * 100))}%`)}
+        {keyed('x', t('panels.positionX'), -1, 1, 0, (v) => fmt.number(Math.round(v * 100)))}
+        {keyed('y', t('panels.positionY'), -1, 1, 0, (v) => fmt.number(Math.round(v * 100)))}
+        {keyed('angle', t('layer.rotation'), -180, 180, 0, (v) => `${fmt.number(Math.round(v))}°`)}
+        {keyed('opacity', t('layer.opacity'), 0, 1, undefined, (v) => `${fmt.number(Math.round(v * 100))}%`)}
         <Row>
-          <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ transform: { rotation: 0, flipH: false, flipV: false, scale: 1, x: 0, y: 0, fit: null } })} />
+          <Chip icon="refresh" label={t('panels.reset')} onPress={() => onChange({ transform: { rotation: 0, flipH: false, flipV: false, scale: 1, x: 0, y: 0, angle: 0, fit: null }, opacity: 1, keyframes: {} })} />
         </Row>
+        <Txt faint style={styles.hint}>
+          {t('layer.keyHint')}
+        </Txt>
       </View>
     </Panel>
   );
@@ -479,4 +576,6 @@ const styles = StyleSheet.create({
   swatchNone: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
   swatchActive: { borderColor: colors.text, borderWidth: 3 },
   confirm: { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
+  curveBox: { height: 60, flexDirection: 'row', alignItems: 'flex-end', gap: 2, backgroundColor: colors.bg, borderRadius: radius.md, padding: 4, direction: 'ltr' },
+  curveBar: { flex: 1, borderRadius: 2 },
 });

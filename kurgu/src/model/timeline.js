@@ -5,6 +5,7 @@
 
 import { createAudioClip, createMainClip, createOverlay, createText, newId } from './schema';
 import { removeKey, setKey, shiftKeyframes, valueAt } from './keyframes';
+import { averageSpeed, edgeSpeed, localAt, sourceAt, speedDuration, splitCurve, subCurve } from './speed';
 import { createEffectInstance, createEffectLayer } from './effects';
 
 export const MIN_CLIP_MS = 100;
@@ -12,7 +13,7 @@ export const MAX_IMAGE_MS = 60 * 60 * 1000;
 export const SPEED_MIN = 0.1;
 export const SPEED_MAX = 10;
 
-export const clipDuration = (c) => Math.max(1, (c.srcOut - c.srcIn) / (c.speed || 1));
+export const clipDuration = speedDuration;
 
 export function mainLayout(project) {
   let t = 0;
@@ -79,7 +80,9 @@ export function updateAllMain(project, patch) {
 function mergeClip(c, patch) {
   const next = { ...c };
   for (const [k, v] of Object.entries(patch)) {
-    next[k] = v && typeof v === 'object' && !Array.isArray(v) && c[k] && typeof c[k] === 'object' ? { ...c[k], ...v } : v;
+    // Anahtar kareler ve hız eğrisi bütün olarak değişir (silinen iz birleştirmeyle geri gelmesin)
+    const replace = k === 'keyframes' || k === 'speedCurve';
+    next[k] = !replace && v && typeof v === 'object' && !Array.isArray(v) && c[k] && typeof c[k] === 'object' ? { ...c[k], ...v } : v;
   }
   return next;
 }
@@ -91,9 +94,14 @@ export function splitMainAt(project, t) {
   const { clip, offset } = hit;
   const dur = clipDuration(clip);
   if (offset < MIN_CLIP_MS || dur - offset < MIN_CLIP_MS) return { project, changed: false };
-  const cut = clip.srcIn + offset * clip.speed;
+  const cut = Math.round(sourceAt(clip, offset));
   const a = { ...clip, srcOut: cut, fadeOut: 0 };
   const b = { ...clip, id: newId('clip'), srcIn: cut, fadeIn: 0, transition: { ...clip.transition, type: 'none' } };
+  if (clip.speedCurve) [a.speedCurve, b.speedCurve] = splitCurve(clip.speedCurve, (cut - clip.srcIn) / (clip.srcOut - clip.srcIn));
+  if (clip.keyframes) {
+    a.keyframes = shiftKeyframes(clip.keyframes, 0, offset);
+    b.keyframes = shiftKeyframes(clip.keyframes, -offset, dur - offset);
+  }
   const main = [...project.main];
   main.splice(hit.index, 1, a, b);
   return { project: replaceMain(project, main), changed: true, newId: b.id };
@@ -107,7 +115,7 @@ export function splitMainAtSourceTimes(project, clipId, timesMs) {
   const i = project.main.findIndex((c) => c.id === clipId);
   if (i < 0) return { project, added: 0 };
   const clip = project.main[i];
-  const minSrc = MIN_CLIP_MS * clip.speed;
+  const minSrc = MIN_CLIP_MS * averageSpeed(clip);
   const cuts = [...new Set(timesMs.map(Math.round))]
     .filter((t) => t > clip.srcIn + minSrc && t < clip.srcOut - minSrc)
     .sort((a, b) => a - b)
@@ -122,6 +130,8 @@ export function splitMainAtSourceTimes(project, clipId, timesMs) {
     fadeIn: k === 0 ? clip.fadeIn : 0,
     fadeOut: k === bounds.length - 2 ? clip.fadeOut : 0,
     transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
+    ...(clip.speedCurve ? { speedCurve: subCurve(clip.speedCurve, (srcIn - clip.srcIn) / (clip.srcOut - clip.srcIn), (bounds[k + 1] - clip.srcIn) / (clip.srcOut - clip.srcIn)) } : {}),
+    ...(clip.keyframes ? { keyframes: shiftKeyframes(clip.keyframes, -localAt(clip, srcIn), localAt(clip, bounds[k + 1]) - localAt(clip, srcIn)) } : {}),
   }));
   const main = [...project.main];
   main.splice(i, 1, ...pieces);
@@ -137,7 +147,7 @@ export function removeSourceRanges(project, clipId, ranges) {
   const i = project.main.findIndex((c) => c.id === clipId);
   if (i < 0) return { project, removedMs: 0, pieces: 0 };
   const clip = project.main[i];
-  const minSrc = MIN_CLIP_MS * clip.speed;
+  const minSrc = MIN_CLIP_MS * averageSpeed(clip);
   const keep = [];
   let cursor = clip.srcIn;
   for (const r of [...ranges].sort((a, b) => a.start - b.start)) {
@@ -158,6 +168,8 @@ export function removeSourceRanges(project, clipId, ranges) {
     fadeIn: k === 0 ? clip.fadeIn : 0,
     fadeOut: k === keep.length - 1 ? clip.fadeOut : 0,
     transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
+    ...(clip.speedCurve ? { speedCurve: subCurve(clip.speedCurve, (srcIn - clip.srcIn) / (clip.srcOut - clip.srcIn), (srcOut - clip.srcIn) / (clip.srcOut - clip.srcIn)) } : {}),
+    ...(clip.keyframes ? { keyframes: shiftKeyframes(clip.keyframes, -localAt(clip, srcIn), localAt(clip, srcOut) - localAt(clip, srcIn)) } : {}),
   }));
   const after = pieces.reduce((sum, c) => sum + clipDuration(c), 0);
   if (before - after < 1) return { project, removedMs: 0, pieces: 1 };
@@ -195,8 +207,8 @@ export function trimMain(project, clipId, edge, delta) {
   const clip = project.main.find((c) => c.id === clipId);
   if (!clip) return project;
   const media = project.media[clip.mediaId];
-  const srcDelta = delta * clip.speed;
-  const minSrc = MIN_CLIP_MS * clip.speed;
+  const srcDelta = delta * edgeSpeed(clip, edge);
+  const minSrc = MIN_CLIP_MS * averageSpeed(clip);
   let { srcIn, srcOut } = clip;
   if (edge === 'start') {
     srcIn = clip.kind === 'image' ? 0 : Math.max(0, Math.min(srcOut - minSrc, srcIn + srcDelta));
@@ -205,12 +217,23 @@ export function trimMain(project, clipId, edge, delta) {
     const limit = clip.kind === 'image' ? MAX_IMAGE_MS : media?.durationMs || srcOut;
     srcOut = Math.max(srcIn + minSrc, Math.min(limit, srcOut + srcDelta));
   }
-  return updateMain(project, clipId, { srcIn: Math.round(srcIn), srcOut: Math.round(srcOut) });
+  const patch = { srcIn: Math.round(srcIn), srcOut: Math.round(srcOut) };
+  if (clip.keyframes && clip.kind !== 'image') {
+    // Kareler klip içi zamana göredir: baştan kırpınca kayar, sondan kırpınca sınırlanır
+    const shift = edge === 'start' ? -localAt(clip, patch.srcIn) : 0;
+    patch.keyframes = shiftKeyframes(clip.keyframes, shift, speedDuration({ ...clip, ...patch }));
+  }
+  return updateMain(project, clipId, patch);
 }
 
 export function setSpeed(project, clipId, speed) {
   const s = Math.max(SPEED_MIN, Math.min(SPEED_MAX, speed));
-  return updateMain(project, clipId, { speed: Math.round(s * 100) / 100 });
+  return updateMain(project, clipId, { speed: Math.round(s * 100) / 100, speedCurve: null });
+}
+
+/** Hız eğrisi (null = sabit hıza dön). */
+export function setSpeedCurve(project, clipId, curve) {
+  return updateMain(project, clipId, { speedCurve: curve });
 }
 
 /** Görsel kliplerin süresini doğrudan ayarlar. */
@@ -229,6 +252,7 @@ export function extractAudio(project, clipId) {
     srcIn: layout.clip.srcIn,
     srcOut: layout.clip.srcOut,
     speed: layout.clip.speed,
+    speedCurve: layout.clip.speedCurve || null,
     volume: layout.clip.volume,
   };
   const p = updateMain(project, clipId, { muted: true });
@@ -545,6 +569,40 @@ export function swapOverlayLanes(project, a, b) {
     ...project,
     overlays: (project.overlays || []).map((o) => (o.lane === a ? { ...o, lane: b } : o.lane === b ? { ...o, lane: a } : o)),
   });
+}
+
+// --- Ana iz anahtar kareleri (konum, ölçek, serbest açı, opaklık) ---
+
+export const MAIN_KEY_PROPS = ['x', 'y', 'scale', 'angle', 'opacity'];
+const MAIN_BASE = {
+  x: (c) => c.transform?.x ?? 0,
+  y: (c) => c.transform?.y ?? 0,
+  scale: (c) => c.transform?.scale ?? 1,
+  angle: (c) => c.transform?.angle ?? 0,
+  opacity: (c) => c.opacity ?? 1,
+};
+
+export function mainPropAt(clip, prop, localMs) {
+  return valueAt(clip.keyframes?.[prop], localMs, MAIN_BASE[prop](clip));
+}
+
+export function mainPropPatch(clip, prop, value, localMs) {
+  const track = clip.keyframes?.[prop];
+  if (track && track.length) return { keyframes: { ...clip.keyframes, [prop]: setKey(track, localMs, value) } };
+  return prop === 'opacity' ? { opacity: value } : { transform: { [prop]: value } };
+}
+
+export function toggleMainKey(clip, prop, localMs) {
+  const track = clip.keyframes?.[prop] || [];
+  const v = mainPropAt(clip, prop, localMs);
+  const exists = track.some((k) => Math.abs(k.t - localMs) <= 15);
+  const next = exists ? removeKey(track, localMs) : setKey(track, localMs, v);
+  const keyframes = { ...clip.keyframes };
+  if (next.length) keyframes[prop] = next;
+  else delete keyframes[prop];
+  const patch = { keyframes };
+  if (!next.length) Object.assign(patch, prop === 'opacity' ? { opacity: v } : { transform: { [prop]: v } });
+  return patch;
 }
 
 // --- LUT (.cube) ---

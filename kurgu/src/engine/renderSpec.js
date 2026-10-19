@@ -1,12 +1,13 @@
 // Proje -> yerel motorun anladığı düz render tanımı. Önizleme ve dışa aktarma
 // aynı tanımı kullanır. Saf fonksiyondur; testlerde doğrudan çalıştırılır.
 
-import { assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
+import { MAIN_KEY_PROPS, assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
 import { MASK_TYPES } from '../model/schema';
 import { KEYFRAME_PROPS, packTrack } from '../model/keyframes';
 import { clipVisuals } from '../model/color';
 import { TRANSITIONS, TRANSITION_MIN_MS } from '../model/catalog';
 import { effectRenderSpec } from '../model/effects';
+import { edgeSpeed, packSegments } from '../model/speed';
 
 const DEFAULT_IMAGE_SOURCE_MS = 3000;
 
@@ -24,14 +25,26 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     const media = project.media[clip.mediaId] || {};
     const visuals = clipVisuals(clip);
     const isImage = clip.kind === 'image';
+    const kf = {};
+    for (const prop of MAIN_KEY_PROPS) {
+      const packed = packTrack(clip.keyframes?.[prop]);
+      if (packed) kf[prop] = packed;
+    }
     return {
       key: clip.id,
+      startMs: Math.round(start),
+      angle: clip.transform?.angle || 0,
+      opacity: clamp(clip.opacity ?? 1, 0, 1),
+      kf,
       uri: resolveUri(media),
       kind: isImage ? 'image' : 'video',
       srcInMs: Math.round(clip.srcIn),
       srcOutMs: Math.round(clip.srcOut),
       sourceDurationMs: Math.round(isImage ? clip.srcOut : media.durationMs || clip.srcOut || DEFAULT_IMAGE_SOURCE_MS),
       speed: isImage ? 1 : clip.speed,
+      // Hız eğrisi: [kaynak başı ms, hız, ...] parçalı sabit hız (SegmentSpeed.kt); outMs zaman çizelgesi süresi
+      speedSegments: isImage ? null : packSegments(clip),
+      outMs: Math.round(clipDuration(clip)),
       volume: clip.muted || media.hasAudio === false ? 0 : clamp(clip.volume, 0, 1),
       fadeInMs: Math.round(clip.fadeIn || 0),
       fadeOutMs: Math.round(clip.fadeOut || 0),
@@ -77,6 +90,8 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
         srcOutMs: Math.round(a.srcOut),
         sourceDurationMs: Math.round(media.durationMs || a.srcOut),
         speed: a.speed || 1,
+        speedSegments: packSegments(a),
+        outMs: Math.round(audioDuration(a)),
         volume: clamp(a.volume ?? 1, 0, 1),
         fadeInMs: Math.round(a.fadeIn || 0),
         fadeOutMs: Math.round(a.fadeOut || 0),
@@ -171,7 +186,8 @@ function transitionLayers(project, layout, mainSpecs, transitions) {
       const clip = l.clip;
       const media = project.media[clip.mediaId] || {};
       const isImage = clip.kind === 'image';
-      const sp = isImage ? 1 : clip.speed || 1;
+      // Eğrili klipte kesim noktasındaki hız (A: sonu, B: başı)
+      const sp = isImage ? 1 : edgeSpeed(clip, role ? 'start' : 'end');
       let srcIn;
       let srcOut;
       let speed = sp;

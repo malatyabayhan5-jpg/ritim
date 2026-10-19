@@ -3,6 +3,7 @@ package expo.modules.kurguengine
 import android.content.Context
 import android.graphics.Matrix
 import android.opengl.GLES20
+import android.opengl.Matrix as GlMatrix
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.VideoFrameProcessingException
@@ -16,6 +17,7 @@ import androidx.media3.effect.GlEffect
 import androidx.media3.effect.GlShaderProgram
 import androidx.media3.effect.MatrixTransformation
 import androidx.media3.effect.RgbMatrix
+import expo.modules.kurguengine.anim.Keyframes
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -47,6 +49,59 @@ class ClipPlacement(private val scale: Float, private val offsetX: Float, privat
   }
 
   override fun getMatrix(presentationTimeUs: Long): Matrix = m
+}
+
+/**
+ * Anahtar kareli yerleşim (ana iz): ölçek, konum (NDC) ve serbest açı (derece, saat
+ * yönü). Döndürme en/boy düzeltmesiyle yapılır (kare bozulmaz). Kare zamanları klibin
+ * zaman çizelgesi başlangıcına göredir.
+ */
+@OptIn(UnstableApi::class)
+class KeyedPlacement(
+  private val scale: Float,
+  private val offsetX: Float,
+  private val offsetY: Float,
+  private val angle: Float,
+  private val kf: Map<String, FloatArray>,
+  private val clipStartMs: Long,
+) : MatrixTransformation {
+  private var aspect = 1f
+  private val m = Matrix()
+
+  override fun configure(inputWidth: Int, inputHeight: Int): Size {
+    aspect = inputWidth.toFloat() / max(1, inputHeight)
+    return Size(inputWidth, inputHeight)
+  }
+
+  override fun getMatrix(presentationTimeUs: Long): Matrix {
+    val t = presentationTimeUs / 1000.0 - clipStartMs
+    val s = Keyframes.valueAt(kf["scale"], t, scale)
+    val x = Keyframes.valueAt(kf["x"], t, offsetX)
+    val y = Keyframes.valueAt(kf["y"], t, offsetY)
+    val a = Keyframes.valueAt(kf["angle"], t, angle)
+    m.reset()
+    m.postScale(s, s)
+    m.postScale(aspect, 1f)
+    m.postRotate(-a)
+    m.postScale(1f / aspect, 1f)
+    m.postTranslate(x, y)
+    return m
+  }
+}
+
+/** Anahtar kareli opaklık (ana iz): rengi siyaha doğru karartır. */
+@OptIn(UnstableApi::class)
+class KeyedOpacity(private val base: Float, private val track: FloatArray?, private val clipStartMs: Long) : RgbMatrix {
+  private val out = FloatArray(16)
+
+  override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray {
+    val k = Keyframes.valueAt(track, presentationTimeUs / 1000.0 - clipStartMs, base).coerceIn(0f, 1f)
+    GlMatrix.setIdentityM(out, 0)
+    out[0] = k
+    out[5] = k
+    out[10] = k
+    return out
+  }
 }
 
 /** Geçiş penceresi: [atMs - durationMs/2, atMs + durationMs/2]. */

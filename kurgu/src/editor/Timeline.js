@@ -11,6 +11,7 @@ import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { assignAudioLanes, audioDuration, clipDuration, mainLayout, overlayDuration, totalDuration } from '../model/timeline';
+import { sourceAt } from '../model/speed';
 import { thumbnails, waveform } from '../engine/engine';
 import { formatTimecode } from '../i18n/core';
 
@@ -449,7 +450,7 @@ const MainClip = memo(function MainClip({ clip, index, media, x, pxPerMs, visibl
   // Küçük resim zamanları 500 ms'ye yuvarlanır: yakınlaştırmada önbellek tekrar kullanılır.
   const times = tiles.map((i) => {
     const local = Math.min(dur - 1, (i * tileW + tileW / 2) / pxPerMs);
-    const src = clip.kind === 'image' ? 0 : clip.srcIn + local * clip.speed;
+    const src = clip.kind === 'image' ? 0 : sourceAt(clip, local);
     return Math.round(src / 500) * 500;
   });
   const uris = useThumbs(media, times);
@@ -478,9 +479,9 @@ const MainClip = memo(function MainClip({ clip, index, media, x, pxPerMs, visibl
             <Text style={styles.clipBadgeText}>{formatTimecode(dur)}</Text>
           </View>
         ) : null}
-        {clip.speed !== 1 && w > 80 ? (
+        {(clip.speed !== 1 || clip.speedCurve) && w > 80 ? (
           <View style={[styles.clipBadge, { left: undefined, right: 4 }]}>
-            <Text style={styles.clipBadgeText}>{`${clip.speed}x`}</Text>
+            <Text style={styles.clipBadgeText}>{clip.speedCurve ? '∿' : `${clip.speed}x`}</Text>
           </View>
         ) : null}
         {clip.muted ? <Ionicons name="volume-mute" size={12} color={colors.text} style={styles.mutedIcon} /> : null}
