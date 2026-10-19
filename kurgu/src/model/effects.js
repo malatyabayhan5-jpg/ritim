@@ -5,9 +5,10 @@
 // Yeni efekt eklemek: GLSL dosyası + katalog satırı + üç dilde ad.
 
 import catalog from './fx-catalog.json';
+import pack2 from './fx-pack2.json';
 import { newId } from './schema';
 
-export const FX_CATALOG = catalog.effects;
+export const FX_CATALOG = [...catalog.effects, ...pack2.effects];
 
 export const FX_CATEGORIES = FX_CATALOG.reduce((acc, e) => (acc.includes(e.category) ? acc : [...acc, e.category]), []);
 

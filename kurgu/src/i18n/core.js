@@ -1,12 +1,18 @@
 // Yerelleştirme çekirdeği: React'e bağımlı değildir (testlerde ve gelecekteki
 // masaüstü sürümünde de kullanılabilir). Yeni dil eklemek için:
-//   1) locales/<kod>.json dosyasını oluşturun (tr.json anahtarlarının tamamı),
+//   1) locales/<kod>.json ve her paket için packs/<paket>/<kod>.json oluşturun,
 //   2) LANGUAGES listesine bir satır ekleyin,
 //   3) `npm run i18n:check` ile eksik çeviri olmadığını doğrulayın.
 
-import tr from './locales/tr.json';
-import en from './locales/en.json';
-import ar from './locales/ar.json';
+import trBase from './locales/tr.json';
+import enBase from './locales/en.json';
+import arBase from './locales/ar.json';
+import { PACKS, mergeDict } from './packs';
+
+const withPacks = (base, packs) => packs.reduce((acc, p) => mergeDict(acc, p), base);
+const tr = withPacks(trBase, PACKS.tr);
+const en = withPacks(enBase, PACKS.en);
+const ar = withPacks(arBase, PACKS.ar);
 
 export const BASE_LANGUAGE = 'tr';
 

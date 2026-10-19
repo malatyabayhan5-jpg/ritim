@@ -2,9 +2,12 @@
 // tanımlardır; adlar i18n anahtarlarıyla gösterilir. Yeni içerik eklemek için
 // buraya bir satır ve üç dile çeviri eklemek yeterlidir.
 
+import { TRANSITIONS_PACK2, TRANSITION_CATEGORIES_PACK2 } from './transitions-pack2';
+import { TEXT_PRESETS_PACK2, TEXT_LAYOUTS_PACK2 } from './text-pack2';
+
 // Geçişler: gerçek A/B karışımı. `n`, katman shader'ındaki tür numarasıdır
 // (modules/kurgu-engine/.../kurgu_fx/_transitions.glsl). Tümü özgün çizimdir.
-export const TRANSITIONS = [
+export const TRANSITIONS_BASE = [
   { id: 'none', n: 0, category: 'basic', icon: 'close-circle-outline' },
   { id: 'dissolve', n: 1, category: 'basic', icon: 'git-merge-outline' },
   { id: 'fade', n: 2, category: 'basic', icon: 'contrast-outline' },
@@ -51,13 +54,14 @@ export const TRANSITIONS = [
   { id: 'rgbSplit', n: 54, category: 'effect', icon: 'color-filter-outline' },
 ];
 
-export const TRANSITION_CATEGORIES = ['basic', 'wipe', 'slide', 'camera', 'effect'];
+export const TRANSITIONS = [...TRANSITIONS_BASE, ...TRANSITIONS_PACK2];
+export const TRANSITION_CATEGORIES = [...new Set(['basic', 'wipe', 'slide', 'camera', 'effect', ...TRANSITION_CATEGORIES_PACK2])];
 
 // Geçiş süresi sınırları (ms)
 export const TRANSITION_MIN_MS = 100;
 export const TRANSITION_MAX_MS = 2000;
 
-export const TEXT_PRESETS = [
+export const TEXT_PRESETS_BASE = [
   { id: 'plain', style: { color: '#FFFFFFFF', shadow: true, bold: true } },
   { id: 'outline', style: { color: '#FFFFFFFF', stroke: '#000000FF', strokeWidth: 0.004, shadow: false, bold: true } },
   { id: 'boxDark', style: { color: '#FFFFFFFF', background: '#000000B3', shadow: false, bold: true } },
@@ -71,13 +75,16 @@ export const TEXT_PRESETS = [
 ];
 
 // Hazır metin düzenleri: alt bant, başlık, jenerik
-export const TEXT_LAYOUTS = [
+export const TEXT_LAYOUTS_BASE = [
   { id: 'title', textKey: 'text.sample.title', y: 0.15, style: { size: 0.075, font: 'display' }, animIn: 'pop', animOut: 'fade' },
   { id: 'lowerThird', textKey: 'text.sample.lowerThird', y: -0.62, style: { size: 0.04, background: '#000000B3', align: 'center' }, animIn: 'slideLeft', animOut: 'fade' },
   { id: 'caption', textKey: 'text.sample.caption', y: -0.78, style: { size: 0.038, background: '#00000080', bold: false }, animIn: 'fade', animOut: 'fade' },
   { id: 'credits', textKey: 'text.sample.credits', y: 0, style: { size: 0.035, bold: false, font: 'serif' }, animIn: 'slideUp', animOut: 'fade' },
   { id: 'cta', textKey: 'text.sample.cta', y: -0.4, style: { size: 0.05, color: '#111111FF', background: '#FFD60AFF' }, animIn: 'pop', animOut: 'pop' },
 ];
+
+export const TEXT_PRESETS = [...TEXT_PRESETS_BASE, ...TEXT_PRESETS_PACK2];
+export const TEXT_LAYOUTS = [...TEXT_LAYOUTS_BASE, ...TEXT_LAYOUTS_PACK2];
 
 export const TEXT_ANIMATIONS_IN = ['none', 'fade', 'pop', 'slideUp', 'slideLeft', 'typewriter'];
 export const TEXT_ANIMATIONS_OUT = ['none', 'fade', 'pop', 'slideUp', 'slideLeft'];

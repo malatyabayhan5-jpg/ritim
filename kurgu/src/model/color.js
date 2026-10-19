@@ -2,6 +2,8 @@
 // öncelikli ve vec4(rgb, 1) üzerine uygulanır (4. sütun = ofset). Yerel motor
 // matrisi olduğu gibi kullanır; masaüstü sürümü aynı matematiği paylaşabilir.
 
+import { FILTERS_PACK2, FILTER_CATEGORIES_PACK2 } from './filters-pack2';
+
 export const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 /** a * b (önce b, sonra a uygulanır). */
@@ -59,7 +61,7 @@ const compose = (...ms) => ms.reduce((acc, m) => mul(m, acc), IDENTITY);
 
 // --- Hazır filtreler (özgün ayarlar) ---
 
-export const FILTERS = [
+export const FILTERS_BASE = [
   { id: 'none', category: 'basic', matrix: IDENTITY },
   { id: 'vivid', category: 'basic', matrix: compose(saturationMatrix(1.45), contrastMatrix(1.08)) },
   { id: 'natural', category: 'basic', matrix: compose(saturationMatrix(1.12), scaleMatrix(1.03, 1.02, 1)) },
@@ -93,7 +95,8 @@ export const FILTERS = [
   { id: 'pop', category: 'mood', matrix: compose(saturationMatrix(1.8), contrastMatrix(1.15)) },
 ];
 
-export const FILTER_CATEGORIES = ['basic', 'cinematic', 'bw', 'retro', 'mood'];
+export const FILTERS = [...FILTERS_BASE, ...FILTERS_PACK2];
+export const FILTER_CATEGORIES = [...new Set(['basic', 'cinematic', 'bw', 'retro', 'mood', ...FILTER_CATEGORIES_PACK2])];
 
 export function filterById(id) {
   return FILTERS.find((f) => f.id === id) || FILTERS[0];

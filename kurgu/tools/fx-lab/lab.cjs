@@ -38,7 +38,9 @@ function shaderPair(id) {
 }
 
 function catalog() {
-  return JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
+  const base = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
+  const pack2 = JSON.parse(fs.readFileSync(path.join(path.dirname(CATALOG), 'fx-pack2.json'), 'utf8'));
+  return { ...base, effects: [...base.effects, ...pack2.effects] };
 }
 
 /** Katalogdaki varsayılan parametrelerden uP0/uP1 dizileri. */
@@ -277,7 +279,7 @@ async function perf() {
  */
 function layerSource() {
   const read = (f) => fs.readFileSync(path.join(FX_DIR, f), 'utf8');
-  return ['_common.glsl', '_layer.glsl', '_transitions.glsl', '_layer_main.glsl'].map(read).join('\n');
+  return ['_common.glsl', '_layer.glsl', '_trcommon.glsl', '_transitions2.glsl', '_transitions.glsl', '_layer_main.glsl'].map(read).join('\n');
 }
 
 const LAYER_DEFAULTS = { uXf: [0, 0, 1, 0], uLay: [1, 0, 0, 0], uLay2: [0, 0, 0, 0], uCrop: [0, 0, 1, 1], uMaskA: [0, 0, 0, 0], uMaskB: [0.5, 0.5, 0.02, 0], uMaskInv: 0, uKey: [0, 1, 0, 0], uKeyP: [0.4, 0.3, 0.5, 0], uTr: [0, 0, 0, 0.37], uTrP: [0.2, 0, 0, 0] };

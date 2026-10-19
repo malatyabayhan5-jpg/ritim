@@ -3,7 +3,7 @@
 // katmanın dışı tamamen saydam bir kare. Media3 birleştiricisi bu kareyi
 // alt katmanların üzerine alfa karışımıyla koyar (karıştırılmamış alfa).
 // Android (LayerFx.kt) ve efekt laboratuvarı (lab.cjs layer) aynı dosyayı kullanır.
-// Kaynak sırası: _common + _layer + _transitions + _layer_main.
+// Kaynak sırası: _common + _layer + _trcommon + _transitions2 + _transitions + _layer_main.
 //
 // Koordinatlar: kanvas q (x: -A..A, y: -1..1, y yukarı; A = en/boy). Konum uniform'ları
 // NDC'dir (-1..1). Yerel katman koordinatı l: (-1..1)^2.

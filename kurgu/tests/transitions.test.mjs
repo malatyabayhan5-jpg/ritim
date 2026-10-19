@@ -9,7 +9,8 @@ import { splitLive } from '../src/engine/live';
 import { image, projectWith, video } from './helpers.mjs';
 
 const uri = (m) => `file:///lib/${m.path}`;
-const glsl = readFileSync(join(process.cwd(), 'modules/kurgu-engine/android/src/main/assets/kurgu_fx/_transitions.glsl'), 'utf8');
+const fxDir = join(process.cwd(), 'modules/kurgu-engine/android/src/main/assets/kurgu_fx');
+const glsl = ['_transitions.glsl', '_transitions2.glsl'].map((f) => readFileSync(join(fxDir, f), 'utf8')).join('\n');
 
 test('geçiş kataloğu: benzersiz kimlik ve numara, her numara shader içinde işleniyor', () => {
   const ids = new Set();

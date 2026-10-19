@@ -29,10 +29,31 @@ function flatten(obj, prefix = '', out = {}) {
 const placeholders = (s) => new Set([...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter((n) => n !== 'n'));
 const logicalKey = (k) => k.replace(PLURAL, '');
 
+// Paketler (src/i18n/packs/<paket>/<dil>.json) temel sözlüğe eklenir; çakışan anahtar hatadır.
+const packsDir = join(root, 'src/i18n/packs');
+const packNames = readdirSync(packsDir).filter((d) => statSync(join(packsDir, d)).isDirectory());
 const locales = Object.fromEntries(
   readdirSync(localesDir)
     .filter((f) => f.endsWith('.json'))
-    .map((f) => [f.replace('.json', ''), flatten(JSON.parse(readFileSync(join(localesDir, f), 'utf8')))]),
+    .map((f) => {
+      const lang = f.replace('.json', '');
+      const flat = flatten(JSON.parse(readFileSync(join(localesDir, f), 'utf8')));
+      for (const pk of packNames) {
+        const file = join(packsDir, pk, f);
+        let pack;
+        try {
+          pack = flatten(JSON.parse(readFileSync(file, 'utf8')));
+        } catch {
+          fail(`[${lang}] paket dosyası eksik veya bozuk: packs/${pk}/${f}`);
+          continue;
+        }
+        for (const [k, v] of Object.entries(pack)) {
+          if (k in flat) fail(`[${lang}] paket ${pk} mevcut anahtarı yeniden tanımlıyor: ${k}`);
+          flat[k] = v;
+        }
+      }
+      return [lang, flat];
+    }),
 );
 const base = locales[BASE];
 if (!base) throw new Error('base locale missing');
