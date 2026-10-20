@@ -32,6 +32,11 @@ appId: app.kurgu.editor
     id: "layer-image-0"
 - tapOn:
     id: "ptool-adjust"
+# Otomatik iyileştirme (yerel görüntü istatistiği) — sonuç günlükte: [KurguPhoto] auto
+- tapOn:
+    id: "adjust-auto"
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn:
     id: "adjust-brightness"
 - swipe:
