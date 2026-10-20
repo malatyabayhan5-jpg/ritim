@@ -2,14 +2,15 @@
 # maskesi, 720p dışa aktarma. Çıktı run.sh içinde layer_check.py ile denetlenir:
 # katman yalnızca 0–3 sn arasında, kanvas ortasında ve maske dışında görünmemeli.
 appId: app.kurgu.editor
+# Not: CI #59'da Maestro bazı kimlikleri (new-project) ekranda görünürken bulamadı; metinle eşlenir.
 ---
 - launchApp
 - extendedWaitUntil:
     visible:
-      id: "new-project"
+      text: "(Yeni proje|New project)"
     timeout: 30000
 - tapOn:
-    id: "new-project"
+    text: "(Yeni proje|New project)"
 - waitForAnimationToEnd:
     timeout: 5000
 # Sahne test videosu seçicide süresinden bulunur (7,5 sn)

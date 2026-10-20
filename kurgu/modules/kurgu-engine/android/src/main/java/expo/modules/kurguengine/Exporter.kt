@@ -62,6 +62,7 @@ class Exporter(
     onFail: (String, String) -> Unit,
   ) {
     check(transformer == null) { "EXPORT_BUSY" }
+    KurguPreviewView.suspendAll()
     val file = File(outPath.removePrefix("file://"))
     file.parentFile?.mkdirs()
     if (file.exists()) file.delete()
@@ -137,6 +138,7 @@ class Exporter(
 
   private fun finish() {
     main.removeCallbacks(progressTick)
+    KurguPreviewView.resumeAll()
     transformer = null
   }
 

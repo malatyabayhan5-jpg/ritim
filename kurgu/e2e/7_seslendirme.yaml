@@ -21,12 +21,12 @@ appId: app.kurgu.editor
 # Alt araç çubuğu yeniden çizilirken erken dokunuş boşa gidebiliyor (CI #53)
 - extendedWaitUntil:
     visible:
-      id: "tool-record"
+      text: "(Seslendir|Voiceover|تعليق صوتي)"
     timeout: 10000
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn:
-    id: "tool-record"
+    text: "(Seslendir|Voiceover|تعليق صوتي)"
 - extendedWaitUntil:
     visible:
       id: "record-start"

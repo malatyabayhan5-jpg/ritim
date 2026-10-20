@@ -22,6 +22,20 @@ import kotlin.math.roundToInt
  */
 @OptIn(UnstableApi::class)
 class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
+  companion object {
+    private val views = java.util.Collections.newSetFromMap(java.util.WeakHashMap<KurguPreviewView, Boolean>())
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * Dışa aktarma süresince önizleme oynatıcıları bırakılır: aynı anda açık video çözücü
+     * sayısı sınırlıdır (emülatörde yazılımsal çözücüler; CI e2e: DECODER_INIT_FAILED).
+     */
+    fun suspendAll() = mainHandler.post { synchronized(views) { views.toList() }.forEach { it.releasePlayer() } }
+
+    /** Dışa aktarma bitince önizlemeler aynı konumdan yeniden kurulur. */
+    fun resumeAll() = mainHandler.post { synchronized(views) { views.toList() }.forEach { if (it.player == null) it.applyComposition() } }
+  }
+
   private val onPosition by EventDispatcher()
   private val onPlaybackState by EventDispatcher()
   private val onPreviewError by EventDispatcher()
@@ -44,6 +58,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   init {
     addView(surfaceView)
     PlaybackCrashGuard.install()
+    synchronized(views) { views.add(this) }
     PlaybackCrashGuard.onRecover = { main.post { rebuildAt(player?.currentPosition ?: pendingPositionMs, playWhenReady = false) } }
   }
 
@@ -230,6 +245,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   }
 
   fun play() {
+    if (player == null) applyComposition()
     val p = player ?: return
     if (p.playbackState == Player.STATE_ENDED || graphSpent) {
       if (playerMulti) return rebuildAt(0L, playWhenReady = true)
@@ -247,6 +263,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val target = max(0L, ms.toLong())
     pendingPositionMs = target
     if (graphSpent && playerMulti) return rebuildAt(target, playWhenReady = false)
+    if (player == null) return applyComposition()
     player?.seekTo(target)
   }
 
