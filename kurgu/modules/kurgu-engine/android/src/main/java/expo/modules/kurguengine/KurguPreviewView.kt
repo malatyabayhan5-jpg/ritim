@@ -43,6 +43,8 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   init {
     addView(surfaceView)
+    PlaybackCrashGuard.install()
+    PlaybackCrashGuard.onRecover = { main.post { rebuildAt(player?.currentPosition ?: pendingPositionMs, playWhenReady = false) } }
   }
 
   fun setSpec(json: String?) {
@@ -127,6 +129,9 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
    */
   private var graphSpent = false
 
+  /** Arka arkaya otomatik kurtarma sayısı (sonsuz döngüye karşı); yeni kompozisyonda sıfırlanır. */
+  private var recoveries = 0
+
   /**
    * Grafik, oynatıcı STATE_ENDED bildirmeden önce (kaynaklar önden okunup bittiğinde) içeride
    * sona erebilir; o arada yapılan arama da ikinci bitişe yol açar (CI #52). Bu yüzden çok
@@ -170,6 +175,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       override fun onPlayerError(error: PlaybackException) {
         // Tanılama: tam neden zinciri günlüğe (logcat KurguPreview)
         android.util.Log.e("KurguPreview", "player error ${error.errorCodeName}", error)
+        // Çok girişli grafik bitişten sonra kullanılınca (Media3 1.9.4, bkz. graphSpent) kare
+        // işleme hatası verir: kullanıcıya hata göstermeden oynatıcı aynı konumdan yeniden kurulur.
+        if (playerMulti && error.errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED && recoveries < 3) {
+          recoveries++
+          val pos = player?.currentPosition ?: pendingPositionMs
+          android.util.Log.w("KurguPreview", "multi-input graph recovery #$recoveries at $pos ms")
+          main.post { rebuildAt(pos, playWhenReady = false) }
+          return
+        }
         var cause: Throwable? = error.cause
         var detail = error.message ?: ""
         while (cause != null) {
@@ -194,6 +208,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val side = previewSide(s)
     if (side == builtSide && s === builtSpec) return
     builtSide = side
+    if (s !== builtSpec) recoveries = 0
     builtSpec = s
     val scale = minOf(1f, side.toFloat() / max(s.width, s.height))
     val w = (s.width * scale).roundToInt()
@@ -292,5 +307,35 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     attached = false
     releasePlayer()
     super.onDetachedFromWindow()
+  }
+}
+
+/**
+ * Media3 1.9.4 MultipleInputVideoGraph, bitişten sonra yeniden kullanıldığında oynatma iş
+ * parçacığında (CompositionPlaybackThread) yakalanmamış IllegalStateException fırlatır ve
+ * uygulamayı kapatır (CI #42–#53, DefaultVideoFrameProcessor.signalEndOfInput). Yalnızca bu
+ * iş parçacığı + bu yığın için istisna yutulur ve önizleme yeniden kurulur; diğer tüm
+ * çökmeler önceki işleyiciye aynen iletilir.
+ */
+object PlaybackCrashGuard {
+  @Volatile var onRecover: (() -> Unit)? = null
+  private var installed = false
+
+  @Synchronized
+  fun install() {
+    if (installed) return
+    installed = true
+    val previous = Thread.getDefaultUncaughtExceptionHandler()
+    Thread.setDefaultUncaughtExceptionHandler { thread, e ->
+      val ours = thread.name == "CompositionPlaybackThread" &&
+        e is IllegalStateException &&
+        e.stackTrace.any { it.className.startsWith("androidx.media3.effect.MultipleInputVideoGraph") || it.className.startsWith("androidx.media3.effect.DefaultVideoCompositor") }
+      if (ours) {
+        android.util.Log.e("KurguPreview", "multi-input graph crash suppressed; rebuilding preview", e)
+        onRecover?.invoke()
+      } else {
+        previous?.uncaughtException(thread, e)
+      }
+    }
   }
 }

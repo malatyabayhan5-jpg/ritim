@@ -269,7 +269,9 @@ object PhotoRenderer {
   internal fun decode(context: Context, uriString: String, longSide: Int): Bitmap? {
     val uri = Uri.parse(uriString)
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return null
+    // inJustDecodeBounds ile decodeStream her zaman null döner; sonuç yalnızca bounds'ta okunur
+    val stream = context.contentResolver.openInputStream(uri) ?: return null
+    stream.use { BitmapFactory.decodeStream(it, null, bounds) }
     if (bounds.outWidth <= 0) return null
     var sample = 1
     while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= longSide) sample *= 2
