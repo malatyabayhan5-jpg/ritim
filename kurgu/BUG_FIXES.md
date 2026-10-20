@@ -260,3 +260,22 @@ numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
 - **Kök neden:** Sabit `/tmp/kurgu-*` klasörleri; aynı anda iki çalışma birbirinin
   sınıf dosyalarını sildi ("KeyframesTest not found").
 - **Düzeltme:** `scripts/test-dsp.sh` her çalışmada `mktemp -d` kullanır.
+
+## H-19 — Fotoğraf düzenleyicide görsel katmanları çözülmüyordu
+
+- **Yeniden üretme:** CI #53, 8. akış: arka plan kaldırmada `segment failed IMAGE_DECODE`.
+- **Kök neden:** `PhotoRenderer.decode` boyut okuma adımında `openInputStream(uri)?.use {
+  decodeStream(…inJustDecodeBounds) } ?: return null` kullanıyordu; bu modda `decodeStream`
+  her zaman `null` döndüğü için her görsel reddediliyordu. Görsel katmanları önizlemede ve
+  dışa aktarmada çizilmiyor, maske ve nesne silme çalışmıyordu (birim testleri JS modelini
+  sınadığı için yakalanmadı; e2e akışı ancak bu turda bu adıma ulaştı).
+- **Düzeltme (c3ddcaa):** Akış ayrı açılıp sonuç yalnızca `bounds`'tan okunur.
+- **Test:** CI 8. akış (arka plan kaldırma + JPG çıktı boyutu denetimi).
+
+## H-16 (ek) — Çok katmanlı önizleme çökmesine güvenlik ağı
+
+- CI #52–#53: "sona yaklaşınca yeniden kur" kuralı çökmeyi önlemedi; grafik başka anlarda da
+  bitişe giriyor. Kesin tetikleyici günlükte görülemediği için c3ddcaa ile güvenlik ağı
+  eklendi: çok girişli modda kare işleme hatası (en çok 3 kez) ve oynatma iş parçacığındaki
+  `MultipleInputVideoGraph` istisnası uygulamayı kapatmaz, oynatıcı yeniden kurulur.
+  Kök neden Media3'te (`flush()` birleştiriciyi sıfırlamıyor) — **tam çözüm değil**, belgelendi.

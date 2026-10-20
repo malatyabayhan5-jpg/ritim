@@ -122,6 +122,11 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | 6 — Katmanlar | ❌ (aynı çökme zincirinden etkilenmiş olabilir) |
 | 7 — Seslendirme, 8 — Fotoğraf | ❌ Emülatörde "Process system isn't responding" sistem penceresi (önceki çökme sonrası emülatör kararsızlığı); uygulama adımlarına ulaşılamadı |
 
+**CI #53** (5dd608b): 2, 3, 4, 5 GEÇTİ; 1 ve 6 aynı çökme (sona yaklaşma kuralı yetmedi →
+güvenlik ağı c3ddcaa); 8. akış ilk kez fotoğraf oluşturma, otomatik iyileştirme, 1:1 kırpma
+(kanvas 1080×1080) adımlarını geçti, arka plan kaldırmada H-19 bulundu (c3ddcaa); 7. akışta
+`tool-record` dokunuşu başarısız (inceleniyor).
+
 Önizlemedeki `FAILED_RUNTIME_CHECK` hatası (H-8) CI #42'den beri görülmüyor.
 
 ## 10. Teslim
