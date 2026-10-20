@@ -1,1 +1,528 @@
-{}
+{
+  "fx": {
+    "category": {
+      "color": "Renk",
+      "particles": "Parçacık",
+      "split": "Bölünmüş ekran"
+    },
+    "param": {
+      "silver": "Gümüş",
+      "tint": "Ton",
+      "vignette": "Vinyet",
+      "skinProtect": "Ten koruma",
+      "style": "Biçim",
+      "foliage": "Bitki tepkisi",
+      "mackieLines": "Mackie çizgileri",
+      "range": "Aralık",
+      "process": "Süreç",
+      "fade": "Solma",
+      "darkness": "Karanlık",
+      "blueness": "Mavilik",
+      "keepLights": "Işıkları koru",
+      "orangeMask": "Turuncu maske",
+      "detail": "Ayrıntı",
+      "toneCompress": "Ton sıkıştırma",
+      "brushSize": "Fırça boyutu",
+      "canvas": "Tuval",
+      "bleed": "Yayılma",
+      "edges": "Kenarlar",
+      "border": "Çerçeve",
+      "shading": "Gölgeleme",
+      "spacing": "Aralık",
+      "inkColor": "Mürekkep rengi",
+      "depth": "Derinlik",
+      "material": "Malzeme",
+      "leadWidth": "Kurşun kalınlığı",
+      "facetShading": "Yüzey gölgesi",
+      "edgeLines": "Kenar çizgileri",
+      "pixelSize": "Piksel boyutu",
+      "outline": "Kontur",
+      "lineDensity": "Çizgi sıklığı",
+      "waviness": "Kıvrım",
+      "misregister": "Baskı kayması",
+      "boardColor": "Tahta rengi",
+      "stitchSize": "Dikiş boyutu",
+      "fabricTone": "Kumaş tonu",
+      "shine": "Parlaklık",
+      "brickSize": "Tuğla boyutu",
+      "studs": "Dübeller",
+      "toner": "Toner",
+      "streaks": "Şeritler",
+      "gain": "Kazanç",
+      "scope": "Dürbün maskesi",
+      "circle": "Dairesel",
+      "fringe": "Renk saçağı",
+      "height": "Yükseklik",
+      "displacement": "Yer değiştirme",
+      "cracks": "Çatlaklar",
+      "ribWidth": "Yiv genişliği",
+      "refraction": "Kırılma",
+      "scale": "Ölçek",
+      "frost": "Buzlanma",
+      "brightness": "Parlaklık",
+      "positionX": "Yatay konum",
+      "positionY": "Dikey konum",
+      "ghosts": "Hayaletler",
+      "rainbow": "Gökkuşağı",
+      "dirt": "Kir",
+      "softness": "Yumuşaklık",
+      "width": "Genişlik",
+      "position": "Konum",
+      "points": "Kol sayısı",
+      "weave": "Sallantı",
+      "gate": "Film penceresi",
+      "progress": "İlerleme",
+      "tone": "Ton",
+      "stains": "Lekeler",
+      "creases": "Kırışıklar",
+      "sharpen": "Keskinleştirme",
+      "interlace": "Geçmeli tarama",
+      "chromaBlocks": "Renk blokları",
+      "leak": "Işık sızıntısı",
+      "caustics": "Kostikler",
+      "particles": "Parçacıklar",
+      "dropSize": "Damla boyutu",
+      "fog": "Buğu",
+      "iridescence": "Yanardönerlik",
+      "trail": "İz",
+      "duty": "Açık kalma",
+      "distance": "Uzaklık",
+      "decay": "Sönme",
+      "squash": "Esneme",
+      "zoomOut": "Uzaklaş",
+      "centerSize": "Merkez boyutu",
+      "pivot": "Dönme noktası",
+      "gap": "Boşluk",
+      "mirror": "Ayna",
+      "layout": "Düzen",
+      "sideTone": "Yan şerit tonu",
+      "rounded": "Köşe yuvarlaklığı",
+      "stagger": "Sıralı hareket",
+      "axis": "Eksen",
+      "side": "Kaynak taraf",
+      "offset": "Eksen konumu",
+      "tiles": "Döşeme sayısı",
+      "mirrorTiles": "Aynalı döşeme",
+      "frames": "Kare sayısı",
+      "filmTone": "Film tonu",
+      "smear": "Sürükleme",
+      "colorShift": "Renk kayması",
+      "lineHeight": "Satır yüksekliği",
+      "static": "Karlanma",
+      "roll": "Dikey kayma",
+      "corruption": "Bozulma",
+      "bokeh": "Bokeh parlaklığı",
+      "tunnel": "Tünel",
+      "separation": "Ayrışma",
+      "depthMode": "Derinlik kipi",
+      "glitch": "Bozulma",
+      "glyphSize": "Karakter boyutu",
+      "spread": "Yayılım",
+      "warp": "Bükülme"
+    },
+    "bleachBypass": {
+      "name": "Ağartma atlama",
+      "desc": "Gümüşü korunmuş film: soluk renk, sert kontrast, metalik ışık."
+    },
+    "crossProcess": {
+      "name": "Çapraz banyo",
+      "desc": "Kayan kanal eğrileri: sarı-yeşil ışıklar, camgöbeği gölgeler."
+    },
+    "tealOrange": {
+      "name": "Camgöbeği-turuncu",
+      "desc": "Sinema renklendirmesi: soğuk gölgeler, sıcak ten tonları."
+    },
+    "infrared": {
+      "name": "Kızılötesi",
+      "desc": "Sahte renkli ya da siyah-beyaz kızılötesi film görünümü."
+    },
+    "thermal": {
+      "name": "Termal kamera",
+      "desc": "Isıyı demir ya da gökkuşağı paletine eşleyen kızılötesi kamera."
+    },
+    "solarize": {
+      "name": "Solarizasyon",
+      "desc": "Kısmi ton tersinmesi ve karanlık Mackie çizgileri."
+    },
+    "colorPop": {
+      "name": "Renk vurgusu",
+      "desc": "Tek bir renk kalır, gerisi siyah-beyaz olur."
+    },
+    "technicolor": {
+      "name": "Erken renkli film",
+      "desc": "İki ya da üç şeritli eski renkli sinema süreci."
+    },
+    "dayForNight": {
+      "name": "Gündüzden gece",
+      "desc": "Gündüz çekimini ay ışıklı geceye çevirir."
+    },
+    "filmNegative": {
+      "name": "Film negatifi",
+      "desc": "Turuncu maskeli renkli negatif görünümü."
+    },
+    "hdrDetail": {
+      "name": "HDR ayrıntı",
+      "desc": "Yerel kontrastı ve dokuyu belirginleştirir, tonları dengeler."
+    },
+    "oilPaint": {
+      "name": "Yağlı boya",
+      "desc": "Yönlü fırça darbeleri, empasto ve tuval dokusu."
+    },
+    "watercolor": {
+      "name": "Suluboya",
+      "desc": "Yayılan boya, koyu pigment kenarları ve kâğıt dokusu."
+    },
+    "pencilSketch": {
+      "name": "Karakalem",
+      "desc": "Kurşun kalem çizgileri ve taramalı gölgeler."
+    },
+    "crossHatch": {
+      "name": "Mürekkep tarama",
+      "desc": "Tonu çapraz mürekkep çizgileriyle verir."
+    },
+    "emboss": {
+      "name": "Kabartma",
+      "desc": "Görüntüyü taş, gümüş ya da altın rölyefe dönüştürür."
+    },
+    "stainedGlass": {
+      "name": "Vitray",
+      "desc": "Kurşun çıtalı, arkadan aydınlatılmış renkli cam parçaları."
+    },
+    "lowPoly": {
+      "name": "Düşük poligon",
+      "desc": "Işık alan düz üçgen yüzeylerden kristal görünüm."
+    },
+    "asciiArt": {
+      "name": "Metin sanatı",
+      "desc": "Görüntüyü karakterlerle çizen terminal ekranı."
+    },
+    "ditherBitmap": {
+      "name": "Bit eşlem",
+      "desc": "Az renkli, noktalı eski bilgisayar ekranı."
+    },
+    "pixelArt": {
+      "name": "Piksel sanatı",
+      "desc": "İri pikseller, 16 renkli palet ve koyu kontur."
+    },
+    "engraving": {
+      "name": "Gravür",
+      "desc": "Banknot gibi kıvrımlı çizgi tramı."
+    },
+    "risograph": {
+      "name": "Risograf",
+      "desc": "İki spot mürekkep, gren ve baskı kayması."
+    },
+    "chalkboard": {
+      "name": "Kara tahta",
+      "desc": "Tahtaya tebeşirle çizilmiş görünüm."
+    },
+    "xray": {
+      "name": "Röntgen",
+      "desc": "Ters tonlar ve parlayan kenarlarla röntgen filmi."
+    },
+    "crossStitch": {
+      "name": "Kanaviçe",
+      "desc": "Kumaş üzerine çarpı dikişlerle işlenmiş görüntü."
+    },
+    "toyBricks": {
+      "name": "Oyuncak tuğla",
+      "desc": "Dübelli plastik tuğlalardan mozaik."
+    },
+    "ledWall": {
+      "name": "LED ekran",
+      "desc": "Siyah zemin üzerinde parlayan LED noktaları."
+    },
+    "photocopy": {
+      "name": "Fotokopi",
+      "desc": "Sert siyah-beyaz, toner lekeleri ve tambur çizikleri."
+    },
+    "nightVision": {
+      "name": "Gece görüşü",
+      "desc": "Yeşil fosforlu, gürültülü gece görüş cihazı."
+    },
+    "swirl": {
+      "name": "Girdap",
+      "desc": "Görüntüyü merkez çevresinde burar."
+    },
+    "fisheye": {
+      "name": "Balık gözü",
+      "desc": "Fıçı biçimli geniş açı objektif, isteğe bağlı daire."
+    },
+    "magnifier": {
+      "name": "Büyüteç",
+      "desc": "Kadrajda dolaşan cam mercek."
+    },
+    "flagWave": {
+      "name": "Bayrak dalgası",
+      "desc": "Rüzgârda dalgalanan kumaş gibi kıvrımlar."
+    },
+    "heatHaze": {
+      "name": "Sıcak hava",
+      "desc": "Yerden yükselen sıcak havanın titreşimi."
+    },
+    "shatter": {
+      "name": "Kırık cam",
+      "desc": "Kayan cam parçaları ve parlak çatlaklar."
+    },
+    "reededGlass": {
+      "name": "Oluklu cam",
+      "desc": "Yivli camın arkasından tekrarlanan görüntü."
+    },
+    "liquidWarp": {
+      "name": "Sıvı akış",
+      "desc": "Yağlı sıvı gibi dolanan akıntılar."
+    },
+    "frostedGlass": {
+      "name": "Buzlu cam",
+      "desc": "Pürüzlü camın ardından yumuşak, saçılmış görüntü."
+    },
+    "prismFlare": {
+      "name": "Prizma parlaması",
+      "desc": "Işın yıldızı, gökkuşağı halkası ve hayalet yansımalar."
+    },
+    "godRays": {
+      "name": "Işık hüzmeleri",
+      "desc": "Kaynaktan yayılan hacimsel ışık şeritleri."
+    },
+    "lensDirt": {
+      "name": "Kirli objektif",
+      "desc": "Parlak ışıkta beliren leke ve toz izleri."
+    },
+    "spotlight": {
+      "name": "Spot ışığı",
+      "desc": "Dolaşan sahne spotu, gerisi karanlık."
+    },
+    "lightSweep": {
+      "name": "Parlak süpürme",
+      "desc": "Kadrajı tarayan eğik parlak ışık bandı."
+    },
+    "spectrum": {
+      "name": "Prizma ışığı",
+      "desc": "Duvara düşen gökkuşağı şeritleri."
+    },
+    "starFilter": {
+      "name": "Yıldız filtresi",
+      "desc": "Noktasal ışıklardan ince yıldız ışınları."
+    },
+    "discoLights": {
+      "name": "Disko ışıkları",
+      "desc": "Renkli dönen hüzmeler ve disko topu benekleri."
+    },
+    "film8mm": {
+      "name": "8 mm film",
+      "desc": "Ev filmi: pencere sallantısı, gren ve yuvarlak köşeler."
+    },
+    "filmBurn": {
+      "name": "Film yanığı",
+      "desc": "Eriyen filmde büyüyen parlak yanık delikleri."
+    },
+    "oldPhoto": {
+      "name": "Eski fotoğraf",
+      "desc": "Sepya ton, küf lekeleri ve kırışık kâğıt."
+    },
+    "instantFilm": {
+      "name": "Anlık fotoğraf",
+      "desc": "Beyaz çerçeve ve solgun anlık film renkleri."
+    },
+    "camcorder": {
+      "name": "El kamerası",
+      "desc": "2000'ler dijital kamera: keskinlik halesi ve geçmeli tarama."
+    },
+    "toyCamera": {
+      "name": "Oyuncak kamera",
+      "desc": "Güçlü vinyet, bulanık kenarlar ve ışık sızıntısı."
+    },
+    "fog": {
+      "name": "Sis",
+      "desc": "Sürüklenen katmanlı sis bulutları."
+    },
+    "aurora": {
+      "name": "Kuzey ışıkları",
+      "desc": "Gökyüzünde dalgalanan renkli ışık perdeleri."
+    },
+    "lightning": {
+      "name": "Şimşek",
+      "desc": "Zikzaklı yıldırım ve sahneyi aydınlatan çakmalar."
+    },
+    "underwater": {
+      "name": "Su altı",
+      "desc": "Mavi-yeşil su, kostik ışık ağı ve parçacıklar."
+    },
+    "raindrops": {
+      "name": "Camda damlalar",
+      "desc": "Buğulu cam üzerinde kırıcı yağmur damlaları."
+    },
+    "sandstorm": {
+      "name": "Kum fırtınası",
+      "desc": "Toz bulutu ve savrulan kum taneleri."
+    },
+    "fireflies": {
+      "name": "Ateş böcekleri",
+      "desc": "Süzülen, yanıp sönen küçük ışıklar."
+    },
+    "confetti": {
+      "name": "Konfeti",
+      "desc": "Takla atarak düşen renkli kâğıtlar."
+    },
+    "hearts": {
+      "name": "Kalpler",
+      "desc": "Yükselen, sallanan kalpler."
+    },
+    "bubbles": {
+      "name": "Köpükler",
+      "desc": "Yanardöner kenarlı yükselen sabun köpükleri."
+    },
+    "embers": {
+      "name": "Kıvılcımlar",
+      "desc": "Aşağıdan yükselen sıcak kor parçacıkları."
+    },
+    "warpStars": {
+      "name": "Işık hızı",
+      "desc": "Merkezden akan yıldız çizgileri."
+    },
+    "fireworks": {
+      "name": "Havai fişek",
+      "desc": "Gökyüzünde patlayan renkli kıvılcım küreleri."
+    },
+    "petals": {
+      "name": "Yaprak yağmuru",
+      "desc": "Rüzgârla savrulan çiçek ya da sonbahar yaprakları."
+    },
+    "strobe": {
+      "name": "Stroboskop",
+      "desc": "Ritimli flaş, karartma ya da ters renk."
+    },
+    "ghostEcho": {
+      "name": "Hayalet yankı",
+      "desc": "Nefes alan, sönen kopyalardan iz."
+    },
+    "zoomPulse": {
+      "name": "Ritim yakınlaştırma",
+      "desc": "Her vuruşta içeri zıplayan yakınlaşma."
+    },
+    "beatBounce": {
+      "name": "Ritim zıplaması",
+      "desc": "Basılıp uzayarak zıplayan görüntü."
+    },
+    "spinZoom": {
+      "name": "Dönen yakınlaşma",
+      "desc": "Yuvarlanan ve yakınlaşan kamera."
+    },
+    "kenBurns": {
+      "name": "Ken Burns",
+      "desc": "Yavaş yaklaşma ve kaydırma hareketi."
+    },
+    "dollyZoom": {
+      "name": "Baş dönmesi",
+      "desc": "Konu sabitken arka plan çekilip itilir."
+    },
+    "pendulum": {
+      "name": "Sarkaç",
+      "desc": "Asılı gibi sağa sola salınan görüntü."
+    },
+    "splitTwo": {
+      "name": "İkili ekran",
+      "desc": "Görüntünün iki kopyası yan yana ya da üst üste."
+    },
+    "splitThree": {
+      "name": "Üçlü ekran",
+      "desc": "Üç şerit; vurgu ortada."
+    },
+    "gridFour": {
+      "name": "2x2 ızgara",
+      "desc": "Dört karede nefes alan kolaj."
+    },
+    "gridNine": {
+      "name": "3x3 ızgara",
+      "desc": "Dokuz karede nefes alan kolaj."
+    },
+    "popArtGrid": {
+      "name": "Pop-art kolaj",
+      "desc": "Dört farklı renkli afiş baskısı."
+    },
+    "mirrorSplit": {
+      "name": "Ayna bölme",
+      "desc": "Bir yarıyı diğerine yansıtan simetri."
+    },
+    "mirrorQuad": {
+      "name": "Dörtlü ayna",
+      "desc": "İki eksende katlanan dört simetrik çeyrek."
+    },
+    "tileRepeat": {
+      "name": "Sonsuz döşeme",
+      "desc": "Kayan, yakınlaşan döşeme deseni."
+    },
+    "filmStrip": {
+      "name": "Film şeridi",
+      "desc": "Delikli şeritte akan kareler."
+    },
+    "datamosh": {
+      "name": "Veri ezmesi",
+      "desc": "Sürüklenip bulaşan sıkıştırma blokları."
+    },
+    "scanJitter": {
+      "name": "Tarama titremesi",
+      "desc": "Kayan satırlar ve senkron kaybı."
+    },
+    "chromaWave": {
+      "name": "Renk dalgası",
+      "desc": "Ayrı ayrı dalgalanan renk kanalları."
+    },
+    "signalLoss": {
+      "name": "Sinyal kaybı",
+      "desc": "Karlanma, dikey kayma ve renk kaybı."
+    },
+    "pixelSort": {
+      "name": "Piksel sıralama",
+      "desc": "Parlak bölgeler eriyip çizgi çizgi akar."
+    },
+    "jpegCrush": {
+      "name": "Aşırı sıkıştırma",
+      "desc": "JPEG blokları, renk taşması ve bozuk veri."
+    },
+    "bokehBlur": {
+      "name": "Objektif bulanıklığı",
+      "desc": "Parlak noktaları bokeh disklerine çeviren bulanıklık."
+    },
+    "radialSpin": {
+      "name": "Dönme bulanıklığı",
+      "desc": "Merkez çevresinde açısal hız bulanıklığı."
+    },
+    "dreamGlow": {
+      "name": "Rüya ışıltısı",
+      "desc": "Yumuşak, parlak ve masalsı ışık."
+    },
+    "irisBlur": {
+      "name": "Odak halkası",
+      "desc": "Seçilen alan net, çevresi bulanık."
+    },
+    "littlePlanet": {
+      "name": "Küçük gezegen",
+      "desc": "Sahneyi yuvarlak bir gezegene sarar."
+    },
+    "anaglyph3d": {
+      "name": "Anaglif 3B",
+      "desc": "Kırmızı-camgöbeği stereo görünüm."
+    },
+    "hologram": {
+      "name": "Hologram",
+      "desc": "Titreyen, taramalı ışık projeksiyonu."
+    },
+    "codeRain": {
+      "name": "Kod yağmuru",
+      "desc": "Sütun sütun akan yeşil karakterler."
+    },
+    "droste": {
+      "name": "Sonsuz çerçeve",
+      "desc": "Görüntü kendi içinde sonsuza dek tekrarlanır."
+    },
+    "psychedelic": {
+      "name": "Psikedelik",
+      "desc": "Akan gökkuşağı renkleri ve sıvı bükülme."
+    },
+    "crystalBall": {
+      "name": "Kristal küre",
+      "desc": "İçinden sahnenin ters göründüğü cam küre."
+    }
+  }
+}

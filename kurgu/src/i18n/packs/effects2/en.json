@@ -1,1 +1,528 @@
-{}
+{
+  "fx": {
+    "category": {
+      "color": "Color",
+      "particles": "Particles",
+      "split": "Split screen"
+    },
+    "param": {
+      "silver": "Silver",
+      "tint": "Tint",
+      "vignette": "Vignette",
+      "skinProtect": "Skin protection",
+      "style": "Style",
+      "foliage": "Foliage response",
+      "mackieLines": "Mackie lines",
+      "range": "Range",
+      "process": "Process",
+      "fade": "Fade",
+      "darkness": "Darkness",
+      "blueness": "Blueness",
+      "keepLights": "Keep lights",
+      "orangeMask": "Orange mask",
+      "detail": "Detail",
+      "toneCompress": "Tone compression",
+      "brushSize": "Brush size",
+      "canvas": "Canvas",
+      "bleed": "Bleed",
+      "edges": "Edges",
+      "border": "Border",
+      "shading": "Shading",
+      "spacing": "Spacing",
+      "inkColor": "Ink color",
+      "depth": "Depth",
+      "material": "Material",
+      "leadWidth": "Lead width",
+      "facetShading": "Facet shading",
+      "edgeLines": "Edge lines",
+      "pixelSize": "Pixel size",
+      "outline": "Outline",
+      "lineDensity": "Line density",
+      "waviness": "Waviness",
+      "misregister": "Misregistration",
+      "boardColor": "Board color",
+      "stitchSize": "Stitch size",
+      "fabricTone": "Fabric tone",
+      "shine": "Shine",
+      "brickSize": "Brick size",
+      "studs": "Studs",
+      "toner": "Toner",
+      "streaks": "Streaks",
+      "gain": "Gain",
+      "scope": "Scope mask",
+      "circle": "Circular",
+      "fringe": "Color fringe",
+      "height": "Height",
+      "displacement": "Displacement",
+      "cracks": "Cracks",
+      "ribWidth": "Rib width",
+      "refraction": "Refraction",
+      "scale": "Scale",
+      "frost": "Frost",
+      "brightness": "Brightness",
+      "positionX": "Horizontal position",
+      "positionY": "Vertical position",
+      "ghosts": "Ghosts",
+      "rainbow": "Rainbow",
+      "dirt": "Dirt",
+      "softness": "Softness",
+      "width": "Width",
+      "position": "Position",
+      "points": "Points",
+      "weave": "Gate weave",
+      "gate": "Film gate",
+      "progress": "Progress",
+      "tone": "Tone",
+      "stains": "Stains",
+      "creases": "Creases",
+      "sharpen": "Sharpen",
+      "interlace": "Interlace",
+      "chromaBlocks": "Chroma blocks",
+      "leak": "Light leak",
+      "caustics": "Caustics",
+      "particles": "Particles",
+      "dropSize": "Drop size",
+      "fog": "Fog",
+      "iridescence": "Iridescence",
+      "trail": "Trail",
+      "duty": "On time",
+      "distance": "Distance",
+      "decay": "Decay",
+      "squash": "Squash",
+      "zoomOut": "Zoom out",
+      "centerSize": "Center size",
+      "pivot": "Pivot",
+      "gap": "Gap",
+      "mirror": "Mirror",
+      "layout": "Layout",
+      "sideTone": "Side tone",
+      "rounded": "Rounded corners",
+      "stagger": "Stagger",
+      "axis": "Axis",
+      "side": "Source side",
+      "offset": "Axis position",
+      "tiles": "Tiles",
+      "mirrorTiles": "Mirrored tiles",
+      "frames": "Frames",
+      "filmTone": "Film tone",
+      "smear": "Smear",
+      "colorShift": "Color shift",
+      "lineHeight": "Line height",
+      "static": "Static",
+      "roll": "Vertical roll",
+      "corruption": "Corruption",
+      "bokeh": "Bokeh brightness",
+      "tunnel": "Tunnel",
+      "separation": "Separation",
+      "depthMode": "Depth mode",
+      "glitch": "Glitch",
+      "glyphSize": "Glyph size",
+      "spread": "Spread",
+      "warp": "Warp"
+    },
+    "bleachBypass": {
+      "name": "Bleach bypass",
+      "desc": "Silver-retained film look: muted color, hard contrast, metallic highlights."
+    },
+    "crossProcess": {
+      "name": "Cross process",
+      "desc": "Shifted channel curves: yellow-green highlights and cyan shadows."
+    },
+    "tealOrange": {
+      "name": "Teal & orange",
+      "desc": "Blockbuster grade: cool shadows and warm skin tones."
+    },
+    "infrared": {
+      "name": "Infrared",
+      "desc": "False-color or black-and-white infrared film look."
+    },
+    "thermal": {
+      "name": "Thermal camera",
+      "desc": "Heat-vision camera with iron or rainbow palette."
+    },
+    "solarize": {
+      "name": "Solarize",
+      "desc": "Partial tone reversal with dark Mackie lines."
+    },
+    "colorPop": {
+      "name": "Color pop",
+      "desc": "Keeps one hue in color and turns the rest black and white."
+    },
+    "technicolor": {
+      "name": "Vintage Technicolor",
+      "desc": "Early two-strip or three-strip color film process."
+    },
+    "dayForNight": {
+      "name": "Day for night",
+      "desc": "Turns a daylight shot into moonlit night."
+    },
+    "filmNegative": {
+      "name": "Film negative",
+      "desc": "Color negative with the orange film base."
+    },
+    "hdrDetail": {
+      "name": "HDR detail",
+      "desc": "Boosts local contrast and texture while balancing tones."
+    },
+    "oilPaint": {
+      "name": "Oil paint",
+      "desc": "Directional brush strokes, impasto and canvas texture."
+    },
+    "watercolor": {
+      "name": "Watercolor",
+      "desc": "Bleeding washes, dark pigment edges and paper grain."
+    },
+    "pencilSketch": {
+      "name": "Pencil sketch",
+      "desc": "Graphite lines with hatched shading."
+    },
+    "crossHatch": {
+      "name": "Cross-hatch",
+      "desc": "Renders tone with layered ink hatching."
+    },
+    "emboss": {
+      "name": "Emboss",
+      "desc": "Turns the image into a stone, silver or gold relief."
+    },
+    "stainedGlass": {
+      "name": "Stained glass",
+      "desc": "Backlit colored glass pieces with lead lines."
+    },
+    "lowPoly": {
+      "name": "Low poly",
+      "desc": "Faceted look built from flat, lit triangles."
+    },
+    "asciiArt": {
+      "name": "ASCII art",
+      "desc": "Terminal screen that draws the image with characters."
+    },
+    "ditherBitmap": {
+      "name": "Bitmap dither",
+      "desc": "Few-color, stippled vintage computer screen."
+    },
+    "pixelArt": {
+      "name": "Pixel art",
+      "desc": "Chunky pixels, 16-color palette and dark outlines."
+    },
+    "engraving": {
+      "name": "Engraving",
+      "desc": "Banknote-style curved line screen."
+    },
+    "risograph": {
+      "name": "Risograph",
+      "desc": "Two spot inks with grain and misregistration."
+    },
+    "chalkboard": {
+      "name": "Chalkboard",
+      "desc": "Looks drawn in chalk on a blackboard."
+    },
+    "xray": {
+      "name": "X-ray",
+      "desc": "X-ray film with inverted tones and glowing edges."
+    },
+    "crossStitch": {
+      "name": "Cross-stitch",
+      "desc": "Image embroidered with cross stitches on fabric."
+    },
+    "toyBricks": {
+      "name": "Toy bricks",
+      "desc": "Mosaic of studded plastic bricks."
+    },
+    "ledWall": {
+      "name": "LED wall",
+      "desc": "Glowing LED dots on a black panel."
+    },
+    "photocopy": {
+      "name": "Photocopy",
+      "desc": "Harsh black and white, toner specks and drum streaks."
+    },
+    "nightVision": {
+      "name": "Night vision",
+      "desc": "Noisy green-phosphor night vision device."
+    },
+    "swirl": {
+      "name": "Swirl",
+      "desc": "Twists the image around the center."
+    },
+    "fisheye": {
+      "name": "Fisheye",
+      "desc": "Barrel-shaped ultra-wide lens, optionally circular."
+    },
+    "magnifier": {
+      "name": "Magnifier",
+      "desc": "A glass lens wandering across the frame."
+    },
+    "flagWave": {
+      "name": "Flag wave",
+      "desc": "Rippling folds like cloth in the wind."
+    },
+    "heatHaze": {
+      "name": "Heat haze",
+      "desc": "Shimmer of hot air rising from the ground."
+    },
+    "shatter": {
+      "name": "Shatter",
+      "desc": "Shifting glass shards with bright cracks."
+    },
+    "reededGlass": {
+      "name": "Reeded glass",
+      "desc": "The image repeated behind fluted glass."
+    },
+    "liquidWarp": {
+      "name": "Liquid warp",
+      "desc": "Swirling currents like an oily liquid."
+    },
+    "frostedGlass": {
+      "name": "Frosted glass",
+      "desc": "Soft, scattered view through textured glass."
+    },
+    "prismFlare": {
+      "name": "Prism flare",
+      "desc": "Ray star, rainbow ring and ghost reflections."
+    },
+    "godRays": {
+      "name": "God rays",
+      "desc": "Volumetric light shafts streaming from a source."
+    },
+    "lensDirt": {
+      "name": "Lens dirt",
+      "desc": "Smudges and dust revealed by bright lights."
+    },
+    "spotlight": {
+      "name": "Spotlight",
+      "desc": "A roaming stage spotlight, the rest in darkness."
+    },
+    "lightSweep": {
+      "name": "Light sweep",
+      "desc": "A slanted glossy band sweeping across the frame."
+    },
+    "spectrum": {
+      "name": "Spectrum light",
+      "desc": "Rainbow bands cast as if through a prism."
+    },
+    "starFilter": {
+      "name": "Star filter",
+      "desc": "Fine star rays from point lights."
+    },
+    "discoLights": {
+      "name": "Disco lights",
+      "desc": "Colored sweeping beams and mirror-ball sparkles."
+    },
+    "film8mm": {
+      "name": "8mm film",
+      "desc": "Home movie: gate weave, grain and rounded corners."
+    },
+    "filmBurn": {
+      "name": "Film burn",
+      "desc": "Glowing holes spreading through melting film."
+    },
+    "oldPhoto": {
+      "name": "Old photo",
+      "desc": "Sepia tone, foxing stains and creased paper."
+    },
+    "instantFilm": {
+      "name": "Instant photo",
+      "desc": "White frame and faded instant-film colors."
+    },
+    "camcorder": {
+      "name": "Camcorder",
+      "desc": "2000s digital camcorder: sharpening halos and interlacing."
+    },
+    "toyCamera": {
+      "name": "Toy camera",
+      "desc": "Heavy vignette, soft edges and a light leak."
+    },
+    "fog": {
+      "name": "Fog",
+      "desc": "Drifting layers of fog."
+    },
+    "aurora": {
+      "name": "Aurora",
+      "desc": "Rippling curtains of colored light in the sky."
+    },
+    "lightning": {
+      "name": "Lightning",
+      "desc": "Jagged bolts and flashes lighting the scene."
+    },
+    "underwater": {
+      "name": "Underwater",
+      "desc": "Blue-green water, caustic light and floating particles."
+    },
+    "raindrops": {
+      "name": "Raindrops on glass",
+      "desc": "Refracting raindrops on a fogged window."
+    },
+    "sandstorm": {
+      "name": "Sandstorm",
+      "desc": "Dust clouds and wind-blown sand."
+    },
+    "fireflies": {
+      "name": "Fireflies",
+      "desc": "Drifting, blinking little lights."
+    },
+    "confetti": {
+      "name": "Confetti",
+      "desc": "Colorful paper pieces tumbling down."
+    },
+    "hearts": {
+      "name": "Hearts",
+      "desc": "Floating, swaying hearts."
+    },
+    "bubbles": {
+      "name": "Bubbles",
+      "desc": "Rising soap bubbles with iridescent rims."
+    },
+    "embers": {
+      "name": "Embers",
+      "desc": "Hot sparks rising from below."
+    },
+    "warpStars": {
+      "name": "Warp speed",
+      "desc": "Star streaks rushing out from the center."
+    },
+    "fireworks": {
+      "name": "Fireworks",
+      "desc": "Colorful bursts of sparks in the sky."
+    },
+    "petals": {
+      "name": "Falling petals",
+      "desc": "Blossom or autumn leaves blown by the wind."
+    },
+    "strobe": {
+      "name": "Strobe",
+      "desc": "Rhythmic flash, blackout or inverted color."
+    },
+    "ghostEcho": {
+      "name": "Ghost echo",
+      "desc": "Trail of breathing, fading copies."
+    },
+    "zoomPulse": {
+      "name": "Zoom pulse",
+      "desc": "A punch-in zoom on every beat."
+    },
+    "beatBounce": {
+      "name": "Beat bounce",
+      "desc": "The frame bounces with squash and stretch."
+    },
+    "spinZoom": {
+      "name": "Spin zoom",
+      "desc": "A rolling, zooming camera."
+    },
+    "kenBurns": {
+      "name": "Ken Burns",
+      "desc": "Slow push-in with a gentle pan."
+    },
+    "dollyZoom": {
+      "name": "Dolly zoom",
+      "desc": "Background stretches while the subject stays put."
+    },
+    "pendulum": {
+      "name": "Pendulum",
+      "desc": "The frame swings like it is hanging."
+    },
+    "splitTwo": {
+      "name": "Split in two",
+      "desc": "Two copies side by side or stacked."
+    },
+    "splitThree": {
+      "name": "Split in three",
+      "desc": "Three strips with focus in the middle."
+    },
+    "gridFour": {
+      "name": "2x2 grid",
+      "desc": "Four-tile collage that gently breathes."
+    },
+    "gridNine": {
+      "name": "3x3 grid",
+      "desc": "Nine-tile collage that gently breathes."
+    },
+    "popArtGrid": {
+      "name": "Pop art grid",
+      "desc": "Four bold, differently colored poster prints."
+    },
+    "mirrorSplit": {
+      "name": "Mirror split",
+      "desc": "Symmetry that reflects one half onto the other."
+    },
+    "mirrorQuad": {
+      "name": "Quad mirror",
+      "desc": "Four symmetric quarters folded on two axes."
+    },
+    "tileRepeat": {
+      "name": "Tile repeat",
+      "desc": "A drifting, zooming tiled pattern."
+    },
+    "filmStrip": {
+      "name": "Film strip",
+      "desc": "Frames rolling along a sprocketed strip."
+    },
+    "datamosh": {
+      "name": "Datamosh",
+      "desc": "Dragging, smearing compression blocks."
+    },
+    "scanJitter": {
+      "name": "Scanline jitter",
+      "desc": "Sliding lines and lost sync."
+    },
+    "chromaWave": {
+      "name": "Chroma wave",
+      "desc": "Color channels rippling independently."
+    },
+    "signalLoss": {
+      "name": "Signal loss",
+      "desc": "Static snow, vertical roll and color dropout."
+    },
+    "pixelSort": {
+      "name": "Pixel sort",
+      "desc": "Bright areas melt into streaks."
+    },
+    "jpegCrush": {
+      "name": "JPEG crush",
+      "desc": "JPEG blocks, chroma bleed and corrupt data."
+    },
+    "bokehBlur": {
+      "name": "Bokeh blur",
+      "desc": "Lens blur that turns highlights into bokeh discs."
+    },
+    "radialSpin": {
+      "name": "Spin blur",
+      "desc": "Rotational motion blur around the center."
+    },
+    "dreamGlow": {
+      "name": "Dreamy glow",
+      "desc": "Soft, luminous, fairy-tale light."
+    },
+    "irisBlur": {
+      "name": "Iris blur",
+      "desc": "Chosen area sharp, surroundings blurred."
+    },
+    "littlePlanet": {
+      "name": "Little planet",
+      "desc": "Wraps the scene into a tiny round planet."
+    },
+    "anaglyph3d": {
+      "name": "Anaglyph 3D",
+      "desc": "Red-cyan stereo look."
+    },
+    "hologram": {
+      "name": "Hologram",
+      "desc": "Flickering, scanlined light projection."
+    },
+    "codeRain": {
+      "name": "Code rain",
+      "desc": "Green characters raining down in columns."
+    },
+    "droste": {
+      "name": "Droste",
+      "desc": "The image repeats inside itself forever."
+    },
+    "psychedelic": {
+      "name": "Psychedelic",
+      "desc": "Flowing rainbow colors and liquid warping."
+    },
+    "crystalBall": {
+      "name": "Crystal ball",
+      "desc": "A glass sphere showing the scene upside down."
+    }
+  }
+}

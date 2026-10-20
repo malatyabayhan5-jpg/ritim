@@ -1,93 +1,497 @@
 {
-  "_note": "SwiftShader (yazılımsal GPU), 1280x720, kare başına medyan çizim süresi; relative = efekt / doğrudan kopya. Mutlak ms cihazı temsil etmez. Üretim: node tools/fx-lab/lab.cjs perf (2 çalıştırmanın ortalaması).",
-  "_passthroughMs": 42.0,
+  "_note": "SwiftShader (yazılımsal GPU), 1280x720, kare başına medyan çizim süresi; relative = efekt / doğrudan kopya. Mutlak ms cihazı temsil etmez. Üretim: node tools/fx-lab/lab.cjs perf (12 çalıştırmanın efekt başına medyanı; paylaşımlı makinedeki ölçüm gürültüsünü bastırır).",
+  "_passthroughMs": 34.8,
   "glow": {
-    "ms": 307.8,
-    "relative": 7.33,
+    "ms": 270.8,
+    "relative": 7.92,
     "relativeBeforeTwoPass": 15.4
   },
   "lightLeak": {
-    "ms": 78.7,
-    "relative": 1.88
+    "ms": 69.1,
+    "relative": 1.98
   },
   "glitch": {
-    "ms": 58.9,
-    "relative": 1.4
+    "ms": 52.6,
+    "relative": 1.46
   },
   "vhs": {
-    "ms": 101.7,
-    "relative": 2.41
+    "ms": 75.8,
+    "relative": 2.15
   },
   "chromatic": {
-    "ms": 132.9,
-    "relative": 3.15
+    "ms": 107.3,
+    "relative": 3.13
   },
   "shake": {
-    "ms": 116.4,
-    "relative": 2.76
+    "ms": 113.9,
+    "relative": 3.2
   },
   "tiltShift": {
-    "ms": 234.1,
-    "relative": 5.57,
+    "ms": 193.7,
+    "relative": 5.6,
     "relativeBeforeTwoPass": 9.49
   },
   "oldFilm": {
-    "ms": 82.8,
-    "relative": 1.97
+    "ms": 71.5,
+    "relative": 2.15
   },
   "crt": {
-    "ms": 51.6,
-    "relative": 1.23
+    "ms": 53.7,
+    "relative": 1.45
   },
   "neonEdge": {
-    "ms": 160.6,
-    "relative": 3.82,
+    "ms": 148.1,
+    "relative": 4.45,
     "relativeBeforeTwoPass": 11.81
   },
   "comic": {
-    "ms": 48.5,
-    "relative": 1.15
+    "ms": 48.1,
+    "relative": 1.43
   },
   "kaleidoscope": {
-    "ms": 46.0,
+    "ms": 39.0,
     "relative": 1.1
   },
   "ripple": {
-    "ms": 30.8,
-    "relative": 0.73
+    "ms": 28.6,
+    "relative": 0.89
   },
   "zoomBlur": {
-    "ms": 186.2,
-    "relative": 4.44
+    "ms": 146.9,
+    "relative": 4.38
   },
   "motionBlur": {
-    "ms": 190.3,
-    "relative": 4.54,
+    "ms": 160.9,
+    "relative": 5.09,
     "relativeBeforeTwoPass": 5.71
   },
   "snow": {
-    "ms": 45.9,
-    "relative": 1.09
-  },
-  "rain": {
-    "ms": 49.2,
+    "ms": 39.0,
     "relative": 1.17
   },
+  "rain": {
+    "ms": 38.8,
+    "relative": 1.22
+  },
   "sparkle": {
-    "ms": 73.8,
-    "relative": 1.75
+    "ms": 54.0,
+    "relative": 1.65
   },
   "anamorphic": {
-    "ms": 349.8,
-    "relative": 8.32,
+    "ms": 291.0,
+    "relative": 8.57,
     "relativeBeforeTwoPass": 52.73
   },
   "duotone": {
-    "ms": 33.5,
-    "relative": 0.8
+    "ms": 31.8,
+    "relative": 0.91
   },
   "mosaic": {
-    "ms": 45.5,
-    "relative": 1.08
+    "ms": 48.1,
+    "relative": 1.41
+  },
+  "bleachBypass": {
+    "ms": 31.6,
+    "relative": 0.9
+  },
+  "crossProcess": {
+    "ms": 25.5,
+    "relative": 0.79
+  },
+  "tealOrange": {
+    "ms": 30.4,
+    "relative": 0.89
+  },
+  "infrared": {
+    "ms": 76.8,
+    "relative": 2.35
+  },
+  "thermal": {
+    "ms": 48.0,
+    "relative": 1.48
+  },
+  "solarize": {
+    "ms": 46.0,
+    "relative": 1.29
+  },
+  "colorPop": {
+    "ms": 26.5,
+    "relative": 0.82
+  },
+  "technicolor": {
+    "ms": 24.4,
+    "relative": 0.75
+  },
+  "dayForNight": {
+    "ms": 27.9,
+    "relative": 0.84
+  },
+  "filmNegative": {
+    "ms": 27.9,
+    "relative": 0.73
+  },
+  "hdrDetail": {
+    "ms": 88.0,
+    "relative": 2.7
+  },
+  "oilPaint": {
+    "ms": 138.1,
+    "relative": 4.46
+  },
+  "watercolor": {
+    "ms": 168.6,
+    "relative": 4.99
+  },
+  "pencilSketch": {
+    "ms": 76.6,
+    "relative": 2.24
+  },
+  "crossHatch": {
+    "ms": 61.5,
+    "relative": 1.86
+  },
+  "emboss": {
+    "ms": 48.0,
+    "relative": 1.48
+  },
+  "stainedGlass": {
+    "ms": 109.2,
+    "relative": 3.38
+  },
+  "lowPoly": {
+    "ms": 126.4,
+    "relative": 4.05
+  },
+  "asciiArt": {
+    "ms": 53.8,
+    "relative": 1.56
+  },
+  "ditherBitmap": {
+    "ms": 38.4,
+    "relative": 1.17
+  },
+  "pixelArt": {
+    "ms": 164.2,
+    "relative": 5.08
+  },
+  "engraving": {
+    "ms": 35.0,
+    "relative": 1.13
+  },
+  "risograph": {
+    "ms": 48.2,
+    "relative": 1.42
+  },
+  "chalkboard": {
+    "ms": 108.2,
+    "relative": 3.47
+  },
+  "xray": {
+    "ms": 62.6,
+    "relative": 1.98
+  },
+  "crossStitch": {
+    "ms": 38.0,
+    "relative": 1.16
+  },
+  "toyBricks": {
+    "ms": 49.0,
+    "relative": 1.43
+  },
+  "ledWall": {
+    "ms": 34.2,
+    "relative": 0.93
+  },
+  "photocopy": {
+    "ms": 44.0,
+    "relative": 1.27
+  },
+  "nightVision": {
+    "ms": 81.8,
+    "relative": 2.35
+  },
+  "swirl": {
+    "ms": 32.0,
+    "relative": 0.91
+  },
+  "fisheye": {
+    "ms": 46.6,
+    "relative": 1.39
+  },
+  "magnifier": {
+    "ms": 35.2,
+    "relative": 0.97
+  },
+  "flagWave": {
+    "ms": 32.6,
+    "relative": 0.92
+  },
+  "heatHaze": {
+    "ms": 33.5,
+    "relative": 1.0
+  },
+  "shatter": {
+    "ms": 98.4,
+    "relative": 2.81
+  },
+  "reededGlass": {
+    "ms": 41.4,
+    "relative": 1.18
+  },
+  "liquidWarp": {
+    "ms": 49.5,
+    "relative": 1.46
+  },
+  "frostedGlass": {
+    "ms": 101.7,
+    "relative": 3.03
+  },
+  "prismFlare": {
+    "ms": 72.2,
+    "relative": 2.17
+  },
+  "godRays": {
+    "ms": 177.2,
+    "relative": 5.18
+  },
+  "lensDirt": {
+    "ms": 151.9,
+    "relative": 4.2
+  },
+  "spotlight": {
+    "ms": 29.2,
+    "relative": 0.92
+  },
+  "lightSweep": {
+    "ms": 27.8,
+    "relative": 0.86
+  },
+  "spectrum": {
+    "ms": 48.6,
+    "relative": 1.43
+  },
+  "starFilter": {
+    "ms": 219.2,
+    "relative": 6.39
+  },
+  "discoLights": {
+    "ms": 61.2,
+    "relative": 1.82
+  },
+  "film8mm": {
+    "ms": 49.5,
+    "relative": 1.43
+  },
+  "filmBurn": {
+    "ms": 55.8,
+    "relative": 1.56
+  },
+  "oldPhoto": {
+    "ms": 112.9,
+    "relative": 3.37
+  },
+  "instantFilm": {
+    "ms": 34.9,
+    "relative": 1.02
+  },
+  "camcorder": {
+    "ms": 43.6,
+    "relative": 1.37
+  },
+  "toyCamera": {
+    "ms": 78.8,
+    "relative": 2.38
+  },
+  "fog": {
+    "ms": 86.8,
+    "relative": 2.69
+  },
+  "aurora": {
+    "ms": 104.4,
+    "relative": 3.02
+  },
+  "lightning": {
+    "ms": 46.5,
+    "relative": 1.33
+  },
+  "underwater": {
+    "ms": 112.7,
+    "relative": 3.26
+  },
+  "raindrops": {
+    "ms": 72.7,
+    "relative": 2.16
+  },
+  "sandstorm": {
+    "ms": 78.6,
+    "relative": 2.31
+  },
+  "fireflies": {
+    "ms": 126.7,
+    "relative": 3.66
+  },
+  "confetti": {
+    "ms": 62.5,
+    "relative": 1.83
+  },
+  "hearts": {
+    "ms": 51.6,
+    "relative": 1.46
+  },
+  "bubbles": {
+    "ms": 52.6,
+    "relative": 1.57
+  },
+  "embers": {
+    "ms": 47.4,
+    "relative": 1.42
+  },
+  "warpStars": {
+    "ms": 38.6,
+    "relative": 1.12
+  },
+  "fireworks": {
+    "ms": 133.1,
+    "relative": 3.82
+  },
+  "petals": {
+    "ms": 55.5,
+    "relative": 1.58
+  },
+  "strobe": {
+    "ms": 25.9,
+    "relative": 0.69
+  },
+  "ghostEcho": {
+    "ms": 59.6,
+    "relative": 1.71
+  },
+  "zoomPulse": {
+    "ms": 36.3,
+    "relative": 1.01
+  },
+  "beatBounce": {
+    "ms": 28.0,
+    "relative": 0.76
+  },
+  "spinZoom": {
+    "ms": 73.2,
+    "relative": 2.02
+  },
+  "kenBurns": {
+    "ms": 28.4,
+    "relative": 0.72
+  },
+  "dollyZoom": {
+    "ms": 31.2,
+    "relative": 0.92
+  },
+  "pendulum": {
+    "ms": 28.7,
+    "relative": 0.84
+  },
+  "splitTwo": {
+    "ms": 34.8,
+    "relative": 0.97
+  },
+  "splitThree": {
+    "ms": 34.4,
+    "relative": 0.88
+  },
+  "gridFour": {
+    "ms": 30.1,
+    "relative": 0.94
+  },
+  "gridNine": {
+    "ms": 32.9,
+    "relative": 0.93
+  },
+  "popArtGrid": {
+    "ms": 34.8,
+    "relative": 0.9
+  },
+  "mirrorSplit": {
+    "ms": 29.5,
+    "relative": 0.86
+  },
+  "mirrorQuad": {
+    "ms": 30.9,
+    "relative": 0.85
+  },
+  "tileRepeat": {
+    "ms": 31.6,
+    "relative": 0.89
+  },
+  "filmStrip": {
+    "ms": 46.5,
+    "relative": 1.38
+  },
+  "datamosh": {
+    "ms": 54.8,
+    "relative": 1.6
+  },
+  "scanJitter": {
+    "ms": 41.3,
+    "relative": 1.1
+  },
+  "chromaWave": {
+    "ms": 38.2,
+    "relative": 0.99
+  },
+  "signalLoss": {
+    "ms": 39.8,
+    "relative": 1.1
+  },
+  "pixelSort": {
+    "ms": 131.2,
+    "relative": 3.92
+  },
+  "jpegCrush": {
+    "ms": 56.0,
+    "relative": 1.65
+  },
+  "bokehBlur": {
+    "ms": 157.0,
+    "relative": 4.78
+  },
+  "radialSpin": {
+    "ms": 105.3,
+    "relative": 3.03
+  },
+  "dreamGlow": {
+    "ms": 96.0,
+    "relative": 2.79
+  },
+  "irisBlur": {
+    "ms": 115.2,
+    "relative": 3.32
+  },
+  "littlePlanet": {
+    "ms": 49.8,
+    "relative": 1.48
+  },
+  "anaglyph3d": {
+    "ms": 33.0,
+    "relative": 0.94
+  },
+  "hologram": {
+    "ms": 52.6,
+    "relative": 1.54
+  },
+  "codeRain": {
+    "ms": 29.3,
+    "relative": 0.84
+  },
+  "droste": {
+    "ms": 35.5,
+    "relative": 1.06
+  },
+  "psychedelic": {
+    "ms": 32.7,
+    "relative": 0.92
+  },
+  "crystalBall": {
+    "ms": 47.3,
+    "relative": 1.39
   }
 }

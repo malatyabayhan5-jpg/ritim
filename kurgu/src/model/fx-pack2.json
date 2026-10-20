@@ -1,1 +1,3838 @@
-{ "effects": [] }
+{
+  "effects": [
+    {
+      "id": "bleachBypass",
+      "shader": "bleach",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "silver",
+          "slot": 0,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "warmth",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "grain",
+          "slot": 3,
+          "default": 0.25,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "crossProcess",
+      "shader": "xprocess",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "tint",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "vignette",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "tealOrange",
+      "shader": "tealorange",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.75,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "skinProtect",
+          "slot": 1,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 2,
+          "default": 0.45,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "infrared",
+      "shader": "infrared",
+      "category": "color",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "style",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "foliage",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "thermal",
+      "shader": "thermal",
+      "category": "color",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "palette",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "noise",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blur",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "solarize",
+      "shader": "solarize",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "threshold",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "mackieLines",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "colorPop",
+      "shader": "colorpop",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "hue",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "range",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "technicolor",
+      "shader": "technicolor",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "process",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fade",
+          "slot": 2,
+          "default": 0.25,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "dayForNight",
+      "shader": "daynight",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "darkness",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blueness",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "keepLights",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "filmNegative",
+      "shader": "negative",
+      "category": "color",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "orangeMask",
+          "slot": 0,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "grain",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "hdrDetail",
+      "shader": "clarity",
+      "category": "color",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "detail",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "toneCompress",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "radius",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "oilPaint",
+      "shader": "oilpaint",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "brushSize",
+          "slot": 0,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "canvas",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "watercolor",
+      "shader": "watercolor",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "bleed",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "edges",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "paperTone",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "border",
+          "slot": 3,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "pencilSketch",
+      "shader": "sketch",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "lineWidth",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "shading",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "paperTone",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "crossHatch",
+      "shader": "crosshatch",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "spacing",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "inkOutline",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "inkColor",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "emboss",
+      "shader": "emboss",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "depth",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "angle",
+          "slot": 1,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "material",
+          "slot": 2,
+          "default": 0.85,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "stainedGlass",
+      "shader": "stainedglass",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "cellSize",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "leadWidth",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "lowPoly",
+      "shader": "lowpoly",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "cellSize",
+          "slot": 0,
+          "default": 0.45,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "facetShading",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "edgeLines",
+          "slot": 2,
+          "default": 0.2,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "asciiArt",
+      "shader": "ascii",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "cellSize",
+          "slot": 0,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "ditherBitmap",
+      "shader": "dither",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "pixelSize",
+          "slot": 0,
+          "default": 0.25,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "palette",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "pixelArt",
+      "shader": "pixelart",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "pixelSize",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "outline",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "palette",
+          "slot": 2,
+          "default": 0.8,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "engraving",
+      "shader": "engraving",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "lineDensity",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "waviness",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "inkColor",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "risograph",
+      "shader": "riso",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "palette",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "misregister",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "grain",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "chalkboard",
+      "shader": "chalk",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "lineWidth",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "shading",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "boardColor",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "xray",
+      "shader": "xray",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "glow",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "hue",
+          "slot": 1,
+          "default": 0.55,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "crossStitch",
+      "shader": "crossstitch",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "stitchSize",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fabricTone",
+          "slot": 1,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "shine",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "toyBricks",
+      "shader": "bricks",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "brickSize",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "studs",
+          "slot": 1,
+          "default": 1.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "colorSteps",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "ledWall",
+      "shader": "ledwall",
+      "category": "stylize",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "dotSize",
+          "slot": 0,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "photocopy",
+      "shader": "photocopy",
+      "category": "stylize",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "threshold",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "toner",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "streaks",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "nightVision",
+      "shader": "nightvision",
+      "category": "stylize",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "gain",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "noise",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "scope",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "bloom",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "swirl",
+      "shader": "swirl",
+      "category": "distort",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "radius",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.2,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.8,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "fisheye",
+      "shader": "fisheye",
+      "category": "distort",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "circle",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fringe",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "magnifier",
+      "shader": "magnifier",
+      "category": "distort",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "size",
+          "slot": 0,
+          "default": 0.45,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "zoom",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.9,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "flagWave",
+      "shader": "flagwave",
+      "category": "distort",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frequency",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "shading",
+          "slot": 3,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "heatHaze",
+      "shader": "heathaze",
+      "category": "distort",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "height",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "shatter",
+      "shader": "shatter",
+      "category": "distort",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "cellSize",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "displacement",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "cracks",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "reededGlass",
+      "shader": "reeded",
+      "category": "distort",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "ribWidth",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "refraction",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "angle",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "shine",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "liquidWarp",
+      "shader": "liquid",
+      "category": "distort",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "scale",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "frostedGlass",
+      "shader": "frosted",
+      "category": "distort",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "frost",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "clearCenter",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "brightness",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "prismFlare",
+      "shader": "prismflare",
+      "category": "light",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "positionX",
+          "slot": 0,
+          "default": 0.72,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "positionY",
+          "slot": 1,
+          "default": 0.78,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "ghosts",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rainbow",
+          "slot": 3,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "godRays",
+      "shader": "godrays",
+      "category": "light",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "positionX",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "positionY",
+          "slot": 1,
+          "default": 0.85,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "length",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "threshold",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "warmth",
+          "slot": 4,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "lensDirt",
+      "shader": "lensdirt",
+      "category": "light",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "dirt",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "threshold",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "bloom",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "spotlight",
+      "shader": "spotlight",
+      "category": "light",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "size",
+          "slot": 0,
+          "default": 0.45,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 1,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "softness",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 1.0,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "lightSweep",
+      "shader": "lightsweep",
+      "category": "light",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "width",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "angle",
+          "slot": 1,
+          "default": 0.65,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.7,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "spectrum",
+      "shader": "spectrum",
+      "category": "light",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "position",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "width",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "starFilter",
+      "shader": "starfilter",
+      "category": "light",
+      "perf": "heavy",
+      "animated": false,
+      "params": [
+        {
+          "key": "streakLength",
+          "slot": 0,
+          "default": 0.45,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "threshold",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "points",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rainbow",
+          "slot": 3,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "discoLights",
+      "shader": "disco",
+      "category": "light",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "speed",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "density",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.6,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "film8mm",
+      "shader": "film8mm",
+      "category": "retro",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "weave",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "grain",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "gate",
+          "slot": 2,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fade",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "filmBurn",
+      "shader": "filmburn",
+      "category": "retro",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "size",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "progress",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 1.5,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "oldPhoto",
+      "shader": "oldphoto",
+      "category": "retro",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "tone",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fade",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "stains",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "creases",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "instantFilm",
+      "shader": "polaroid",
+      "category": "retro",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "border",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fade",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "tint",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "camcorder",
+      "shader": "dvcam",
+      "category": "retro",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "sharpen",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "interlace",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "noise",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "chromaBlocks",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "toyCamera",
+      "shader": "toycamera",
+      "category": "retro",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "vignette",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blur",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "leak",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 3,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "fog",
+      "shader": "fog",
+      "category": "atmosphere",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "height",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 3,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "aurora",
+      "shader": "aurora",
+      "category": "atmosphere",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "height",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 2,
+          "default": 0.2,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "brightness",
+          "slot": 3,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "lightning",
+      "shader": "lightning",
+      "category": "atmosphere",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "frequency",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "brightness",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 2.9,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "underwater",
+      "shader": "underwater",
+      "category": "atmosphere",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "depth",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "caustics",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "wobble",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "particles",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "raindrops",
+      "shader": "raindrops",
+      "category": "atmosphere",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "dropSize",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "density",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "fog",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "sandstorm",
+      "shader": "sandstorm",
+      "category": "atmosphere",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "wind",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "warmth",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "fireflies",
+      "shader": "fireflies",
+      "category": "particles",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "confetti",
+      "shader": "confetti",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "hearts",
+      "shader": "hearts",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "bubbles",
+      "shader": "bubbles",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "iridescence",
+          "slot": 3,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "embers",
+      "shader": "embers",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "warpStars",
+      "shader": "warpstars",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "streakLength",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "fireworks",
+      "shader": "fireworks",
+      "category": "particles",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "trail",
+          "slot": 2,
+          "default": 0.7,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 1.1,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "petals",
+      "shader": "petals",
+      "category": "particles",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "size",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "wind",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "color",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "strobe",
+      "shader": "strobe",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "frequency",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "style",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "duty",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.02,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "ghostEcho",
+      "shader": "echo",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "distance",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "angle",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "decay",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rainbow",
+          "slot": 3,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "zoomPulse",
+      "shader": "zoompulse",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "frequency",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "strength",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blur",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "flash",
+          "slot": 3,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.55,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "beatBounce",
+      "shader": "bounce",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "frequency",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "height",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "squash",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.2,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "spinZoom",
+      "shader": "spinzoom",
+      "category": "motion",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "angle",
+          "slot": 0,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "zoom",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blur",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.6,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "kenBurns",
+      "shader": "kenburns",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "zoom",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "direction",
+          "slot": 1,
+          "default": 0.15,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "zoomOut",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 2.0,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "dollyZoom",
+      "shader": "dollyzoom",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "centerSize",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.8,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "pendulum",
+      "shader": "pendulum",
+      "category": "motion",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "angle",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "pivot",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.4,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "splitTwo",
+      "shader": "split2",
+      "category": "split",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "gap",
+          "slot": 0,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "mirror",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "layout",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "splitThree",
+      "shader": "split3",
+      "category": "split",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "gap",
+          "slot": 0,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "sideTone",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "layout",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "gridFour",
+      "shader": "grid4",
+      "category": "split",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "gap",
+          "slot": 0,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rounded",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "stagger",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "gridNine",
+      "shader": "grid9",
+      "category": "split",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "gap",
+          "slot": 0,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rounded",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "stagger",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "popArtGrid",
+      "shader": "popart4",
+      "category": "split",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "gap",
+          "slot": 0,
+          "default": 0.2,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "contrast",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "palette",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "mirrorSplit",
+      "shader": "mirror",
+      "category": "split",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "axis",
+          "slot": 0,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "side",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "offset",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "mirrorQuad",
+      "shader": "mirrorquad",
+      "category": "split",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "zoom",
+          "slot": 0,
+          "default": 0.15,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "spin",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "side",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "tileRepeat",
+      "shader": "tilezoom",
+      "category": "split",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "tiles",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "mirrorTiles",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "filmStrip",
+      "shader": "filmstrip",
+      "category": "split",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "speed",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frames",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "filmTone",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "datamosh",
+      "shader": "datamosh",
+      "category": "glitch",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "blockSize",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "smear",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frequency",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "colorShift",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.9,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "scanJitter",
+      "shader": "scanjitter",
+      "category": "glitch",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frequency",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "lineHeight",
+          "slot": 2,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "rgbSplit",
+          "slot": 3,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.45,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "chromaWave",
+      "shader": "chromawave",
+      "category": "glitch",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frequency",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "signalLoss",
+      "shader": "signalloss",
+      "category": "glitch",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "static",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "roll",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "frequency",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.6,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "pixelSort",
+      "shader": "pixelsort",
+      "category": "glitch",
+      "perf": "medium",
+      "animated": true,
+      "params": [
+        {
+          "key": "threshold",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "length",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "direction",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "jpegCrush",
+      "shader": "jpegcrush",
+      "category": "glitch",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "blockSize",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "chromaBleed",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "corruption",
+          "slot": 2,
+          "default": 0.35,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "thumbTime": 0.5,
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "bokehBlur",
+      "shader": "bokehblur",
+      "category": "blur",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "radius",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "bokeh",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "clearCenter",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "radialSpin",
+      "shader": "radialspin",
+      "category": "blur",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "strength",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "clearCenter",
+          "slot": 1,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "dreamGlow",
+      "shader": "dreamglow",
+      "category": "blur",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "softness",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glow",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "saturation",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "irisBlur",
+      "shader": "irisblur",
+      "category": "blur",
+      "perf": "medium",
+      "animated": false,
+      "params": [
+        {
+          "key": "focusWidth",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "blur",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "positionX",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "positionY",
+          "slot": 3,
+          "default": 0.55,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "littlePlanet",
+      "shader": "littleplanet",
+      "category": "creative",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "zoom",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "spin",
+          "slot": 1,
+          "default": 0.2,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "tunnel",
+          "slot": 2,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "anaglyph3d",
+      "shader": "anaglyph",
+      "category": "creative",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "separation",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "depthMode",
+          "slot": 1,
+          "default": 0.0,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "hologram",
+      "shader": "hologram",
+      "category": "creative",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "hue",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "scanlines",
+          "slot": 1,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "flicker",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glitch",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "codeRain",
+      "shader": "coderain",
+      "category": "creative",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "density",
+          "slot": 0,
+          "default": 0.6,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "glyphSize",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "originalColor",
+          "slot": 3,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "droste",
+      "shader": "droste",
+      "category": "creative",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "scale",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "speed",
+          "slot": 1,
+          "default": 0.3,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "border",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "psychedelic",
+      "shader": "psychedelic",
+      "category": "creative",
+      "perf": "light",
+      "animated": true,
+      "params": [
+        {
+          "key": "speed",
+          "slot": 0,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "spread",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "warp",
+          "slot": 2,
+          "default": 0.4,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    },
+    {
+      "id": "crystalBall",
+      "shader": "crystalball",
+      "category": "creative",
+      "perf": "light",
+      "animated": false,
+      "params": [
+        {
+          "key": "size",
+          "slot": 0,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "refraction",
+          "slot": 1,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        },
+        {
+          "key": "darken",
+          "slot": 2,
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "license": "original",
+      "platforms": [
+        "android"
+      ],
+      "tier": "free"
+    }
+  ]
+}

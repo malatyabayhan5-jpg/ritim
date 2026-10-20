@@ -247,3 +247,29 @@ test('oynatma kafası sondayken eklenen efekt katmanı ve metin videonun içine 
   const s = buildRenderSpec(TL.addEffectLayer(p, 'duotone', 10000, 3000).project, uri);
   assert.deepEqual([s.effectLayers[0].startMs, s.effectLayers[0].endMs], [7000, 10000]);
 });
+
+test('efekt paketi 2: en az 80 özgün efekt, temel katalogla çakışmaz, GLSL ES 1.00 uyumlu', () => {
+  const base = JSON.parse(readFileSync(join(root, 'src/model/fx-catalog.json'), 'utf8')).effects;
+  const pack = JSON.parse(readFileSync(join(root, 'src/model/fx-pack2.json'), 'utf8')).effects;
+  assert.ok(pack.length >= 80, `paket efekt sayısı ${pack.length}`);
+  assert.ok(FX_CATALOG.length >= 101);
+  const baseIds = new Set(base.map((e) => e.id));
+  const baseShaders = new Set(base.map((e) => e.shader));
+  for (const e of pack) {
+    assert.ok(!baseIds.has(e.id), `${e.id}: temel katalogdaki kimliği yeniden kullanıyor`);
+    assert.ok(!baseShaders.has(e.shader), `${e.id}: temel katalogdaki shader'ı yeniden kullanıyor`);
+    assert.equal(typeof e.animated, 'boolean', `${e.id}: animated`);
+    assert.deepEqual(e.platforms, ['android']);
+    const src = readFileSync(join(shaderDir, `${e.shader}.glsl`), 'utf8');
+    // GLSL ES 1.00 tuzakları: ayrılmış/eksik tanımlayıcılar ve ES 3 sözdizimi
+    assert.doesNotMatch(src, /\bhalf\b/, `${e.shader}: 'half' ayrılmış sözcük`);
+    assert.doesNotMatch(src, /\b(round|tanh|sinh|cosh|inverse|textureSize|texelFetch)\s*\(/, `${e.shader}: GLSL ES 1.00'da olmayan işlev`);
+    assert.doesNotMatch(src, /\btexture\s*\(|#version|\buniform\b|\bprecision\b/, `${e.shader}: ortak çekirdek dışında bildirim`);
+    // Döngü sınırları sabit olmalı: for (int i = 0; i < SAYI; ...)
+    for (const m of src.matchAll(/for\s*\(\s*int\s+\w+\s*=\s*-?\d+\s*;\s*\w+\s*(<=|<)\s*([^;]+);/g)) {
+      assert.match(m[2].trim(), /^-?\d+$/, `${e.shader}: döngü sınırı sabit değil (${m[2]})`);
+    }
+    // Dosya başında efektin ne yaptığını anlatan yorum bulunur
+    assert.match(src, /^\/\/ \S/, `${e.shader}: başlık yorumu yok`);
+  }
+});
