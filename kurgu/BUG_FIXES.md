@@ -279,3 +279,17 @@ numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
   eklendi: çok girişli modda kare işleme hatası (en çok 3 kez) ve oynatma iş parçacığındaki
   `MultipleInputVideoGraph` istisnası uygulamayı kapatmaz, oynatıcı yeniden kurulur.
   Kök neden Media3'te (`flush()` birleştiriciyi sıfırlamıyor) — **tam çözüm değil**, belgelendi.
+
+## H-20 — CI (herkese açık depo, ilk çalıştırma) bulguları
+
+- **Kişi ayırma modeli açılmıyordu:** `Encountered unresolved custom op: Convolution2DTransposeBias`.
+  MediaPipe selfie modeli düz TFLite'ta bulunmayan özel işlem kullanıyor. Yalnızca
+  standart işlemlerle çalışan TensorFlow DeepLab v3 (Apache-2.0) modeline geçildi;
+  kişi sınıfının softmax olasılığı maske olur. İşlem listesi `tflite` ayrıştırıcısıyla doğrulandı.
+- **Mikrofon izni hiç verilemiyordu:** `{"granted":false,"canAskAgain":false}`. `expo-image-picker`
+  eklentisindeki `"microphonePermission": false`, `RECORD_AUDIO`'yu derlemede manifestten
+  kaldırıyordu (`app.json` `permissions` listesine eklenmiş olsa bile). Açıklama metni verildi.
+- **Güvenlik ağı sonrası ana iş parçacığı çökmesi:** ölmüş oynatma iş parçacığıyla
+  `CompositionPlayer.release()` denetime takılıyordu (`handleRelease: playbackThread.isAlive`).
+  `release()` korumaya alındı; oynatıcı bırakılıp yenisi kurulur. Önizleme çökmesi
+  (`crash suppressed; rebuilding preview`) ilk kez yakalandı.

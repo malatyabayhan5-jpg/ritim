@@ -292,7 +292,13 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     main.removeCallbacks(positionTick)
     player?.let {
       pendingPositionMs = it.currentPosition
-      it.release()
+      try {
+        it.release()
+      } catch (e: IllegalStateException) {
+        // Oynatma iş parçacığı Media3 hatasıyla ölmüşse release() denetime takılır
+        // (CompositionPlayer.handleRelease: playbackThread.isAlive). Oynatıcı bırakılır.
+        android.util.Log.w("KurguPreview", "release after dead playback thread", e)
+      }
     }
     player = null
   }

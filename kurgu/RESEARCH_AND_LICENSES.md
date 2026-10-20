@@ -82,7 +82,7 @@ Copyright (c) 2014 David Hoskins.
 | Bileşen | Sürüm | Lisans | Nerede / nasıl | Karar gerekçesi |
 |---|---|---|---|---|
 | TensorFlow Lite (Java çalışma zamanı) | `org.tensorflow:tensorflow-lite:2.16.1` | Apache-2.0 | `build.gradle`; `Segmenter.kt` | Açık lisans, cihaz içi çıkarım, ek hizmet/hesap gerekmez. ML Kit Selfie Segmentation kapalı kaynak SDK olduğu için seçilmedi |
-| MediaPipe "SelfieSegmenter (square)" model ağırlıkları | float16, 249.537 bayt, SHA-256 `191ac952…8226658b` | Apache-2.0 (Google) | `assets/kurgu_ml/selfie_segmenter.tflite`, köken ve lisans notu `assets/kurgu_ml/NOTICE.txt` | Değiştirilmeden gömüldü (internet gerekmez). Yalnızca insanları ayırır; nesne/hayvan ayırmaz — arayüzde yazılı |
+| TensorFlow DeepLab v3 (MobileNetV2, PASCAL VOC) model ağırlıkları | `deeplabv3_257_mv_gpu.tflite`, 2.779.264 bayt, SHA-256 `68a53978…db717c933c6` | Apache-2.0 (TensorFlow Authors) | `assets/kurgu_ml/`, köken ve lisans notu `assets/kurgu_ml/NOTICE.txt` | Değiştirilmeden gömüldü; yalnızca standart TFLite işlemleri. İlk seçilen MediaPipe selfie modeli özel `Convolution2DTransposeBias` işlemi gerektirdiği için düz TFLite çalışma zamanında açılamadı (CI e2e, 2026-10-20) ve kaldırıldı. Yalnızca insan sınıfı kullanılır; nesne/hayvan ayırmaz |
 | whisper.cpp "translate" görevi | (mevcut whisper.cpp v1.9.5) | MIT | `kurgu_whisper.cpp` | Cihaz içi konuşma → İngilizce altyazı. whisper yalnızca İngilizceye çevirir; başka hedef diller için açık lisanslı, mobilde çalışan, kalite/boyut dengesi kabul edilebilir bir model bu turda seçilmedi → dış servis gerektiriyor olarak işaretlendi |
 
 Uygulamaya yeni yazı tipi, görsel, ses, LUT veya efekt paketi eklenmedi.

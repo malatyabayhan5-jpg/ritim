@@ -1,8 +1,10 @@
-selfie_segmenter.tflite
-Kaynak / Source: MediaPipe Image Segmenter "SelfieSegmenter (square)" modeli,
-https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite
-Model kartı / Model card: https://ai.google.dev/edge/mediapipe/solutions/vision/image_segmenter
+deeplabv3_257_mv_gpu.tflite
+Kaynak / Source: TensorFlow Lite örnek modeli "DeepLab v3 (MobileNetV2, PASCAL VOC)",
+https://storage.googleapis.com/download.tensorflow.org/models/tflite/gpu/deeplabv3_257_mv_gpu.tflite
+(tensorflow/examples görüntü bölütleme örneği; model: tensorflow/models research/deeplab)
 Lisans / License: Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
-Copyright Google LLC. Dosya değiştirilmeden kullanılmıştır (unmodified).
-SHA-256: 191ac9529ae506ee0beefa6b2c945a172dab9d07d1e802a290a4e4038226658b (249,537 bayt)
-Girdi 256×256×3 float (0..1), çıktı 256×256×1 kişi olasılığı. Yalnızca insanları ayırır.
+Copyright The TensorFlow Authors. Dosya değiştirilmeden kullanılmıştır (unmodified).
+SHA-256: 68a539782c2c6a72f8aac3724600124a85ed977162b44e84cbae5db717c933c6 (2.779.264 bayt)
+Girdi 1×257×257×3 float [-1, 1], çıktı 1×257×257×21 sınıf logit; "kişi" = sınıf 15.
+Yalnızca standart TFLite işlemleri: CONV_2D, DEPTHWISE_CONV_2D, ADD, AVERAGE_POOL_2D,
+CONCATENATION, RESIZE_BILINEAR.

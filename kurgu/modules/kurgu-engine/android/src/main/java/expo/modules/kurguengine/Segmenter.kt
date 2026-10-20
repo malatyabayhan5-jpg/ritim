@@ -9,21 +9,26 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
  * Cihaz içi görsel yapay zekâ araçları.
- * - Kişi/arka plan ayırma: MediaPipe "selfie segmenter" modeli (Apache 2.0,
- *   assets/kurgu_ml/selfie_segmenter.tflite, 256×256 RGB girdi, 0..1 olasılık çıktısı),
- *   TensorFlow Lite ile çalışır. Model yalnızca insanları ayırır.
+ * - Kişi/arka plan ayırma: TensorFlow DeepLab v3 (MobileNetV2, PASCAL VOC 21 sınıf; Apache 2.0,
+ *   assets/kurgu_ml/deeplabv3_257_mv_gpu.tflite, 257×257 RGB girdi [-1, 1], 21 sınıf logit çıktısı).
+ *   Yalnızca standart TFLite işlemleri kullanır (MediaPipe selfie modeli özel
+ *   Convolution2DTransposeBias işlemi istediği için düz TFLite'ta açılamadı — CI e2e).
+ *   "Kişi" sınıfının (15) softmax olasılığı maske olarak kullanılır; yalnızca insanları ayırır.
  * - Nesne silme: klasik boyama (ImageOps.inpaint) — üretken model değildir.
  * Görseller cihazdan çıkmaz.
  */
 object Segmenter {
-  private const val MODEL = "kurgu_ml/selfie_segmenter.tflite"
-  private const val SIZE = 256
+  private const val MODEL = "kurgu_ml/deeplabv3_257_mv_gpu.tflite"
+  private const val SIZE = 257
+  private const val CLASSES = 21
+  private const val PERSON = 15
   @Volatile private var interpreter: Interpreter? = null
 
   private fun interpreter(context: Context): Interpreter {
@@ -54,18 +59,27 @@ object Segmenter {
     input.getPixels(px, 0, SIZE, 0, 0, SIZE, SIZE)
     val inBuf = ByteBuffer.allocateDirect(SIZE * SIZE * 3 * 4).order(ByteOrder.nativeOrder())
     for (c in px) {
-      inBuf.putFloat(((c shr 16) and 0xFF) / 255f)
-      inBuf.putFloat(((c shr 8) and 0xFF) / 255f)
-      inBuf.putFloat((c and 0xFF) / 255f)
+      inBuf.putFloat((((c shr 16) and 0xFF) - 127.5f) / 127.5f)
+      inBuf.putFloat((((c shr 8) and 0xFF) - 127.5f) / 127.5f)
+      inBuf.putFloat(((c and 0xFF) - 127.5f) / 127.5f)
     }
     inBuf.rewind()
-    val outBuf = ByteBuffer.allocateDirect(SIZE * SIZE * 4).order(ByteOrder.nativeOrder())
+    val outBuf = ByteBuffer.allocateDirect(SIZE * SIZE * CLASSES * 4).order(ByteOrder.nativeOrder())
     interpreter(context).run(inBuf, outBuf)
     outBuf.rewind()
+    val logits = FloatArray(CLASSES)
     val small = IntArray(SIZE * SIZE)
     var sum = 0.0
     for (i in 0 until SIZE * SIZE) {
-      val v = outBuf.float.coerceIn(0f, 1f)
+      // Piksel başına softmax: kişi sınıfının olasılığı
+      var mx = -Float.MAX_VALUE
+      for (k in 0 until CLASSES) {
+        logits[k] = outBuf.float
+        if (logits[k] > mx) mx = logits[k]
+      }
+      var den = 0.0
+      for (k in 0 until CLASSES) den += exp((logits[k] - mx).toDouble())
+      val v = (exp((logits[PERSON] - mx).toDouble()) / den).toFloat().coerceIn(0f, 1f)
       sum += v
       val g = (v * 255).roundToInt()
       small[i] = Color.argb(255, g, g, g)

@@ -46,7 +46,7 @@
         {
           "photosPermission": "Projelerinize video ve fotoğraf eklemek için galerinize erişim gerekir.",
           "cameraPermission": false,
-          "microphonePermission": false
+          "microphonePermission": "Seslendirme kaydı için mikrofon erişimi gerekir."
         }
       ],
       [
