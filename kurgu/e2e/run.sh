@@ -75,6 +75,13 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performan
   fi
   (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
+  # Maestro altyapı hatası (ekran görüntüsü alınamadı) uygulama hatası değildir: akış bir kez yinelenir
+  if [ $code -ne 0 ] && grep -q "Screenshot returned null" "$OUT/$flow.log"; then
+    echo "$flow: ekran görüntüsü altyapı hatası, akış yineleniyor" >> "$OUT/sonuclar.txt"
+    mv "$OUT/$flow.log" "$OUT/$flow.ilk.log"
+    (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
+    code=$?
+  fi
   adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
   # Yerel hata ayrıntıları (önizleme/dışa aktarma istisnaları) akış başına
   adb logcat -d 2>/dev/null | grep -E "KurguPreview|KurguExport|AndroidRuntime|IllegalStateException|IllegalArgumentException|ExoPlaybackException|PlaybackException|Caused by|\tat androidx.media3" | head -60 | sed "s/^/[$flow] /" >> "$OUT/yerel_hatalar.txt"

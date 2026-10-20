@@ -1,6 +1,7 @@
 // Yerel motor sarmalayıcısı: medya bilgisi, küçük resim, dalga biçimi,
 // kodlayıcı yetenekleri ve dışa aktarma. Önbellek burada yönetilir.
 
+import { PermissionsAndroid, Platform } from 'react-native';
 import * as FS from 'expo-file-system/legacy';
 import { KurguEngine, isEngineAvailable } from '../../modules/kurgu-engine';
 import { THUMBS_DIR, WAVES_DIR, mediaUri } from '../storage/library';
@@ -241,6 +242,13 @@ export function saveImageToGallery(path, displayName) {
 
 /** Mikrofon izni ister; { granted } döner. */
 export async function requestMicPermission() {
+  // Android: React Native'in izin API'si (Expo izin yöneticisi yolu CI #42'de sessizce başarısız oldu)
+  if (Platform.OS === 'android') {
+    const perm = PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
+    if (await PermissionsAndroid.check(perm)) return { granted: true, canAskAgain: true };
+    const r = await PermissionsAndroid.request(perm);
+    return { granted: r === PermissionsAndroid.RESULTS.GRANTED, canAskAgain: r !== PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN };
+  }
   const r = await requireEngine().requestMicPermission();
   return { granted: r?.granted === true || r?.status === 'granted', canAskAgain: r?.canAskAgain !== false };
 }

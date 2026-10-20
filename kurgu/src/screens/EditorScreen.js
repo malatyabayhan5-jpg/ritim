@@ -395,6 +395,7 @@ export default function EditorScreen({ params, focused }) {
   const beginRecording = async () => {
     try {
       const perm = await requestMicPermission();
+      console.log(`[KurguUI] record permission ${JSON.stringify(perm)}`);
       if (!perm.granted) {
         toast(t(perm.canAskAgain ? 'record.denied' : 'record.blocked'), 'error');
         return false;
@@ -406,7 +407,8 @@ export default function EditorScreen({ params, focused }) {
       previewRef.current?.play?.();
       console.log(`[KurguUI] record start position=${Math.round(position)}`);
       return true;
-    } catch {
+    } catch (e) {
+      console.log(`[KurguUI] record failed ${e?.code} ${e?.message}`);
       toast(t('record.failed'), 'error');
       return false;
     }
@@ -997,7 +999,6 @@ export default function EditorScreen({ params, focused }) {
         T('split', 'cut-outline', split),
         isImage ? T('duration', 'time-outline', () => openPanel('duration')) : T('speed', 'speedometer-outline', () => openPanel('speed')),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
-        !isImage ? T('audioFx', 'pulse-outline', () => openPanel('audioFx'), { badge: isAudioFxActive(selectedMain.audioFx) }) : null,
         T('filters', 'color-filter-outline', () => openPanel('filters')),
         T('adjust', 'options-outline', () => openPanel('adjust')),
         T('effects', 'sparkles-outline', () => {
@@ -1013,6 +1014,8 @@ export default function EditorScreen({ params, focused }) {
           if (r.newId) apply(r.project);
           else toast(t('editor.noAudio'));
         }) : null,
+        // Sona yakın: e2e akışları önceki düğmelerin ekranda kalmasına güvenir
+        !isImage ? T('audioFx', 'pulse-outline', () => openPanel('audioFx'), { badge: isAudioFxActive(selectedMain.audioFx) }) : null,
         T('replace', 'swap-horizontal-outline', replace),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),

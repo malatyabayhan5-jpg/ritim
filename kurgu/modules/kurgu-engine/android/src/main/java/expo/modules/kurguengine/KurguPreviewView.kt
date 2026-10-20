@@ -79,6 +79,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private val redraw = Runnable {
     val p = player ?: return@Runnable
     lastRedraw = android.os.SystemClock.uptimeMillis()
+    if (graphSpent && playerMulti) return@Runnable rebuildAt(p.currentPosition, playWhenReady = false)
     if (!p.isPlaying && p.playbackState != Player.STATE_IDLE) p.seekTo(p.currentPosition)
   }
 
@@ -116,11 +117,30 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   private var playerMulti = false
 
+  /**
+   * Çok girişli video grafiği bir kez sona ulaştıysa yeniden kullanılamaz: Media3 1.9.4
+   * `MultipleInputVideoGraph.flush()` yalnızca ön işlemcileri sıfırlar; birleştiricinin
+   * bitiş durumu ve son işlemcinin `inputStreamEnded` bayrağı kalır, başa sarıp yeniden
+   * sona gelince `DefaultVideoFrameProcessor.signalEndOfInput` denetimi uygulamayı
+   * çökertir (CI #42, 1. akış). Bu yüzden bitişten sonraki ilk arama/oynatmada oynatıcı
+   * yeniden kurulur.
+   */
+  private var graphSpent = false
+
+  /** Taze oynatıcıyla aynı kompozisyonu verilen konumdan kurar. */
+  private fun rebuildAt(positionMs: Long, playWhenReady: Boolean) {
+    releasePlayer()
+    pendingPositionMs = positionMs
+    applyComposition()
+    player?.playWhenReady = playWhenReady
+  }
+
   /** Katman varsa çok girişli video grafiği gerekir; mod değişince oynatıcı yeniden kurulur. */
   private fun ensurePlayer(multi: Boolean): CompositionPlayer {
     player?.let { if (playerMulti == multi) return it }
     if (player != null) releasePlayer()
     playerMulti = multi
+    graphSpent = false
     val builder = CompositionPlayer.Builder(context)
     if (multi) builder.setVideoGraphFactory(MultipleInputVideoGraph.Factory())
     val p = builder.build()
@@ -131,6 +151,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       }
 
       override fun onPlaybackStateChanged(playbackState: Int) {
+        if (playbackState == Player.STATE_ENDED && playerMulti) graphSpent = true
         emitState()
       }
 
@@ -167,6 +188,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val h = (s.height * scale).roundToInt()
     try {
       val multi = CompositionFactory.needsCompositor(s)
+      if (multi && graphSpent) releasePlayer()
       val composition = CompositionFactory.build(s, w, h, forExport = false, live = true, padUri = if (multi) TransparentPad.uri(context) else null)
       val p = ensurePlayer(multi)
       val wasPlaying = p.playWhenReady
@@ -182,7 +204,10 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   fun play() {
     val p = player ?: return
-    if (p.playbackState == Player.STATE_ENDED) p.seekTo(0)
+    if (p.playbackState == Player.STATE_ENDED || graphSpent) {
+      if (playerMulti) return rebuildAt(0L, playWhenReady = true)
+      p.seekTo(0)
+    }
     p.play()
   }
 
@@ -194,6 +219,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   fun seekTo(ms: Double) {
     val target = max(0L, ms.toLong())
     pendingPositionMs = target
+    if (graphSpent && playerMulti) return rebuildAt(target, playWhenReady = false)
     player?.seekTo(target)
   }
 
