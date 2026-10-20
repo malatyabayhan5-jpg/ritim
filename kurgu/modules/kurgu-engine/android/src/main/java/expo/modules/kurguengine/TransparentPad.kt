@@ -10,11 +10,13 @@ import java.io.File
  * boşlukları siyah kare ürettiği için (dışa aktarmada) boşluk yerine bu görsel kullanılır.
  */
 object TransparentPad {
+  const val FILE_NAME = "kurgu_transparent_16.png"
+
   @Volatile private var cached: String? = null
 
   fun uri(context: Context): String {
     cached?.let { if (File(Uri.parse(it).path ?: "").isFile) return it }
-    val file = File(context.cacheDir, "kurgu_transparent_16.png")
+    val file = File(context.cacheDir, FILE_NAME)
     if (!file.isFile || file.length() == 0L) {
       val bmp = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888) // sıfırlarla dolu = saydam
       file.outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }

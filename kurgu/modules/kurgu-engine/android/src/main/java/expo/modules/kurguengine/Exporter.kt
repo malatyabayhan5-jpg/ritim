@@ -72,6 +72,13 @@ class Exporter(
       spec, options.width, options.height, forExport = true,
       padUri = if (CompositionFactory.needsCompositor(spec)) TransparentPad.uri(context) else null,
     )
+    // Teşhis: dizi yapısı (iz türleri, öğe türleri, süreler, hızlar) — takılmalar CI günlüğünden çözülebilsin
+    try {
+      Log.i("KurguExport", "export start ${options.width}x${options.height}@${options.fps} totalMs=${spec.totalMs} layers=${spec.layers.size} audioLanes=${spec.audioLanes.size}")
+      CompositionFactory.describe(composition).forEach { Log.i("KurguExport", it) }
+    } catch (e: Exception) {
+      Log.w("KurguExport", "describe failed: ${e.message}")
+    }
     val videoMime = when (options.codec) {
       "hevc" -> MimeTypes.VIDEO_H265
       "av1" -> MimeTypes.VIDEO_AV1

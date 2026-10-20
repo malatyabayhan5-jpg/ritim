@@ -11,7 +11,10 @@ import androidx.media3.common.VideoCompositorSettings
 import androidx.media3.common.util.Size
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.GainProcessor
+import androidx.media3.common.audio.SpeedChangingAudioProcessor
 import androidx.media3.common.audio.SpeedProvider
+import androidx.media3.common.util.SpeedProviderUtil
+import androidx.media3.common.util.TimestampConsumer
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.GaussianBlur
@@ -19,6 +22,7 @@ import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.Presentation
 import androidx.media3.effect.ScaleAndRotateTransformation
 import androidx.media3.effect.TextureOverlay
+import androidx.media3.effect.TimestampAdjustment
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.EditedMediaItemSequence
@@ -59,8 +63,14 @@ object CompositionFactory {
     val w = even(outWidth)
     val h = even(outHeight)
 
-    val mainItems = spec.main.map { mainItem(it, w, h, spec.fps, live) }
-    val totalUs = spec.main.sumOf { mainOutUs(it) }
+    // Her öğenin dizideki başlangıcı, Media3'ün hesapladığı gibi (önceki öğelerin gerçek
+    // süreleri toplamı) izlenir: dışa aktarmadaki hız eşlemesi bu ofsete ihtiyaç duyar ve
+    // diğer diziler (saat, katmanlar, ses şeritleri) ana izle aynı anda biter.
+    var mainCursorUs = 0L
+    val mainItems = spec.main.map { c ->
+      mainItem(c, w, h, spec.fps, live, forExport, mainCursorUs).also { mainCursorUs += mainOutUs(c) }
+    }
+    val totalUs = mainCursorUs
     val sequences = mutableListOf<EditedMediaItemSequence>()
     val pad = if (needsCompositor(spec)) padUri else null
     val layered = pad != null
@@ -70,7 +80,7 @@ object CompositionFactory {
       // ardından katman şeritleri (üstten alta), en altta ana iz gelir.
       sequences.add(EditedMediaItemSequence.Builder(VIDEO_ONLY).addItem(padItem(pad, totalUs, spec.fps)).build())
       for (lane in spec.layers.asReversed()) {
-        layerSequence(lane, pad, totalUs, w, h, spec.fps, live)?.let { sequences.add(it) }
+        layerSequence(lane, pad, totalUs, w, h, spec.fps, live, forExport)?.let { sequences.add(it) }
       }
     }
     sequences.add(EditedMediaItemSequence.Builder(AUDIO_VIDEO).addItems(mainItems).build())
@@ -133,9 +143,12 @@ object CompositionFactory {
     return builder.build()
   }
 
+  /** Dolgu öğesinin gerçek süresi (ms'ye aşağı yuvarlanır; görsel süresi ms cinsindendir). */
+  private fun padUs(durationUs: Long): Long = max(1L, durationUs / 1000L) * 1000L
+
   /** Saydam dolgu görseli öğesi: katman şeridindeki boşluklar (video boşlukları siyah kare üretir). */
   private fun padItem(padUri: String, durationUs: Long, fps: Int): EditedMediaItem {
-    val ms = max(1L, durationUs / 1000L)
+    val ms = padUs(durationUs) / 1000L
     val item = MediaItem.Builder()
       .setUri(Uri.parse(padUri))
       .setMimeType(MimeTypes.IMAGE_PNG)
@@ -145,22 +158,24 @@ object CompositionFactory {
   }
 
   /** Bir katman şeridi: öğeler zamana göre, aralar ve son saydam dolguyla; kanvas sonunda kırpılır. */
-  private fun layerSequence(lane: List<LayerClip>, padUri: String, totalUs: Long, w: Int, h: Int, fps: Int, live: Boolean): EditedMediaItemSequence? {
-    // Dışa aktarmada (Transformer) hız değişimi video zaman damgalarını ses işlemcisinden
-    // türetir; sesi kaldırılmış öğede zaman damgaları hiç çözülmez ve dışa aktarma kilitlenir.
-    // Bu yüzden hızı değişen öğe içeren şerit sesli dizi olur, ses sıfır kazançla susturulur
-    // (katman sesi ses şeritlerinde ayrıca çalınır).
-    val withAudio = lane.any { it.kind != "image" && abs(it.speed - 1f) > 0.001f }
+  private fun layerSequence(lane: List<LayerClip>, padUri: String, totalUs: Long, w: Int, h: Int, fps: Int, live: Boolean, forExport: Boolean): EditedMediaItemSequence? {
+    // Önizleme (CompositionPlayer): hızı değişen öğe içeren şerit sesli dizi olur, ses sıfır
+    // kazançla susturulur (katman sesi ses şeritlerinde ayrıca çalınır).
+    // Dışa aktarma: hız, öğe ofsetini bilen kendi zaman eşlememizle uygulanır (ItemSpeedMap);
+    // görüntü sese bağlı olmadığından şerit yalnızca görüntü dizisidir.
+    val withAudio = !forExport && lane.any { it.kind != "image" && abs(it.speed - 1f) > 0.001f }
     val builder = EditedMediaItemSequence.Builder(if (withAudio) AUDIO_VIDEO else VIDEO_ONLY)
+    // Media3'ün bu dizide hesaplayacağı konum (dolgular ms'ye yuvarlanır)
     var cursorUs = 0L
     var added = 0
     for (clip in lane.sortedBy { it.startMs }) {
       val startUs = clip.startMs * 1000L
       if (startUs >= totalUs - 20_000) break
-      if (startUs < cursorUs) continue // çakışan öğe (JS şeritleri ayırır; güvenlik için atlanır)
+      if (startUs < cursorUs - 1000) continue // çakışan öğe (JS şeritleri ayırır; güvenlik için atlanır)
       if (startUs - cursorUs >= 1000) {
-        builder.addItem(padItem(padUri, startUs - cursorUs, fps))
-        cursorUs = startUs
+        val gapUs = padUs(startUs - cursorUs)
+        builder.addItem(padItem(padUri, gapUs, fps))
+        cursorUs += gapUs
       }
       var srcOutMs = clip.srcOutMs
       val isImage = clip.kind == "image"
@@ -169,8 +184,8 @@ object CompositionFactory {
         srcOutMs = clip.srcInMs + (maxOutUs * (if (isImage) 1f else clip.speed) / 1000f).toLong()
       }
       if (srcOutMs - clip.srcInMs < 20) continue
-      builder.addItem(layerItem(clip, srcOutMs, w, h, fps, live, withAudio))
-      cursorUs += clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed)
+      builder.addItem(layerItem(clip, srcOutMs, w, h, fps, live, withAudio, forExport, cursorUs))
+      cursorUs += layerOutUs(clip, srcOutMs)
       added++
     }
     if (added == 0) return null
@@ -178,7 +193,17 @@ object CompositionFactory {
     return builder.build()
   }
 
-  private fun layerItem(clip: LayerClip, srcOutMs: Long, w: Int, h: Int, fps: Int, live: Boolean, mutedAudio: Boolean = false): EditedMediaItem {
+  private fun layerItem(
+    clip: LayerClip,
+    srcOutMs: Long,
+    w: Int,
+    h: Int,
+    fps: Int,
+    live: Boolean,
+    mutedAudio: Boolean,
+    forExport: Boolean,
+    itemOffsetUs: Long,
+  ): EditedMediaItem {
     val isImage = clip.kind == "image"
     val mediaItem = if (isImage) {
       MediaItem.Builder().setUri(Uri.parse(clip.uri)).setImageDurationMs(max(1L, srcOutMs - clip.srcInMs)).build()
@@ -195,8 +220,10 @@ object CompositionFactory {
     clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it, if (live) "lut:${clip.key}" else null)) }
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     video.add(LayerFx(clip, w, h, if (live) "ly:${clip.key}" else null))
-    val outUs = clipOutUs(clip.srcInMs, srcOutMs, if (isImage) 1f else clip.speed)
+    val outUs = layerOutUs(clip, srcOutMs)
     val audio: List<AudioProcessor> = if (mutedAudio) listOf(GainProcessor(VolumeEnvelope(0f, 0, 0, outUs))) else emptyList()
+    val speed = if (isImage) null else speedProviderOf(clip.speed, null)
+    if (speed != null && forExport) video.add(0, exportSpeedEffect(itemOffsetUs, speed))
     val builder = EditedMediaItem.Builder(mediaItem)
       .setRemoveAudio(!mutedAudio) // katman sesi ses şeritlerinde ayrıca çalınır (renderSpec.js)
       .setEffects(Effects(audio, video))
@@ -204,12 +231,12 @@ object CompositionFactory {
       builder.setDurationUs(max(1L, srcOutMs - clip.srcInMs) * 1000L).setFrameRate(fps)
     } else {
       builder.setDurationUs(max(clip.sourceDurationMs, srcOutMs) * 1000L)
-      if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
+      if (speed != null && !forExport) builder.setSpeed(speed)
     }
     return builder.build()
   }
 
-  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean = false): EditedMediaItem {
+  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean, forExport: Boolean, itemOffsetUs: Long): EditedMediaItem {
     val isImage = clip.kind == "image"
     val mediaItem = if (isImage) {
       MediaItem.Builder()
@@ -254,7 +281,15 @@ object CompositionFactory {
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     if (kf.containsKey("opacity") || clip.opacity < 0.999f) video.add(KeyedOpacity(clip.opacity, kf["opacity"], clip.startMs))
 
+    val speed = if (isImage) null else speedProviderOf(clip.speed, clip.speedSegments)
     val audio = mutableListOf<AudioProcessor>()
+    // Dışa aktarmada hız, setSpeed yerine Media3'ün eklediği zincirin eşdeğeriyle uygulanır:
+    // ses için ilk işlemci SpeedChangingAudioProcessor (öğe başından sayar), görüntü için ilk
+    // efekt öğe ofsetini bilen zaman eşlemesi (bkz. ItemSpeedMap).
+    if (speed != null && forExport) {
+      audio.add(SpeedChangingAudioProcessor(speed))
+      video.add(0, exportSpeedEffect(itemOffsetUs, speed))
+    }
     val outUs = mainOutUs(clip)
     if (clip.denoise > 0.01f && clip.volume > 0f) audio.add(DenoiseProcessor(clip.denoise))
     if (clip.volume > 0f) clip.audioFx?.let { audio.addAll(audioFxProcessors(it)) }
@@ -269,16 +304,96 @@ object CompositionFactory {
       builder.setDurationUs(max(1L, clip.srcOutMs - clip.srcInMs) * 1000L).setFrameRate(fps)
     } else {
       builder.setDurationUs(max(clip.sourceDurationMs, clip.srcOutMs) * 1000L)
-      val segs = clip.speedSegments
-      if (segs != null) builder.setSpeed(SegmentSpeed(segs))
-      else if (abs(clip.speed - 1f) > 0.001f) builder.setSpeed(ConstantSpeed(clip.speed))
+      if (speed != null && !forExport) builder.setSpeed(speed)
     }
     return builder.build()
   }
 
-  /** Ana iz öğesinin çıktı süresi: hız eğrisinde JS'nin aynı parçalarla hesapladığı süre. */
-  private fun mainOutUs(c: MainClip): Long =
-    if (c.speedSegments != null && c.outMs > 0) c.outMs * 1000L else clipOutUs(c.srcInMs, c.srcOutMs, if (c.kind == "image") 1f else c.speed)
+  /**
+   * Ana iz öğesinin çıktı süresi, Media3'ün dizi ofsetinde kullandığı değerle aynı
+   * (SequenceAssetLoader: EditedMediaItem.getDurationAfterEffectsApplied): görsel = görsel
+   * süresi; video = kırpılmış süre, hız varsa SpeedProviderUtil ile.
+   */
+  private fun mainOutUs(c: MainClip): Long {
+    if (c.kind == "image") return max(1L, c.srcOutMs - c.srcInMs) * 1000L
+    val inUs = (c.srcOutMs - c.srcInMs) * 1000L
+    val speed = speedProviderOf(c.speed, c.speedSegments) ?: return inUs
+    return SpeedProviderUtil.getDurationAfterSpeedProviderApplied(speed, inUs)
+  }
+
+  /** Katman öğesinin çıktı süresi (mainOutUs ile aynı kurallar). */
+  private fun layerOutUs(c: LayerClip, srcOutMs: Long): Long {
+    if (c.kind == "image") return max(1L, srcOutMs - c.srcInMs) * 1000L
+    val inUs = (srcOutMs - c.srcInMs) * 1000L
+    val speed = speedProviderOf(c.speed, null) ?: return inUs
+    return SpeedProviderUtil.getDurationAfterSpeedProviderApplied(speed, inUs)
+  }
+
+  private fun speedProviderOf(speed: Float, segments: FloatArray?): SpeedProvider? = when {
+    segments != null -> SegmentSpeed(segments)
+    abs(speed - 1f) > 0.001f -> ConstantSpeed(speed)
+    else -> null
+  }
+
+  private fun exportSpeedEffect(itemOffsetUs: Long, speed: SpeedProvider): TimestampAdjustment =
+    TimestampAdjustment(ItemSpeedMap(itemOffsetUs, speed), speed)
+
+  /**
+   * Teşhis: her dizinin iz türleri, öğe türleri, Media3'ün hesaplayacağı başlangıç/süreler (us)
+   * ve hızlar. Dışa aktarma başında "KurguExport" etiketiyle günlüğe yazılır.
+   */
+  fun describe(composition: Composition): List<String> {
+    val lines = mutableListOf<String>()
+    composition.sequences.forEachIndexed { si, seq ->
+      val types = seq.trackTypes.sorted().joinToString("+") {
+        when (it) {
+          C.TRACK_TYPE_AUDIO -> "audio"
+          C.TRACK_TYPE_VIDEO -> "video"
+          else -> it.toString()
+        }
+      }
+      var cursorUs = 0L
+      val items = seq.editedMediaItems.mapIndexed { ii, item ->
+        val mi = item.mediaItem
+        val uri = mi.localConfiguration?.uri?.toString() ?: ""
+        val isGap = mi.mediaId == "androidx-media3-GapMediaItem"
+        val isImage = (mi.localConfiguration?.imageDurationMs ?: C.TIME_UNSET) != C.TIME_UNSET
+        val kind = when {
+          isGap -> "gap"
+          isImage && uri.endsWith(TransparentPad.FILE_NAME) -> "pad"
+          isImage -> "image"
+          else -> "video"
+        }
+        val map = (item.effects.videoEffects.firstOrNull() as? TimestampAdjustment)?.timestampMap as? ItemSpeedMap
+        val provider: SpeedProvider? = map?.provider ?: item.speedProvider.takeIf { it != SpeedProvider.DEFAULT }
+        val outUs = if (isGap || isImage) {
+          item.durationUs
+        } else {
+          val clip = mi.clippingConfiguration
+          val endUs = if (clip.endPositionUs == C.TIME_END_OF_SOURCE) item.durationUs else clip.endPositionUs
+          val inUs = endUs - clip.startPositionUs
+          if (provider != null) SpeedProviderUtil.getDurationAfterSpeedProviderApplied(provider, inUs) else inUs
+        }
+        val speedText = when {
+          provider == null -> "1"
+          map != null -> "$provider(map@${map.itemOffsetUs})"
+          else -> "$provider(setSpeed)"
+        }
+        val flags = buildString {
+          if (item.removeAudio) append(" -audio")
+          if (item.removeVideo) append(" -video")
+        }
+        val line = "  #$ii $kind start=$cursorUs dur=$outUs speed=$speedText" +
+          " fx=${item.effects.videoEffects.size}/${item.effects.audioProcessors.size}$flags"
+        cursorUs += outUs
+        line
+      }
+      lines.add("seq[$si] $types loop=${seq.isLooping} items=${seq.editedMediaItems.size} totalUs=$cursorUs")
+      lines.addAll(items)
+    }
+    lines.add("compositionFx=${composition.effects.videoEffects.size} hdrMode=${composition.hdrMode}")
+    return lines
+  }
 
   private fun audioItem(clip: AudioClip, srcOutMs: Long, live: Boolean = false): EditedMediaItem {
     val mediaItem = MediaItem.Builder()
@@ -318,6 +433,32 @@ class ConstantSpeed(private val speed: Float) : SpeedProvider {
   override fun getSpeed(timeUs: Long): Float = speed
 
   override fun getNextSpeedChangeTimeUs(timeUs: Long): Long = C.TIME_UNSET
+
+  override fun toString(): String = "x$speed"
+}
+
+/**
+ * Dışa aktarmada hız değişiminin görüntü zaman eşlemesi (TimestampAdjustment'a verilir).
+ *
+ * Media3 1.9.4'te EditedMediaItem.setSpeed, Transformer'da (Transformer.addSpeedChangingEffects)
+ * görüntüye `TimestampAdjustment(SpeedChangingAudioProcessor::getSpeedAdjustedTimeAsync)` ekler.
+ * Bu efektin gördüğü kare zamanı öğenin dizideki ofsetini de içerir (VideoSampleExporter
+ * registerInputStream offsetToAddUs; ExternalTextureManager bunu kare zamanına ekler), oysa ses
+ * işlemcisinin hız eğrisi öğe başından (0) sayar. Sonuç: dizinin ilk öğesi olmayan her hızlı
+ * öğede kare zamanı `(ofset + t) / hız` olur. Örn. geçiş şeridindeki 0.5x kopya 9.8 sn yerine
+ * ~19.6 sn'ye düşer; birleştirici bu kareleri hiç bırakmaz, şeridin sonraki öğesine geçilemez
+ * ve ses/görüntü birbirini bekleyerek dışa aktarma kilitlenir (MUXING_TIMEOUT, %90).
+ *
+ * Burada eşleme `ofset + hızEğrisi(T - ofset)` olarak eşzamanlı hesaplanır; görüntü sese de
+ * bağlı kalmaz. [itemOffsetUs], Media3'ün bu öğe için kullandığı dizi ofsetidir (önceki
+ * öğelerin getDurationAfterEffectsApplied toplamı; CompositionFactory aynı kuralla hesaplar).
+ */
+@OptIn(UnstableApi::class)
+class ItemSpeedMap(val itemOffsetUs: Long, val provider: SpeedProvider) : TimestampAdjustment.TimestampMap {
+  override fun calculateOutputTimeUs(inputTimeUs: Long, outputTimeConsumer: TimestampConsumer) {
+    val relUs = max(0L, inputTimeUs - itemOffsetUs)
+    outputTimeConsumer.onTimestamp(itemOffsetUs + SpeedProviderUtil.getDurationAfterSpeedProviderApplied(provider, relUs))
+  }
 }
 
 /** Çıktı her zaman kanvas boyutunda; her giriş tam kare (katmanlar kendi yerleşimini çizer). */
@@ -367,4 +508,6 @@ class SegmentSpeed(segments: FloatArray) : SpeedProvider {
     val i = index(timeUs)
     return if (i + 1 < startsUs.size) startsUs[i + 1] else C.TIME_UNSET
   }
+
+  override fun toString(): String = "curve" + startsUs.indices.joinToString(",", "[", "]") { "${startsUs[it]}:${speeds[it]}" }
 }
