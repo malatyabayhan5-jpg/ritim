@@ -127,6 +127,17 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
    */
   private var graphSpent = false
 
+  /**
+   * Grafik, oynatıcı STATE_ENDED bildirmeden önce (kaynaklar önden okunup bittiğinde) içeride
+   * sona erebilir; o arada yapılan arama da ikinci bitişe yol açar (CI #52). Bu yüzden çok
+   * girişli modda oynatma sona 1,5 sn'den fazla yaklaştıysa grafik harcanmış sayılır.
+   */
+  private fun markSpentIfNearEnd() {
+    val p = player ?: return
+    val total = spec?.totalMs ?: return
+    if (playerMulti && p.currentPosition >= total - 1500) graphSpent = true
+  }
+
   /** Taze oynatıcıyla aynı kompozisyonu verilen konumdan kurar. */
   private fun rebuildAt(positionMs: Long, playWhenReady: Boolean) {
     releasePlayer()
@@ -146,6 +157,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val p = builder.build()
     p.addListener(object : Player.Listener {
       override fun onIsPlayingChanged(isPlaying: Boolean) {
+        markSpentIfNearEnd()
         emitState()
         if (isPlaying) main.post(positionTick) else main.removeCallbacks(positionTick)
       }
@@ -234,6 +246,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private val positionTick = object : Runnable {
     override fun run() {
       emitPosition(force = false)
+      markSpentIfNearEnd()
       if (player?.isPlaying == true) main.postDelayed(this, 33)
     }
   }
