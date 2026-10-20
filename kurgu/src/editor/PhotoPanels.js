@@ -463,3 +463,27 @@ const styles = StyleSheet.create({
   cloudBox: { backgroundColor: colors.surface2, borderRadius: radius.md, padding: space.md, gap: space.sm },
   badge: { color: colors.warning, fontSize: 11, fontWeight: '700' },
 });
+
+/** Video için şekil seçici: şekil + dolgu/kontur rengi; seçim saydam PNG katmanı olarak eklenir. */
+export function ShapePickPanel({ onAdd, onClose, busy }) {
+  const { t } = useI18n();
+  const [shape, setShape] = useState('roundRect');
+  const [fill, setFill] = useState('#FFD60AFF');
+  const [outline, setOutline] = useState(false);
+  return (
+    <Panel title={t('photo.tool.shape')} onClose={onClose} testID="panel-shape-pick">
+      <View style={styles.body}>
+        <Hscroll>
+          {SHAPES.map((s) => (
+            <Chip key={s} testID={`shape-${s}`} label={t(`photo.shape.${s}`)} active={shape === s} onPress={() => setShape(s)} />
+          ))}
+        </Hscroll>
+        <ColorRow value={fill} onPick={(c) => setFill(c)} />
+        <Row>
+          <Chip icon="ellipse-outline" label={t('photo.shape.outlineOnly')} active={outline} onPress={() => setOutline(!outline)} testID="shape-outline" />
+        </Row>
+        <Button title={t('photo.shape.add')} icon="add" loading={busy} onPress={() => onAdd({ shape, fill: outline || shape === 'line' ? '#00000000' : fill, stroke: outline || shape === 'line' ? fill : '#00000000' })} testID="shape-add" />
+      </View>
+    </Panel>
+  );
+}

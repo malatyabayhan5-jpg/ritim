@@ -137,7 +137,9 @@
       "strokeWidth": "Kontur kalınlığı",
       "width": "Genişlik",
       "height": "Yükseklik",
-      "radius": "Köşe"
+      "radius": "Köşe",
+      "outlineOnly": "Yalnızca çerçeve",
+      "add": "Şekli ekle"
     },
     "ai": {
       "removeBg": "Arka planı kaldır",

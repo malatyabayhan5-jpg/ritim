@@ -137,7 +137,9 @@
       "strokeWidth": "Stroke width",
       "width": "Width",
       "height": "Height",
-      "radius": "Corner"
+      "radius": "Corner",
+      "outlineOnly": "Outline only",
+      "add": "Add shape"
     },
     "ai": {
       "removeBg": "Remove background",

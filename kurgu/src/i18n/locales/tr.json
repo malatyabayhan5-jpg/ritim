@@ -134,7 +134,8 @@
     "reverse": "Ters",
     "record": "Seslendir",
     "audioFx": "Ses efekti",
-    "sticker": "Çıkartma"
+    "sticker": "Çıkartma",
+    "shape": "Şekil"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",

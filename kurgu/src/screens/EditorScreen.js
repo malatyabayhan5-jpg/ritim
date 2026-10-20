@@ -26,7 +26,7 @@ import LayerPanel from '../editor/LayerPanel';
 import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
 import AudioFxPanel from '../editor/AudioFxPanel';
-import { StickerPanel } from '../editor/PhotoPanels';
+import { ShapePickPanel, StickerPanel } from '../editor/PhotoPanels';
 import { autoAdjust } from '../model/enhance';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
@@ -39,7 +39,7 @@ import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { imageStats, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -349,6 +349,32 @@ export default function EditorScreen({ params, focused }) {
       setSub(null);
     } catch {
       setBusy(null);
+      toast(t('errors.generic'), 'error');
+    }
+  };
+
+  // Şekil: fotoğraf çizicisiyle saydam PNG'ye çizilir ve üst katman olarak eklenir
+  // (konum, anahtar kare, maske, opaklık gibi tüm katman araçları kullanılabilir).
+  const addShapeLayer = async ({ shape, fill, stroke }) => {
+    setBusy(t('editor.working'));
+    try {
+      const W = 1024;
+      const H = shape === 'line' ? 128 : 1024;
+      const spec = { width: W, height: H, background: '#00000000', border: { width: 0 }, layers: [{ id: 's', type: 'shape', shape, x: 0, y: 0, scale: 1, rotation: 0, opacity: 1, blend: 'normal', w: 0.94, h: 0.94, fill, stroke, strokeWidth: stroke === '#00000000' ? 0 : 0.04, radius: 0.18 }] };
+      const tmp = `${CACHE_DIR}shape_${Date.now()}.png`;
+      const r = await renderPhoto(spec, tmp, W, 'png', 100);
+      const a = await adoptFile(r.path, `${shape}.png`, 'image/png');
+      const m = { id: a.id, kind: 'image', path: a.path, name: t(`photo.shape.${shape}`), size: a.size, durationMs: 0, width: r.width, height: r.height, hasAudio: false, importedAt: Date.now() };
+      const res = TL.addOverlay(project, m, position);
+      setBusy(null);
+      if (res.error === 'LANES_FULL') return toast(t('layer.lanesFull'));
+      apply((p) => TL.updateOverlay(res.project, res.newId, { scale: 0.4 }));
+      setSelection({ type: 'overlay', id: res.newId });
+      setSub(null);
+      setPanel(null);
+    } catch (e) {
+      setBusy(null);
+      console.log(`[KurguUI] shape failed ${e?.code} ${e?.message}`);
       toast(t('errors.generic'), 'error');
     }
   };
@@ -960,7 +986,7 @@ export default function EditorScreen({ params, focused }) {
     }
     if (sub === 'text') {
       // Araç çubuğunda temel düzenler; tüm şablonlar metin panelinin Şablonlar sekmesinde
-      return [T('addText', 'add-circle-outline', () => addText(null)), T('sticker', 'happy-outline', () => openPanel('sticker')), ...TEXT_LAYOUTS_BASE.map((l) => (
+      return [T('addText', 'add-circle-outline', () => addText(null)), T('sticker', 'happy-outline', () => openPanel('sticker')), T('shape', 'shapes-outline', () => openPanel('shapePick')), ...TEXT_LAYOUTS_BASE.map((l) => (
         <ToolButton key={l.id} testID={`tool-layout-${l.id}`} icon="albums-outline" label={t(`text.layout.${l.id}`)} onPress={() => addText(l.id)} />
       ))];
     }
@@ -1104,6 +1130,8 @@ export default function EditorScreen({ params, focused }) {
         return <AiPanel targets={aiTargets()} onRun={runAi} onClose={close} />;
       case 'sticker':
         return <StickerPanel onPick={addSticker} onClose={close} />;
+      case 'shapePick':
+        return <ShapePickPanel onAdd={addShapeLayer} onClose={close} />;
       case 'captionList':
         return (
           <CaptionListPanel
