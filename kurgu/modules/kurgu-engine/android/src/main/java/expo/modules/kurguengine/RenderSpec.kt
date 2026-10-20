@@ -54,7 +54,6 @@ data class MainClip(
   val keyframes: Map<String, FloatArray> = emptyMap(),
   val audioFx: AudioFxSpec? = null,
   val volumeKf: FloatArray? = null,
-  val volumeKf: FloatArray? = null,
 )
 
 data class AudioClip(
