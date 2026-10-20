@@ -1,6 +1,6 @@
 # Kurgu — İlerleme
 
-Son güncelleme: **2026-10-19**. Bu dosya özelliklerin gerçek durumunu dört değerle
+Son güncelleme: **2026-10-20**. Bu dosya özelliklerin gerçek durumunu dört değerle
 gösterir; kodun var olması tek başına "tamamlandı" sayılmaz:
 
 | İşaret | Anlamı |
@@ -43,9 +43,9 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Chroma key (CbCr uzaklığı + taşma bastırma, otomatik anahtar renk) | 🟡 | B + J (`KeyColorTest`); laboratuvar; emülatörde görsel doğrulama yok |
 | Anahtar kareler: konum, ölçek, döndürme, opaklık (katman); ana iz konum/ölçek/açı/opaklık; efekt yoğunluğu; ses düzeyi | ✅ | B + J (JS ↔ Java aynı değerlendirme, `tests/fixtures/keyframes.txt`); doğrusal / Bézier / basamak |
 | Karışım modları (video) | ⏳ | Media3 1.9'un `DefaultVideoCompositor`'ı yalnızca alfa karışımı yapar ve `MultipleInputVideoGraph` içinde değiştirilemez; özel birleştirici gerekir. Fotoğraf düzenleyicide 11 karışım modu var (aşağıda) |
-| Gerçek A/B geçişleri (44 geçiş, 5 kategori) | 🟡 | B + L (her geçiş laboratuvarda karelerle denetlendi). Önizlemede çalışır; geçişli projelerde dışa aktarma takılması açık (Bölüm 1) |
+| Gerçek A/B geçişleri (93 geçiş, 12 kategori) | 🟡 | B + L (her geçiş laboratuvarda karelerle denetlendi). Önizlemede çalışır; geçişli projelerde dışa aktarma takılması açık (Bölüm 1) |
 | Hız eğrileri (8 hazır + 5 noktalı düzenleme), sabit hız 0,1–10x | ✅ | B (`speed.test.mjs`: süre integrali, ters eşleme, bölme sürekliliği); D |
-| Ters oynatma (cihaz içi yeniden kodlama) | 🟡 | D; e2e 3. akışta adım var; emülatör sonucu CI günlüğünde (Bölüm 9). Android 9+ |
+| Ters oynatma (cihaz içi yeniden kodlama) | ✅ | E (CI #52: 3. akış GEÇTİ, 2,2 sn klip → 66 kare + ses). Android 9+ |
 | Kare dondurma | ✅ | B; E (önceki turlar) |
 
 ## 4. Ses
@@ -90,8 +90,8 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Kütüphane | Hedef | Mevcut | Durum | Kanıt |
 |---|---|---|---|---|
 | Filtreler | ≥100 | 116 | ✅ | B (`filters.test.mjs`: benzersizlik, taşma/düzleşme, ten tonu, ≥ 0,04 ortalama fark) |
-| Efektler | ≥100 | 21 (+ paket çalışması sürüyor) | 🟡 | L + B; hedefe ulaşılmadı |
-| Geçişler | ≥80 | 44 (+ paket çalışması sürüyor) | 🟡 | L + B; hedefe ulaşılmadı |
+| Efektler | ≥100 | 122 (12 kategori) | ✅ (sayı) / 🟡 (cihazda görsel) | L (4 sahne + 9:16, 56 animasyonlu efektte zamansal kararlılık) + B; performans: 70 hafif, 30 orta, 1+5 yoğun (SwiftShader medyanı); D (CI #52) |
+| Geçişler | ≥80 | 93 (12 kategori) | ✅ (sayı) / 🟡 (cihazda görsel) | L (dikey/yatay/siyah bantlı kanvasta kontak sayfaları; p=0/1 uçları ≤ 0,6/255) + B; D (CI #51–52) |
 | Metin şablonları | ≥60 | 97 | ✅ (sayı) / 🟡 (cihazda görsel) | B |
 | Ses ön ayarları | ≥40 | 54 | ✅ (sayı) / 🟡 (cihazda dinleme) | B + J |
 
@@ -110,10 +110,19 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 
 ## 9. Son CI sonuçları
 
-CI #41–#46 (2026-10-19) çalışıyor; sonuçlar geldikçe bu bölüme yazılacak.
-Önceki tam sonuç (CI #40, düzeltmeler öncesi): 2_dil_rtl, 3_ai_araclari,
-4_otomatik_altyazi, 5_performans GEÇTİ; 1_kabul_akisi (dışa aktarma takılması),
-6_katmanlar ve 7_seslendirme (önizleme çökmesi) BAŞARISIZ.
+**CI #52** (2026-10-20, 522e96c — tüm paketler dahil, Android 14 emülatörü):
+
+| Akış | Sonuç |
+|---|---|
+| 2 — Dil / RTL | ✅ GEÇTİ |
+| 3 — AI araçları (sahne, sessizlik, TTS, ses efekti ön ayarı + ses düzeyi anahtar karesi, ters oynatma) | ✅ GEÇTİ |
+| 4 — Otomatik altyazı | ✅ GEÇTİ |
+| 5 — Performans | ✅ GEÇTİ (p50 61 ms, p90 250 ms, %73 takılan kare, PSS ~155 MB — yazılımsal GPU, gerçek cihaz değil) |
+| 1 — Kabul (dışa aktarma dahil) | ❌ Çok katmanlı önizleme sonu çökmesi (H-16) devam etti; ek düzeltme 5dd608b, sonraki CI'da |
+| 6 — Katmanlar | ❌ (aynı çökme zincirinden etkilenmiş olabilir) |
+| 7 — Seslendirme, 8 — Fotoğraf | ❌ Emülatörde "Process system isn't responding" sistem penceresi (önceki çökme sonrası emülatör kararsızlığı); uygulama adımlarına ulaşılamadı |
+
+Önizlemedeki `FAILED_RUNTIME_CHECK` hatası (H-8) CI #42'den beri görülmüyor.
 
 ## 10. Teslim
 
