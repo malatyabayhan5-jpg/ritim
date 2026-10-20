@@ -18,6 +18,13 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "tool-audio"
+# Alt araç çubuğu yeniden çizilirken erken dokunuş boşa gidebiliyor (CI #53)
+- extendedWaitUntil:
+    visible:
+      id: "tool-record"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
     id: "tool-record"
 - extendedWaitUntil:
