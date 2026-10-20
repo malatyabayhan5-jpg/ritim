@@ -189,12 +189,58 @@ numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
 - **Düzeltme:** Segmenter ve nesne silme `PhotoRenderer.decode`'u (EXIF + önbellek) kullanır.
 - **Test:** Kod yolu tek; cihazda dikey fotoğrafla doğrulama ☁️.
 
-## H-12 — Geçişli projede dışa aktarma %90'da takılıyor (açık)
+## H-12 — Geçişli projede dışa aktarma %90'da takılıyordu
 
 - **Yeniden üretme:** CI #40, kabul akışı: ilerleme %90'da 120 sn durdu →
   `MUXING_TIMEOUT: no output sample written in the last 120000 milliseconds`.
-- **Durum:** İnceleniyor (Media3 Transformer kaynağı üzerinden). Sonraki CI'da dizi
-  yapısını günlüğe yazan tanılama eklenecek. **Çözülmedi.**
+- **Kök neden (Media3 1.9.4 kaynağı):** `EditedMediaItem.setSpeed` Transformer'da görüntüye
+  `TimestampAdjustment(SpeedChangingAudioProcessor::getSpeedAdjustedTimeAsync)` ekler
+  (`Transformer.java:1368–1371`). Bu efektin gördüğü kare zamanı öğenin dizideki ofsetini
+  içerir (`VideoSampleExporter.java:688/690` → `ExternalTextureManager.java:418`), ses
+  tarafındaki hız eğrisi ise öğe başından sayar. Dizinin ilk öğesi olmayan her hızlı öğede
+  kare `(ofset + t) / hız` zamanına düşer: geçiş şeridindeki 0.5x kopya ~9,8 sn yerine
+  ~19,6 sn'ye (video 17,5 sn). Birleştirici bu kareleri bırakmaz
+  (`DefaultVideoCompositor.java:277`), şerit ilerleyemez, karıştırıcı en yavaş kaynağa kadar
+  ses verir (`DefaultAudioMixer.java:330`), muxer görüntüyü sesin 500 ms ötesine geçirmez
+  (`MuxerWrapper.java:728`) → zaman aşımı.
+- **Düzeltme (5fc164e):** Dışa aktarmada hız `setSpeed` yerine aynı zincirin ofseti bilen
+  eşdeğeriyle uygulanır: ses için ilk işlemci `SpeedChangingAudioProcessor`, görüntü için
+  `TimestampAdjustment(ItemSpeedMap)` = `ofset + hızEğrisi(T − ofset)` (eşzamanlı, sese
+  bağlı değil). Dizi ofsetleri ve toplam süre Media3'ün kuralıyla (`SpeedProviderUtil`)
+  hesaplanır; tüm diziler aynı anda biter. Dışa aktarma başında dizi yapısı günlüğe yazılır
+  (`KurguExport`). Ana izde ilk öğe olmayan hızlı kliplerde de aynı gizli hata vardı.
+- **Test:** CI #49+ kabul akışı (dışa aktarma + ffmpeg doğrulaması). Önizleme (CompositionPlayer)
+  yolu değişmedi.
+
+## H-16 — Çok katmanlı önizleme bir kez sona gelip başa sarılınca uygulama çöküyordu
+
+- **Yeniden üretme:** CI #42, kabul akışı: `FATAL EXCEPTION: CompositionPlaybackThread`,
+  `IllegalStateException at DefaultVideoFrameProcessor.signalEndOfInput(…:817)` ←
+  `MultipleInputVideoGraph.onVideoCompositorEnded`.
+- **Kök neden:** Media3 1.9.4 `MultipleInputVideoGraph.flush()` yalnızca ön işlemcileri
+  sıfırlar (`MultipleInputVideoGraph.java:392–396`); birleştiricinin `compositorEnded` ve
+  girişlerin "bitti" bayrakları kalır. İkinci bitişte son işlemciye ikinci kez
+  `signalEndOfInput` gönderilir ve denetim (`checkState(!inputStreamEnded)`) çöker.
+- **Düzeltme (ba16bcf):** Çok girişli grafik bir kez `STATE_ENDED` olduysa sonraki
+  oynatma/arama/yeniden çizimde oynatıcı aynı konumdan yeniden kurulur.
+- **Test:** CI #49+ (kabul ve katman akışları sona kadar oynatır).
+
+## H-17 — Kotlin derleme hatası: yinelenen alan (CI #43–#46)
+
+- **Kök neden:** Ses düzeyi anahtar kareleri eklenirken betikli düzenleme `volumeKf`
+  alanını `MainClip`'e iki kez ekledi; CI derlemesi "Conflicting declarations" ile düştü.
+- **Düzeltme (3829aba):** Yinelenen satır silindi. Ders: Kotlin değişikliklerinden sonra
+  CI derleme sonucu beklenmeden üst üste itme yapılmamalı.
+
+## H-18 — Seslendirme kaydı başlamıyordu (CI #42, 7. akış)
+
+- **Yeniden üretme:** "Kaydı başlat"a dokununca durdurma düğmesi hiç görünmedi; günlükte
+  kayıt başlangıcı yok.
+- **Kök neden:** İzin isteği Expo izin yöneticisi yolundan gidiyordu; sonuç uygulamaya
+  ulaşmadı (hata yakalanıp yalnızca bildirim gösteriliyordu, ayrıntı günlüğe yazılmıyordu).
+- **Düzeltme (ba16bcf):** Android'de React Native `PermissionsAndroid` (önce `check`,
+  gerekirse `request`); izin sonucu ve hata günlüğe yazılır.
+- **Test:** CI #49+ 7. akış.
 
 ## H-13 — Ses efekti ön ayarı değiştirilince eski parametreler kalıyordu (yayımlanmadan bulundu)
 
