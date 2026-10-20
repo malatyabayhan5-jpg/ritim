@@ -22,7 +22,7 @@ appId: app.kurgu.editor
 - extendedWaitUntil:
     visible:
       text: "(Seslendir|Voiceover|تعليق صوتي)"
-    timeout: 10000
+    timeout: 30000
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn:

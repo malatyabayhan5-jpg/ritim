@@ -293,3 +293,16 @@ numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
   `CompositionPlayer.release()` denetime takılıyordu (`handleRelease: playbackThread.isAlive`).
   `release()` korumaya alındı; oynatıcı bırakılıp yenisi kurulur. Önizleme çökmesi
   (`crash suppressed; rebuilding preview`) ilk kez yakalandı.
+
+## H-21 — Önizleme çökmesi, video çözücü sızıntısı ve dışa aktarma DECODER_INIT_FAILED
+
+- **Yeniden üretme:** CI #59–#60: güvenlik ağı çökmeyi yakaladı (`crash suppressed`), ama
+  ölen oynatma iş parçacığının video çözücüleri hiç bırakılmadı; ardından dışa aktarma
+  `ERROR_CODE_DECODER_INIT_FAILED` ile düştü (önizleme bırakılmasına rağmen).
+- **Kök neden:** Çok girişli grafiğin bitiş durumu (H-16). Güvenlik ağı uygulamayı kapatmıyor
+  ama kaynak sızdırıyor; bu nedenle tek gerçek çözüm grafiğin hiç bitmemesi.
+- **Düzeltme:** Önizlemede saat dizisi zaman çizelgesinden 10 dk uzun kurulur
+  (`PREVIEW_TAIL_US`); oynatma zaman çizelgesinin sonunda (≤ 35 ms önce) duraklatılıp son
+  kareye konumlanır, "bitti" durumu arayüze bildirilir. Grafik bitişe girmez → çökme,
+  sızıntı ve yeniden kurma gerekmez. Dışa aktarma kompozisyonu değişmedi.
+- **Test:** CI kabul akışı (dışa aktarma + ffprobe), katman akışı.

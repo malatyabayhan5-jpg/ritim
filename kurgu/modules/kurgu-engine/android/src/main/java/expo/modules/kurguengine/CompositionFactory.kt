@@ -41,6 +41,9 @@ import kotlin.math.max
  */
 @OptIn(UnstableApi::class)
 object CompositionFactory {
+  /** Önizlemede saat dizisinin zaman çizelgesi sonrasındaki fazladan süresi (oynatılmaz). */
+  const val PREVIEW_TAIL_US = 600_000_000L
+
   private val AUDIO_VIDEO: Set<Int> = setOf(C.TRACK_TYPE_AUDIO, C.TRACK_TYPE_VIDEO)
   private val AUDIO_ONLY: Set<Int> = setOf(C.TRACK_TYPE_AUDIO)
   private val VIDEO_ONLY: Set<Int> = setOf(C.TRACK_TYPE_VIDEO)
@@ -78,7 +81,12 @@ object CompositionFactory {
       // Birleştiricide ilk dizi birincil olur: en üstte çizilir ve çıktı zaman damgalarını
       // belirler. Bu yüzden en üste kanvas boyunca süren saydam bir "saat" dizisi konur;
       // ardından katman şeritleri (üstten alta), en altta ana iz gelir.
-      sequences.add(EditedMediaItemSequence.Builder(VIDEO_ONLY).addItem(padItem(pad, totalUs, spec.fps)).build())
+      // Önizlemede saat dizisi zaman çizelgesinden uzun tutulur: çok girişli grafik hiç
+      // "bitti" durumuna girmez (Media3 1.9.4 MultipleInputVideoGraph bitişten sonra
+      // yeniden kullanılınca oynatma iş parçacığını düşürüyor ve video çözücüleri sızıyordu).
+      // Oynatma, KurguPreviewView tarafından zaman çizelgesinin sonunda duraklatılır.
+      val clockUs = if (forExport) totalUs else totalUs + PREVIEW_TAIL_US
+      sequences.add(EditedMediaItemSequence.Builder(VIDEO_ONLY).addItem(padItem(pad, clockUs, spec.fps)).build())
       for (lane in spec.layers.asReversed()) {
         layerSequence(lane, pad, totalUs, w, h, spec.fps, live, forExport)?.let { sequences.add(it) }
       }

@@ -152,11 +152,25 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
    * sona erebilir; o arada yapılan arama da ikinci bitişe yol açar (CI #52). Bu yüzden çok
    * girişli modda oynatma sona 1,5 sn'den fazla yaklaştıysa grafik harcanmış sayılır.
    */
-  private fun markSpentIfNearEnd() {
+  /**
+   * Çok girişli modda saat dizisi zaman çizelgesinden uzundur (CompositionFactory.PREVIEW_TAIL_US):
+   * oynatıcı sona hiç ulaşmaz, burada zaman çizelgesinin sonunda duraklatılır ve son kareye
+   * konumlanır. Grafik bitişe girmediği için yeniden kurmaya gerek kalmaz.
+   */
+  private fun stopAtTimelineEnd() {
     val p = player ?: return
     val total = spec?.totalMs ?: return
-    if (playerMulti && p.currentPosition >= total - 1500) graphSpent = true
+    if (!playerMulti || !p.isPlaying) return
+    if (p.currentPosition >= total - 35) {
+      p.pause()
+      p.seekTo(max(0L, total - 1))
+      atTimelineEnd = true
+      emitPosition(force = true)
+      onPlaybackState(mapOf("isPlaying" to false, "ended" to true, "buffering" to false, "positionMs" to total))
+    }
   }
+
+  private var atTimelineEnd = false
 
   /** Taze oynatıcıyla aynı kompozisyonu verilen konumdan kurar. */
   private fun rebuildAt(positionMs: Long, playWhenReady: Boolean) {
@@ -177,7 +191,6 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val p = builder.build()
     p.addListener(object : Player.Listener {
       override fun onIsPlayingChanged(isPlaying: Boolean) {
-        markSpentIfNearEnd()
         emitState()
         if (isPlaying) main.post(positionTick) else main.removeCallbacks(positionTick)
       }
@@ -247,6 +260,12 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   fun play() {
     if (player == null) applyComposition()
     val p = player ?: return
+    // Zaman çizelgesinin sonunda duraklatıldıysa baştan oynat
+    val total = spec?.totalMs ?: 0L
+    if (playerMulti && (atTimelineEnd || p.currentPosition >= total - 40)) {
+      atTimelineEnd = false
+      p.seekTo(0)
+    }
     if (p.playbackState == Player.STATE_ENDED || graphSpent) {
       if (playerMulti) return rebuildAt(0L, playWhenReady = true)
       p.seekTo(0)
@@ -262,6 +281,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   fun seekTo(ms: Double) {
     val target = max(0L, ms.toLong())
     pendingPositionMs = target
+    atTimelineEnd = false
     if (graphSpent && playerMulti) return rebuildAt(target, playWhenReady = false)
     if (player == null) return applyComposition()
     player?.seekTo(target)
@@ -278,8 +298,8 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private val positionTick = object : Runnable {
     override fun run() {
       emitPosition(force = false)
-      markSpentIfNearEnd()
-      if (player?.isPlaying == true) main.postDelayed(this, 33)
+      stopAtTimelineEnd()
+      if (player?.isPlaying == true) main.postDelayed(this, 16)
     }
   }
 
