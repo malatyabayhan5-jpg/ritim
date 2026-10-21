@@ -127,6 +127,20 @@ güvenlik ağı c3ddcaa); 8. akış ilk kez fotoğraf oluşturma, otomatik iyile
 (kanvas 1080×1080) adımlarını geçti, arka plan kaldırmada H-19 bulundu (c3ddcaa); 7. akışta
 `tool-record` dokunuşu başarısız (inceleniyor).
 
+**CI #59–#60:** 2, 3, 4, 5, 8 GEÇTİ (fotoğraf çıktısı 1080×1080 doğrulandı; DeepLab kişi
+maskesi emülatörde 144 ms). 1. akışta dışa aktarma `DECODER_INIT_FAILED` ile durdu; 6 ve 7'de
+Maestro kimlik/görünürlük sorunları (metin eşlemesine geçildi).
+
+**CI #61 (yeniden çalıştırma):** önizleme sonu çökmesi yok (PREVIEW_TAIL çözümü tuttu); dışa
+aktarma yine `DECODER_INIT_FAILED` → dışa aktarma sırasında önizlemeler askıya alınır ve kod
+çözücü yedeğe düşebilir (8cdef07).
+
+**CI #62** (8cdef07): 3 ve 4 GEÇTİ; 1. akışın dışa aktarması sırasında emülatörün kendisi
+dondu (QEMU "hanging thread", 00:30) ve iş 90 dk sınırına kadar takılı kaldı — 2, 5, 6, 7, 8
+hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelmediği **henüz bilinmiyor**.
+Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
+aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
+
 Önizlemedeki `FAILED_RUNTIME_CHECK` hatası (H-8) CI #42'den beri görülmüyor.
 
 ## 10. Teslim

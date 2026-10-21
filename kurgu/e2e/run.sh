@@ -10,6 +10,8 @@ PKG=app.kurgu.editor
 adb wait-for-device
 adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 0; done
+# Emülatör donarsa (CI #62: QEMU "hanging thread") adb çağrıları sonsuza dek beklemesin
+adb() { timeout 180 command adb "$@"; }
 echo "Android $(adb shell getprop ro.build.version.release | tr -d '\r') (API $(adb shell getprop ro.build.version.sdk | tr -d '\r'))" > "$OUT/cihaz.txt"
 
 # Test medyası: iki video (farklı boyut ve ses), bir fotoğraf, bir müzik dosyası
@@ -60,11 +62,12 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 
 adb logcat -c
 : > "$OUT/sonuclar.txt"
-# AI akışları önce: ağır dışa aktarma akışı emülatörü yorarsa onları etkilemesin
-for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme 8_fotograf; do
+# Ağır GPU efektli dışa aktarma (kabul akışı) en sona: emülatörü dondurursa (CI #62)
+# diğer akışların sonuçları yine alınır. 2/5/7 numaralı akışlar 3/4'ün projelerini açar.
+mp4s() { adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort; }
+for flow in 3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme 8_fotograf 1_kabul_akisi; do
   [ "$flow" = 5_performans ] && adb shell dumpsys gfxinfo $PKG reset > /dev/null 2>&1
-  # Katman akışından önceki dışa aktarımlar: kabul akışının çıktısı bunlardan biridir
-  [ "$flow" = 6_katmanlar ] && adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort > "$OUT/once.txt"
+  mp4s > "$OUT/once_$flow.txt"
   # Performans ölçümü 5. akıştan hemen sonra alınır (katman akışı ölçümü bozmasın)
   if [ "$flow" = 6_katmanlar ]; then
     {
@@ -73,32 +76,39 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 1_kabul_akisi 2_dil_rtl 5_performan
       adb shell dumpsys meminfo $PKG 2>/dev/null | grep -E "TOTAL PSS|TOTAL RSS|Native Heap|Graphics" | head -4 | sed 's/^ */  /'
     } > "$OUT/performans.txt"
   fi
-  (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
+  # Akış başına üst sınır: tek bir takılan akış tüm işi zaman aşımına uğratmasın
+  (cd "$OUT" && timeout 1500 maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
   # Maestro altyapı hatası (ekran görüntüsü alınamadı) uygulama hatası değildir: akış bir kez yinelenir
   if [ $code -ne 0 ] && grep -q "Screenshot returned null" "$OUT/$flow.log"; then
     echo "$flow: ekran görüntüsü altyapı hatası, akış yineleniyor" >> "$OUT/sonuclar.txt"
     mv "$OUT/$flow.log" "$OUT/$flow.ilk.log"
-    (cd "$OUT" && maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
+    (cd "$OUT" && timeout 1500 maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
     code=$?
   fi
   adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
   # Yerel hata ayrıntıları (önizleme/dışa aktarma istisnaları) akış başına
   adb logcat -d 2>/dev/null | grep -E "KurguPreview|KurguExport|AndroidRuntime|IllegalStateException|IllegalArgumentException|ExoPlaybackException|PlaybackException|Caused by|\tat androidx.media3" | head -60 | sed "s/^/[$flow] /" >> "$OUT/yerel_hatalar.txt"
   adb logcat -c
+  mp4s | comm -13 "$OUT/once_$flow.txt" - > "$OUT/yeni_$flow.txt"
   if [ $code -eq 0 ]; then
     echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"
   else
     echo "$flow: BAŞARISIZ (çıkış $code) — ekranda: $(screen_texts | cut -c1-500)" >> "$OUT/sonuclar.txt"
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
   fi
+  [ $code -eq 124 ] && echo "$flow: 25 dk akış sınırı aşıldı" >> "$OUT/sonuclar.txt"
+  if ! timeout 30 adb shell echo ok > /dev/null 2>&1; then
+    echo "$flow sonrası emülatör yanıt vermiyor; kalan akışlar atlandı" >> "$OUT/sonuclar.txt"
+    adb() { return 1; }  # aşağıdaki çıktı denetimleri ölü cihazı beklemesin
+    break
+  fi
 done
 
 cat "$OUT/performans.txt" >> "$OUT/sonuclar.txt" 2>/dev/null
 
-# Katman akışının çıktısı: akıştan önce olmayan yeni dosya
-adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort > "$OUT/sonra.txt"
-LAYERFILE=$(comm -13 "$OUT/once.txt" "$OUT/sonra.txt" | head -1)
+# Katman akışının çıktısı: akış sırasında oluşan yeni dosya
+LAYERFILE=$(head -1 "$OUT/yeni_6_katmanlar.txt" 2>/dev/null)
 if [ -n "$LAYERFILE" ]; then
   adb pull "/sdcard/Movies/Kurgu/$LAYERFILE" "$OUT/katman.mp4" > /dev/null
   python3 "$(dirname "$0")/layer_check.py" "$OUT/katman.mp4" > "$OUT/katman.txt" 2>&1
@@ -111,7 +121,7 @@ fi
 
 # Dışa aktarılan videoyu cihazdan al ve bağımsız bir araçla (ffprobe) denetle
 adb shell ls -l /sdcard/Movies/Kurgu/ > "$OUT/galeri.txt" 2>&1
-OUTFILE=$(head -1 "$OUT/once.txt" 2>/dev/null)
+OUTFILE=$(head -1 "$OUT/yeni_1_kabul_akisi.txt" 2>/dev/null)
 if [ -n "$OUTFILE" ]; then
   adb pull "/sdcard/Movies/Kurgu/$OUTFILE" "$OUT/cikti.mp4" > /dev/null
   ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of default=nw=1 "$OUT/cikti.mp4" > "$OUT/ffprobe.txt" 2>&1
