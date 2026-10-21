@@ -17,7 +17,10 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.DebugTraceUtil
 import androidx.media3.transformer.AudioEncoderSettings
 import androidx.media3.transformer.Composition
+import androidx.media3.transformer.DefaultAssetLoaderFactory
+import androidx.media3.transformer.DefaultDecoderFactory
 import androidx.media3.transformer.DefaultEncoderFactory
+import androidx.media3.common.util.Clock
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.ProgressHolder
@@ -97,6 +100,16 @@ class Exporter(
       .setVideoMimeType(videoMime)
       .setAudioMimeType(MimeTypes.AUDIO_AAC)
       .setEncoderFactory(encoderFactory)
+      // Geçiş şeritlerinde aynı anda birden çok video çözücü açılır; donanım çözücüsünün
+      // örnek sınırı aşılırsa (CI emülatörü: DECODER_INIT_FAILED) yazılım çözücüye geçilir.
+      .setAssetLoaderFactory(
+        DefaultAssetLoaderFactory(
+          context,
+          DefaultDecoderFactory.Builder(context).setEnableDecoderFallback(true).build(),
+          Clock.DEFAULT,
+          null,
+        ),
+      )
       // Yoğun efektli projelerde yavaş cihazlarda görüntü, sesin gerisinde kalabilir;
       // varsayılan 10 sn bekleme sınırı dışa aktarmayı gereksiz yere iptal ediyordu.
       // Gerçekten takılan bir işin yine de bitmesi için sınır 2 dakikadır.

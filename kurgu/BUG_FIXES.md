@@ -306,3 +306,15 @@ numaralarıdır; emülatör Android 14 (API 34, yazılımsal GPU).
   kareye konumlanır, "bitti" durumu arayüze bildirilir. Grafik bitişe girmez → çökme,
   sızıntı ve yeniden kurma gerekmez. Dışa aktarma kompozisyonu değişmedi.
 - **Test:** CI kabul akışı (dışa aktarma + ffprobe), katman akışı.
+
+## H-22 — Geçişli dışa aktarmada ikinci video çözücü açılamıyordu
+
+- **Yeniden üretme:** CI #61 (yeniden deneme): önizleme çökmesi artık yok (H-21 düzeltmesi
+  tuttu), dışa aktarma ~4 dk ilerleyip geçiş penceresinde `DECODER_INIT_FAILED` ile düştü
+  (aynı H.264 kaynağının ikinci çözücüsü: ana iz + geçiş kopyası).
+- **Kök neden (olası):** Emülatörün donanım H.264 çözücüsünün eşzamanlı örnek sınırı;
+  Media3 Transformer varsayılan olarak başka çözücüye geçmez.
+- **Düzeltme:** `DefaultDecoderFactory.setEnableDecoderFallback(true)` ile dışa aktarmada
+  çözücü yedeği açıldı (donanım açılamazsa yazılım çözücü). e2e adım süresi 60 → 90 dk
+  (katman akışı yavaş emülatörde süre sınırına takılmıştı).
+- **Test:** CI kabul akışı.

@@ -82,7 +82,7 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 80
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
 
@@ -101,7 +101,7 @@ jobs:
 
       - name: Emülatörde kabul testi
         continue-on-error: true
-        timeout-minutes: 60
+        timeout-minutes: 90
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
