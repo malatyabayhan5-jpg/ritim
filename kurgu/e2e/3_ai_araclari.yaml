@@ -68,6 +68,17 @@ appId: app.kurgu.editor
 - hideKeyboard
 - tapOn:
     id: "panel-done"
+# Metin anahtar kareleri: panel açılır, konum X için kare eklenir
+- tapOn:
+    id: "tool-textKeys"
+- extendedWaitUntil:
+    visible:
+      id: "panel-text-keys"
+    timeout: 5000
+- tapOn:
+    id: "kf-x"
+- tapOn:
+    id: "panel-done"
 - tapOn:
     id: "tool-back"
     optional: true

@@ -22,10 +22,13 @@ function Hscroll({ children }) {
   );
 }
 
-function KeySlider({ item, prop, label, localMs, min, max, center, format, onChange, testID }) {
+const OVERLAY_KEYS = { at: overlayPropAt, patch: overlayPropPatch, toggle: toggleOverlayKey, live: 'ovl' };
+
+/** Elmas düğmeli kaydırıcı; `api` özellik okuma/yazma işlevlerini verir (katman ya da metin). */
+export function KeySlider({ item, prop, label, localMs, min, max, center, format, onChange, testID, api = OVERLAY_KEYS }) {
   const has = !!item.keyframes?.[prop]?.length;
   const onKey = !!keyAt(item.keyframes?.[prop], localMs);
-  const v = overlayPropAt(item, prop, localMs);
+  const v = api.at(item, prop, localMs);
   return (
     <View style={styles.labeled}>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -35,7 +38,7 @@ function KeySlider({ item, prop, label, localMs, min, max, center, format, onCha
         <Pressable
           testID={`kf-${prop}`}
           hitSlop={10}
-          onPress={() => onChange(toggleOverlayKey(item, prop, localMs), null)}
+          onPress={() => onChange(api.toggle(item, prop, localMs), null)}
           accessibilityLabel={label}
         >
           <Icon name={onKey ? 'diamond' : 'diamond-outline'} size={16} color={has ? colors.accent : colors.textDim} />
@@ -47,7 +50,7 @@ function KeySlider({ item, prop, label, localMs, min, max, center, format, onCha
         min={min}
         max={max}
         center={center}
-        onChange={(nv) => onChange(overlayPropPatch(item, prop, Math.round(nv * 1000) / 1000, localMs), `ovl-${prop}`)}
+        onChange={(nv) => onChange(api.patch(item, prop, Math.round(nv * 1000) / 1000, localMs), `${api.live}-${prop}`)}
         formatValue={format}
       />
     </View>

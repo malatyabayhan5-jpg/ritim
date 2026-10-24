@@ -81,8 +81,11 @@ export function canvasToVideo(x, y, clip, media, canvas, localMs = 0) {
  * şablon arka plana kilitlenir). `boxW`, `boxH` kanvas kesri (0..1).
  */
 export function trackingBox(o, clip, media, canvas, overlayLocalMs, clipLocalMs, boxW, boxH) {
-  const x = overlayPropAt(o, 'x', overlayLocalMs);
-  const y = overlayPropAt(o, 'y', overlayLocalMs);
+  return trackingBoxAt(overlayPropAt(o, 'x', overlayLocalMs), overlayPropAt(o, 'y', overlayLocalMs), clip, media, canvas, clipLocalMs, boxW, boxH);
+}
+
+/** Kanvas NDC merkezi (x, y) ve kanvas kesri boyutundan takip kutusu (metin katmanları için de). */
+export function trackingBoxAt(x, y, clip, media, canvas, clipLocalMs, boxW, boxH) {
   const c = canvasToVideo(x, y, clip, media, canvas, clipLocalMs);
   const g = geometry(clip, media, canvas);
   const s = Math.max(1e-6, mainPropAt(clip, 'scale', clipLocalMs));
@@ -131,10 +134,11 @@ function simplify(pts, eps) {
  * @param points [{ t: kaynak ms, x, y: 0..1, c }]
  * @param clipStart ana klibin zaman çizelgesi başlangıcı (ms)
  * @param anchorMs takibin başladığı zaman çizelgesi anı (ms)
+ * @param durationMs, anchor öğe katman değilse (metin) süre ve başlangıç konumu {x, y}
  * @returns { keyframes: { x, y }, used, lost } ya da hedef yoksa null
  */
-export function trackToOverlayKeys(points, { clip, clipStart, media, canvas, overlay, anchorMs, eps = 0.003 }) {
-  const dur = overlayDuration(overlay);
+export function trackToOverlayKeys(points, { clip, clipStart, media, canvas, overlay, anchorMs, eps = 0.003, durationMs, anchor }) {
+  const dur = durationMs ?? overlayDuration(overlay);
   const conv = [];
   let lost = 0;
   for (const p of points) {
@@ -151,8 +155,9 @@ export function trackToOverlayKeys(points, { clip, clipStart, media, canvas, ove
   }
   if (!conv.length) return null;
   const anchorLocal = anchorMs - overlay.start;
-  const dx = overlayPropAt(overlay, 'x', anchorLocal) - conv[0].x;
-  const dy = overlayPropAt(overlay, 'y', anchorLocal) - conv[0].y;
+  const a = anchor || { x: overlayPropAt(overlay, 'x', anchorLocal), y: overlayPropAt(overlay, 'y', anchorLocal) };
+  const dx = a.x - conv[0].x;
+  const dy = a.y - conv[0].y;
   const r3 = (v) => Math.round(v * 1000) / 1000;
   const pts = simplify(conv.map((p) => ({ t: p.t, x: p.x + dx, y: p.y + dy })), eps);
   // Aynı ms'ye düşen noktalar (hız > 1) tekilleştirilir

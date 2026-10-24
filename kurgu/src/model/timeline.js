@@ -439,8 +439,9 @@ export function splitTextAt(project, id, t) {
   if (!x) return { project, changed: false };
   const offset = t - x.start;
   if (offset < MIN_CLIP_MS || x.duration - offset < MIN_CLIP_MS) return { project, changed: false };
-  const a = { ...x, duration: Math.round(offset), animOut: 'none' };
-  const b = { ...x, id: newId('txt'), start: Math.round(t), duration: Math.round(x.duration - offset), animIn: 'none' };
+  const kf = (shift, dur) => (x.keyframes ? { keyframes: shiftKeyframes(x.keyframes, shift, dur) } : {});
+  const a = { ...x, duration: Math.round(offset), animOut: 'none', ...kf(0, offset) };
+  const b = { ...x, id: newId('txt'), start: Math.round(t), duration: Math.round(x.duration - offset), animIn: 'none', ...kf(-offset, x.duration - offset) };
   return { project: touch({ ...project, texts: project.texts.flatMap((tx) => (tx.id === id ? [a, b] : [tx])) }), changed: true, newId: b.id };
 }
 
@@ -449,9 +450,49 @@ export function trimText(project, id, edge, delta) {
   if (!x) return project;
   if (edge === 'start') {
     const d = Math.max(-x.start, Math.min(x.duration - MIN_CLIP_MS, delta));
-    return updateText(project, id, { start: Math.round(x.start + d), duration: Math.round(x.duration - d) });
+    // Anahtar kareler ekranda yerinde kalır (metin başına göre kaydırılır)
+    const kf = x.keyframes ? { keyframes: shiftKeyframes(x.keyframes, -d, x.duration - d) } : {};
+    return updateText(project, id, { start: Math.round(x.start + d), duration: Math.round(x.duration - d), ...kf });
   }
-  return updateText(project, id, { duration: Math.round(Math.max(MIN_CLIP_MS, x.duration + delta)) });
+  const dur = Math.round(Math.max(MIN_CLIP_MS, x.duration + delta));
+  return updateText(project, id, { duration: dur, ...(x.keyframes ? { keyframes: shiftKeyframes(x.keyframes, 0, dur) } : {}) });
+}
+
+// Metin anahtar kareleri: konum/ölçek/döndürme/opaklık; zamanlar metnin başına göre ms.
+const TEXT_BASE = {
+  x: (x) => x.x ?? 0,
+  y: (x) => x.y ?? 0,
+  scale: (x) => x.scale ?? 1,
+  rotation: (x) => x.rotation ?? 0,
+  opacity: (x) => x.style?.opacity ?? 1,
+};
+
+export function textPropAt(x, prop, localMs) {
+  return valueAt(x.keyframes?.[prop], localMs, TEXT_BASE[prop](x));
+}
+
+/** Metnin `localMs` anındaki konum/ölçek/döndürme değerleri (tutamaç ve önizleme için). */
+export function textValuesAt(x, localMs) {
+  return { x: textPropAt(x, 'x', localMs), y: textPropAt(x, 'y', localMs), scale: textPropAt(x, 'scale', localMs), rotation: textPropAt(x, 'rotation', localMs) };
+}
+
+export function textPropPatch(x, prop, value, localMs) {
+  const track = x.keyframes?.[prop];
+  if (track && track.length) return { keyframes: { ...x.keyframes, [prop]: setKey(track, localMs, value) } };
+  return prop === 'opacity' ? { style: { opacity: value } } : { [prop]: value };
+}
+
+export function toggleTextKey(x, prop, localMs) {
+  const track = x.keyframes?.[prop] || [];
+  const v = textPropAt(x, prop, localMs);
+  const exists = track.some((k) => Math.abs(k.t - localMs) <= 15);
+  const next = exists ? removeKey(track, localMs) : setKey(track, localMs, v);
+  const keyframes = { ...x.keyframes };
+  if (next.length) keyframes[prop] = next;
+  else delete keyframes[prop];
+  const patch = { keyframes };
+  if (!next.length) Object.assign(patch, prop === 'opacity' ? { style: { opacity: v } } : { [prop]: v });
+  return patch;
 }
 
 // --- Üst katmanlar (resim içinde resim) ---

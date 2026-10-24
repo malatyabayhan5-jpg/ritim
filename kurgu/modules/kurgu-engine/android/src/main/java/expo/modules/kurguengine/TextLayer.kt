@@ -21,6 +21,7 @@ import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.StaticOverlaySettings
+import expo.modules.kurguengine.anim.Keyframes
 import expo.modules.kurguengine.anim.TextAnim
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -155,8 +156,14 @@ class TextLayerOverlay(private val spec: TextSpec) : BitmapOverlay() {
   override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
     val tMs = presentationTimeUs / 1000L
     val s = state.reset()
-    s.alpha = spec.opacity.coerceIn(0f, 1f)
-    s.scale = spec.scale
+    // Anahtar kareler metnin başına göre; iz yoksa sabit değer
+    val local = (tMs - spec.startMs).toDouble()
+    val kf = spec.keyframes
+    val x = if (kf.isEmpty()) spec.x else Keyframes.valueAt(kf["x"], local, spec.x)
+    val y = if (kf.isEmpty()) spec.y else Keyframes.valueAt(kf["y"], local, spec.y)
+    val rotation = if (kf.isEmpty()) spec.rotation else Keyframes.valueAt(kf["rotation"], local, spec.rotation)
+    s.alpha = (if (kf.isEmpty()) spec.opacity else Keyframes.valueAt(kf["opacity"], local, spec.opacity)).coerceIn(0f, 1f)
+    s.scale = if (kf.isEmpty()) spec.scale else Keyframes.valueAt(kf["scale"], local, spec.scale)
     if (tMs < spec.startMs || tMs >= spec.endMs) {
       s.alpha = 0f
     } else {
@@ -169,10 +176,10 @@ class TextLayerOverlay(private val spec: TextSpec) : BitmapOverlay() {
     }
     return StaticOverlaySettings.Builder()
       .setAlphaScale(max(0f, min(1f, s.alpha)))
-      .setBackgroundFrameAnchor(spec.x + s.dx, spec.y + s.dy)
+      .setBackgroundFrameAnchor(x + s.dx, y + s.dy)
       .setOverlayFrameAnchor(0f, 0f)
       .setScale(max(0.01f, s.scale), max(0.01f, s.scale))
-      .setRotationDegrees(-(spec.rotation + s.rot))
+      .setRotationDegrees(-(rotation + s.rot))
       .build()
   }
 

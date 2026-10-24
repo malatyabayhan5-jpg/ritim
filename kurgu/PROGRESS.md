@@ -67,6 +67,7 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | 97 metin şablonu (42 stil + 55 düzen, 13 kategori) | 🟡 | B (`text.test.mjs`: sayı, renk geçerliliği, metin/kutu karşıtlığı ≥ 3:1, üç dil). Görünüm PIL taslaklarıyla incelendi; **cihazda çizim görülmedi** |
 | Metin animasyonları: 20 giriş, 20 çıkış, 5 döngü (kelime/harf, daktilo imleci, bulanıklık, dalga…) | 🟡 | J (`TextAnimTest`, 14.131 denetim; eski animasyonlar birebir korunur; Arapça kelime bazlı). Cihazda görsel doğrulama yok |
 | Arapça / RTL | ✅ | E (2_dil_rtl akışı); B (çeviri kapsamı 1277 anahtar × 3 dil) |
+| Metin anahtar kareleri (konum, ölçek, döndürme, opaklık; elmas düğmeli panel, sürükleme kareye yazar; bölme/kırpmada kaydırma) | 🟡 | B (`tracking.test.mjs`: aç/kapat, düzenle, böl, kırp); yerel `TextLayer` aynı `Keyframes.java` ile değerlendirir; e2e 3. akışta panel adımı — sonuç Bölüm 9 |
 | Çıkartmalar (emoji, video ve fotoğraf) | 🟡 | Kod + B (fotoğraf modeli); emülatörde fotoğraf akışında metin adımı var |
 | Şekiller | 🟡 | Fotoğraf düzenleyicide 8 şekil ✅ (B); video zaman çizelgesinde şekil (saydam PNG üst katman) kodda var, e2e 3. akışa adım eklendi — sonuç Bölüm 9 |
 | Otomatik altyazı (whisper.cpp, cihaz içi) | ✅ | E (CI #29: konuşma kelimesi kelimesine doğru); 64 bit cihaz |
@@ -83,7 +84,7 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Otomatik iyileştirme (video + fotoğraf) | 🟡 | B (`enhance.test.mjs`) + D; cihazda görsel doğrulama yok |
 | Altyazı çevirisi | 🟡 | Yukarıda |
 | Metinden görsel üretme | ☁️ | Altyapı + örnek vekil sunucu hazır (B: sahte sağlayıcıyla); kullanıcı sunucusu ve sağlayıcı anahtarı olmadan **çalışmaz** ve arayüzde "Bağlı değil" yazar |
-| Hareket takibi (üst katman: çıkartma, şekil, görsel, video → nesneyi izler; konum anahtar kareleri) | 🟡 | J (`TrackerTest`: ortalama hata 0,38 px, parlaklık değişimi, örtülme sonrası yeniden yakalama, 9 px/kare hızlı hareket) + B (`tracking.test.mjs`: kaynak↔kanvas dönüşümü döndürme/çevirme/ölçek/açı/doldur, hız eşleme, sadeleştirme). e2e 6. akışa adım eklendi — sonuç Bölüm 9. Metin katmanları anahtar kare desteklemediğinden takip edilemez; ölçek/dönüş takibi yok (yalnızca konum) |
+| Hareket takibi (üst katman: çıkartma, şekil, görsel, video → nesneyi izler; konum anahtar kareleri) | 🟡 | J (`TrackerTest`: ortalama hata 0,38 px, parlaklık değişimi, örtülme sonrası yeniden yakalama, 9 px/kare hızlı hareket) + B (`tracking.test.mjs`: kaynak↔kanvas dönüşümü döndürme/çevirme/ölçek/açı/doldur, hız eşleme, sadeleştirme). e2e 6. akışa adım eklendi — sonuç Bölüm 9. Metin katmanları da takip edilebilir (kutu metnin yaklaşık boyutundan; B). Ölçek/dönüş takibi yok (yalnızca konum) |
 | Video arka plan kaldırma, AI otomatik kurgu, süper çözünürlük | ⏳ / ☁️ | Yapılmadı; uygun açık lisanslı mobil model ve gerçek cihaz ölçümü gerekir |
 
 ## 7. Kütüphane boyutları (önce kalite)

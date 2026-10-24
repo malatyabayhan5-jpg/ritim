@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createMainClip, createOverlay } from '../src/model/schema';
-import { canvasToVideo, fittedHalf, trackToOverlayKeys, trackingBox, videoToCanvas } from '../src/model/tracking';
+import { canvasToVideo, fittedHalf, trackToOverlayKeys, trackingBox, trackingBoxAt, videoToCanvas } from '../src/model/tracking';
+import { createText } from '../src/model/schema';
+import { splitTextAt, textPropAt, textPropPatch, toggleTextKey, trimText } from '../src/model/timeline';
 import { valueAt } from '../src/model/keyframes';
 
 const media = { id: 'm1', kind: 'video', width: 1920, height: 1080, durationMs: 10000 };
@@ -95,4 +97,45 @@ test('takip kutusu: katman merkezi kaynağa taşınır, boyut sınırlanır', ()
   const [u, v, w, h] = trackingBox(overlay, clip, media, landscape, 0, 0, 0.2, 0.9);
   assert.ok(near(u, 0.75) && near(v, 0.5));
   assert.ok(near(w, 0.2) && near(h, 0.45));
+});
+
+test('metin takibi: süre ve başlangıç konumu metinden', () => {
+  const clip = createMainClip(media);
+  const text = { ...createText(1000, 'Merhaba'), duration: 1500, x: -0.2, y: 0.3 };
+  const points = [];
+  for (let i = 0; i <= 30; i++) points.push({ t: 1000 + i * 100, x: 0.5 + i * 0.004, y: 0.5, c: 0.9 });
+  const r = trackToOverlayKeys(points, { clip, clipStart: 0, media, canvas: landscape, overlay: text, anchorMs: 1000, durationMs: text.duration, anchor: { x: text.x, y: text.y } });
+  const xs = r.keyframes.x;
+  assert.equal(xs[0].t, 0);
+  assert.equal(xs[xs.length - 1].t, 1500);
+  assert.ok(near(xs[0].v, -0.2, 1e-3) && near(r.keyframes.y[0].v, 0.3, 1e-3));
+  const [u, v] = trackingBoxAt(0, 0, clip, media, landscape, 0, 0.1, 0.1);
+  assert.ok(near(u, 0.5) && near(v, 0.5));
+});
+
+test('metin anahtar kareleri: aç/kapat, düzenle, böl ve kırp', () => {
+  let x = { ...createText(0, 'A'), duration: 2000, x: 0.1 };
+  x = { ...x, ...toggleTextKey(x, 'x', 0) };
+  assert.equal(x.keyframes.x.length, 1);
+  x = { ...x, ...textPropPatch(x, 'x', 0.5, 1000) };
+  assert.equal(x.keyframes.x.length, 2);
+  assert.ok(near(textPropAt(x, 'x', 500), 0.3, 1e-6));
+  // Opaklık izi yokken sabit değer stile yazılır
+  assert.deepEqual(textPropPatch(x, 'opacity', 0.4, 0), { style: { opacity: 0.4 } });
+  // Böl: ikinci parça kareleri kendi başına göre kayar
+  const project = { texts: [x] };
+  const s1 = splitTextAt(project, x.id, 1000);
+  const [a, b] = s1.project.texts;
+  assert.ok(near(textPropAt(a, 'x', 1000), 0.5, 1e-6));
+  assert.ok(near(textPropAt(b, 'x', 0), 0.5, 1e-6));
+  // Kırp (baş): ekrandaki konum aynı anda aynı kalır
+  const tr = trimText({ texts: [x] }, x.id, 'start', 500).texts[0];
+  assert.equal(tr.start, 500);
+  assert.ok(near(textPropAt(tr, 'x', 0), textPropAt(x, 'x', 500), 1e-6));
+  // Son kare kaldırılınca değer sabit alana yazılır
+  let y = { ...createText(0, 'B'), duration: 1000, scale: 1.5 };
+  y = { ...y, ...toggleTextKey(y, 'scale', 0) };
+  y = { ...y, ...toggleTextKey(y, 'scale', 0) };
+  assert.equal(y.keyframes.scale, undefined);
+  assert.equal(y.scale, 1.5);
 });

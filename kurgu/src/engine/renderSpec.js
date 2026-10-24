@@ -117,6 +117,8 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
       y: t.y,
       scale: t.scale,
       rotation: t.rotation,
+      // Anahtar kareler (metin başına göre ms; Keyframes.java paketi)
+      kf: textKeyframes(t),
       sizeRel: t.style.size,
       color: t.style.color,
       background: t.style.background,
@@ -263,6 +265,15 @@ function hexRgb(hex) {
   const h = String(hex || '').replace('#', '');
   if (h.length < 6) return [0, 1, 0];
   return [0, 2, 4].map((i) => Math.round((parseInt(h.slice(i, i + 2), 16) / 255) * 1e4) / 1e4);
+}
+
+function textKeyframes(t) {
+  const kf = {};
+  for (const prop of KEYFRAME_PROPS) {
+    const packed = packTrack(t.keyframes?.[prop]);
+    if (packed) kf[prop] = packed;
+  }
+  return kf;
 }
 
 /** Katman -> LayerClip (RenderSpec.kt). Dizi düzenleri LayerFx.kt / _layer.glsl ile aynıdır. */

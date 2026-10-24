@@ -213,7 +213,8 @@
     }
   },
   "tools": {
-    "track": "Takip"
+    "track": "Takip",
+    "textKeys": "Anahtar kare"
   },
   "track": {
     "needVideo": "Takip için oynatma kafası bir video klibin üzerinde olmalı",

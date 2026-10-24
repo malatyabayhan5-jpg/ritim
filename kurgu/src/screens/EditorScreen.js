@@ -22,8 +22,9 @@ import {
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
 import OverlayHandle, { overlayBox } from '../editor/OverlayHandle';
-import { applyTrackKeys, trackToOverlayKeys, trackingBox } from '../model/tracking';
+import { applyTrackKeys, trackToOverlayKeys, trackingBox, trackingBoxAt } from '../model/tracking';
 import LayerPanel from '../editor/LayerPanel';
+import TextKeysPanel from '../editor/TextKeysPanel';
 import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
 import AudioFxPanel from '../editor/AudioFxPanel';
@@ -392,31 +393,47 @@ export default function EditorScreen({ params, focused }) {
 
   // Hareket takibi: katman, oynatma kafasındaki ana video klibinde altındaki nesneyi
   // izler; katmanın sonuna (ya da klibin sonuna) kadar konum anahtar kareleri yazılır.
+  // Metin katmanında kutu, metnin yaklaşık boyutundan (yazı boyu × karakter) çıkarılır.
   const trackOverlay = async () => {
-    const o = selectedOverlay;
+    const isText = !!selectedText;
+    const o = isText ? selectedText : selectedOverlay;
     if (!o) return;
     const hit = TL.clipAt(project, position);
     const clip = hit?.clip;
     const media = clip ? project.media[clip.mediaId] : null;
     if (!clip || clip.kind !== 'video' || !media) return toast(t('track.needVideo'));
+    const dur = isText ? o.duration : TL.overlayDuration(o);
     const from = Math.max(position, o.start, hit.start);
-    const to = Math.min(o.start + TL.overlayDuration(o), hit.end);
+    const to = Math.min(o.start + dur, hit.end);
     if (to - from < 300) return toast(t('track.tooShort'));
     const ovLocal = from - o.start;
     const clipLocal = from - hit.start;
-    const v = { x: TL.overlayPropAt(o, 'x', ovLocal), y: TL.overlayPropAt(o, 'y', ovLocal), scale: TL.overlayPropAt(o, 'scale', ovLocal), rotation: 0 };
-    const b = overlayBox(o, project.media[o.mediaId], project.canvas.width, project.canvas.height, v);
-    const box = trackingBox(o, clip, media, project.canvas, ovLocal, clipLocal, b.w / project.canvas.width, b.h / project.canvas.height);
+    const { width: CW, height: CH } = project.canvas;
+    let box;
+    let anchor;
+    if (isText) {
+      anchor = { x: TL.textPropAt(o, 'x', ovLocal), y: TL.textPropAt(o, 'y', ovLocal) };
+      const sc = TL.textPropAt(o, 'scale', ovLocal);
+      const lines = o.text.split('\n');
+      const longest = Math.max(...lines.map((l) => l.length), 1);
+      const h = (o.style.size || 0.06) * sc * lines.length * 1.3;
+      const w = ((o.style.size || 0.06) * sc * longest * 0.55 * CH) / CW;
+      box = trackingBoxAt(anchor.x, anchor.y, clip, media, project.canvas, clipLocal, Math.min(0.9, w), Math.min(0.9, h));
+    } else {
+      const v = { x: TL.overlayPropAt(o, 'x', ovLocal), y: TL.overlayPropAt(o, 'y', ovLocal), scale: TL.overlayPropAt(o, 'scale', ovLocal), rotation: 0 };
+      const b = overlayBox(o, project.media[o.mediaId], CW, CH, v);
+      box = trackingBox(o, clip, media, project.canvas, ovLocal, clipLocal, b.w / CW, b.h / CH);
+    }
     const srcFrom = sourceAt(clip, clipLocal);
     const srcTo = sourceAt(clip, to - hit.start);
     setBusy(t('track.running'));
     try {
       const points = await trackMotion(media, srcFrom, srcTo, box, (phase, p) => phase === 'track' && setBusy(t('track.progress', { percent: fmt.number(Math.round(p * 100)) })));
-      const r = trackToOverlayKeys(points, { clip, clipStart: hit.start, media, canvas: project.canvas, overlay: o, anchorMs: from });
+      const r = trackToOverlayKeys(points, { clip, clipStart: hit.start, media, canvas: project.canvas, overlay: o, anchorMs: from, durationMs: dur, anchor });
       console.log(`[KurguAI] track box=${JSON.stringify(box.map((x) => Math.round(x * 1000) / 1000))} points=${points.length} keys=${r?.keyframes.x.length ?? 0} lost=${r?.lost ?? points.length}`);
       setBusy(null);
       if (!r) return toast(t('track.lost'), 'error');
-      apply((p) => TL.updateOverlay(p, o.id, applyTrackKeys(o, r.keyframes)));
+      apply((p) => (isText ? TL.updateText(p, o.id, applyTrackKeys(o, r.keyframes)) : TL.updateOverlay(p, o.id, applyTrackKeys(o, r.keyframes))));
       toast(r.lost > r.used * 0.3 ? t('track.partial', { count: r.keyframes.x.length }) : t('track.done', { count: r.keyframes.x.length }));
     } catch (e) {
       setBusy(null);
@@ -908,11 +925,24 @@ export default function EditorScreen({ params, focused }) {
           ) : null}
           {selectedText && fitted.w > 0 ? (
             <TextHandle
-              item={selectedText}
+              item={{ ...selectedText, ...TL.textValuesAt(selectedText, position - selectedText.start) }}
               boxW={fitted.w}
               boxH={fitted.h}
               visible={position >= selectedText.start && position <= selectedText.start + selectedText.duration}
-              onChange={(patch, key) => apply((p) => TL.updateText(p, selectedText.id, patch), key)}
+              onChange={(patch, key) =>
+                apply((p) => {
+                  // Anahtar kare izi olan özellik oynatma kafasındaki kareye yazılır
+                  let x = p.texts.find((tx) => tx.id === selectedText.id);
+                  let next = p;
+                  const local = position - x.start;
+                  for (const k of Object.keys(patch)) {
+                    if (patch[k] === TL.textPropAt(x, k, local)) continue;
+                    next = TL.updateText(next, x.id, TL.textPropPatch(x, k, patch[k], local));
+                    x = next.texts.find((tx) => tx.id === x.id);
+                  }
+                  return next;
+                }, key)
+              }
               onEdit={() => openPanel('text')}
             />
           ) : null}
@@ -1097,6 +1127,8 @@ export default function EditorScreen({ params, focused }) {
       return [
         T('editText', 'create-outline', () => openPanel('text')),
         T('textAnimation', 'film-outline', () => openPanel('textAnim')),
+        T('textKeys', 'diamond-outline', () => openPanel('textKeys')),
+        T('track', 'locate-outline', trackOverlay),
         T('split', 'cut-outline', split),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),
@@ -1313,6 +1345,17 @@ export default function EditorScreen({ params, focused }) {
       case 'audioSpeed':
         return selectedAudio && <SpeedPanel clip={selectedAudio} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, { speed: Math.max(0.25, Math.min(4, patch.speed)) }), key)} onClose={close} />;
       case 'text':
+      case 'textKeys':
+        return (
+          selectedText && (
+            <TextKeysPanel
+              item={selectedText}
+              localMs={Math.max(0, Math.min(position - selectedText.start, selectedText.duration))}
+              onChange={(patch, key) => apply((p) => TL.updateText(p, selectedText.id, patch), key)}
+              onClose={close}
+            />
+          )
+        );
       case 'textAnim':
         return selectedText && <TextPanel item={selectedText} initialTab={panel === 'textAnim' ? 'animation' : 'style'} onChange={(patch, key) => apply((p) => TL.updateText(p, selectedText.id, patch), key)} onClose={close} />;
       default:

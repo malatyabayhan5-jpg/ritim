@@ -213,7 +213,8 @@
     }
   },
   "tools": {
-    "track": "Track"
+    "track": "Track",
+    "textKeys": "Keyframes"
   },
   "track": {
     "needVideo": "Place the playhead over a video clip to track",

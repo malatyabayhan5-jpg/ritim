@@ -117,6 +117,8 @@ data class TextSpec(
   val boxPad: Float = 0.35f,
   val deco: String = "none",
   val decoColor: Int = 0xFFFFFFFF.toInt(),
+  // Anahtar kareler: x, y, scale, rotation, opacity (metin başına göre ms; Keyframes.java)
+  val keyframes: Map<String, FloatArray> = emptyMap(),
 )
 
 /**
@@ -190,6 +192,16 @@ data class RenderSpec(
 
     private fun floats(arr: JSONArray?, n: Int, def: FloatArray): FloatArray =
       if (arr == null || arr.length() < n) def else FloatArray(n) { arr.optDouble(it, def.getOrElse(it) { 0f }.toDouble()).toFloat() }
+
+    private fun parseKf(k: JSONObject?): Map<String, FloatArray> {
+      val kf = mutableMapOf<String, FloatArray>()
+      if (k == null) return kf
+      for (name in k.keys()) {
+        val arr = k.optJSONArray(name) ?: continue
+        if (arr.length() >= 7 && arr.length() % 7 == 0) kf[name] = FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() }
+      }
+      return kf
+    }
 
     private fun parseLayer(o: JSONObject): LayerClip {
       val kf = mutableMapOf<String, FloatArray>()
@@ -359,6 +371,7 @@ data class RenderSpec(
       boxPad = o.optDouble("boxPad", 0.35).toFloat().coerceIn(0f, 2f),
       deco = o.optString("deco", "none"),
       decoColor = parseColor(o.optString("decoColor", "#FFFFFFFF")),
+      keyframes = parseKf(o.optJSONObject("kf")),
     )
 
     // "#RRGGBB" veya "#RRGGBBAA" -> ARGB int
