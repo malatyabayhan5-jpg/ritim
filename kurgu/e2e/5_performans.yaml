@@ -47,6 +47,14 @@ appId: app.kurgu.editor
 - tapOn:
     id: "fx-applied-.*"
     optional: true
+# Açılan projede (grup içinde 4. akışın projesi) efekt yoksa Parıltı uygulanır
+- runFlow:
+    when:
+      notVisible:
+        id: "fx-amount"
+    commands:
+      - tapOn:
+          id: "fx-tile-glow"
 - swipe:
     from:
       id: "fx-amount"

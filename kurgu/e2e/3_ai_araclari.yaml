@@ -87,7 +87,6 @@ appId: app.kurgu.editor
     visible:
       id: "overlay-handle"
     timeout: 20000
-- takeScreenshot: 32b_sekil_katmani
 - tapOn:
     id: "tool-back"
     optional: true

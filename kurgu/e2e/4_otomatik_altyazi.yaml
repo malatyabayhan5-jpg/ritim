@@ -58,14 +58,18 @@ appId: app.kurgu.editor
 - assertVisible:
     text: "(?i).*hello.*"
 # Altyazı düzenleme listesi: paneli yeniden aç, listeyi aç, ilk satırı sil
-- tapOn:
-    id: "tool-back"
-    optional: true
-- tapOn:
-    id: "tool-ai"
-    optional: true
-- tapOn:
-    id: "ai-run-autoCaptions"
+- runFlow:
+    when:
+      notVisible:
+        id: "caption-edit"
+    commands:
+      - tapOn:
+          id: "tool-back"
+          optional: true
+      - tapOn:
+          id: "tool-ai"
+      - tapOn:
+          id: "ai-run-autoCaptions"
 - tapOn:
     id: "caption-edit"
 - extendedWaitUntil:

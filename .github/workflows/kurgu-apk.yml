@@ -127,7 +127,10 @@ jobs:
           disk-size: 6000M
           emulator-boot-timeout: 1500
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -skin 540x1170
+          # -feature -HardwareDecoder: emülatörün ana makinedeki H.264 köprüsü (goldfish) her
+          # donmadan önce "no frame / ColorBuffer" hataları veriyordu (CI #62, #65, #67);
+          # konuk içi yazılımsal çözücü (c2.android) kullanılır.
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -skin 540x1170 -feature -HardwareDecoder
           script: bash kurgu/e2e/run.sh
 
       - name: Sonuçlar

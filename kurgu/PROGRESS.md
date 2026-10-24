@@ -142,6 +142,20 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #67** (7acd28d, üç paralel grup; derleme hareket takibiyle geçti):
+
+| Akış | Sonuç |
+|---|---|
+| 1 — Kabul (dışa aktarma dahil) | ✅ **GEÇTİ** — MP4 1280×720 H.264 + AAC, 17,5 sn, baştan sona hatasız çözüldü; duotone efekti yalnızca 14,5–17,25 sn aralığında (beklenen) — kod çözücü yedeği (8cdef07) işe yaradı |
+| 2 — Dil / RTL | ✅ GEÇTİ |
+| 3 — AI araçları | Sahne (2 kesme), sessizlik (1,66 sn kaldırıldı), metin, **videoya şekil katmanı** adımları geçti; ardından Maestro ekran görüntüsü alamadı (altyapı) → adım kaldırıldı |
+| 4 — Otomatik altyazı | Altyazı üretildi ("Hello world! This is an automatic caption test…"); liste adımı paneli yeniden açmaya çalıştığı için düştü (panel açık kalıyor) → test düzeltildi |
+| 5 — Performans | p50 32 ms, p90 57 ms, %41,6 takılan kare, PSS ~178 MB (yazılımsal GPU, gerçek cihaz değil); efekt yoğunluğu adımı efektsiz projede düştü → test önce efekt uygular |
+| 6, 7, 8 | Emülatör, sistem fotoğraf seçicisi açıkken dondu (uygulama dışı); çalışamadı |
+
+Donmalardan hemen önce her seferinde emülatörün ana makinedeki H.264 köprüsünde "no frame / ColorBuffer"
+hataları görüldü → CI'da `-feature -HardwareDecoder` ile konuk içi yazılımsal çözücüye geçildi.
+
 **CI #65** (0e820bf): emülatör yine dondu (QEMU "hanging thread"), bu kez ilk akışta (3) şekil
 eklenirken; kalan akışlar atlandı. Uygulama çökme kaydı yok. Önlem: e2e üç paralel gruba bölündü,
 her grup taze emülatörde çalışır (ai-dil-performans / katman-ses-fotograf / kabul-dışa-aktarma).
