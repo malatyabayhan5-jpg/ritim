@@ -143,6 +143,12 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #72** (6469074): **3 (AI araçları: sahne, sessizlik, videoya şekil, metin anahtar kare paneli, metinden
+konuşma, ses efekti + ses düzeyi anahtar karesi, ters oynatma), 2, 4, 5 (p50 29 ms, p90 32 ms), 7, 8 GEÇTİ.**
+1: dışa aktarma %70'te 120 sn örnek yazılmadan durdu (`MUXING_TIMEOUT`; ilerleme yazılımsal kod çözmeli
+emülatörde giderek yavaşladı; aynı yerel kod #67–#69'da geçti) — tekrarı izleniyor. 6: Takip düğmesine araç
+çubuğu yeniden çizilirken dokunuldu → bekleme eklendi.
+
 **CI #71** (ce350cb, metin anahtar kareleri dahil — Kotlin derlemesi geçti): 2, 4, 5 (p50 29 ms), 7, 8 GEÇTİ.
 **Gerçek hata bulundu:** yeni anahtar kare paneli `case 'text'` ile `case 'textAnim'` arasına eklendiği için
 "metin ekle" düzenleme paneli yerine anahtar kare panelini açıyordu → 1 ve 3 metin kutusunu bulamadı (düzeltildi).

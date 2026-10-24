@@ -76,6 +76,11 @@ appId: app.kurgu.editor
     id: "redo"
 # Hareket takibi (katman videodaki nesneyi izler). Sonuç ne olursa olsun bildirim
 # görünmeli ve uygulama çökmemeli; ardından geri alınır (katman testi sabit konumu bekler).
+# Geri al/yinele sonrası araç çubuğu yeniden çizilir (CI #72: erken dokunuş)
+- extendedWaitUntil:
+    visible:
+      id: "tool-track"
+    timeout: 15000
 - tapOn:
     id: "tool-track"
 - extendedWaitUntil:
