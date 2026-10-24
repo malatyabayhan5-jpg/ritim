@@ -11,7 +11,8 @@ adb wait-for-device
 adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
 for k in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global $k 0; done
 # Emülatör donarsa (CI #62: QEMU "hanging thread") adb çağrıları sonsuza dek beklemesin
-adb() { timeout 180 command adb "$@"; }
+ADB=$(command -v adb)
+adb() { timeout 180 "$ADB" "$@"; }
 echo "Android $(adb shell getprop ro.build.version.release | tr -d '\r') (API $(adb shell getprop ro.build.version.sdk | tr -d '\r'))" > "$OUT/cihaz.txt"
 
 # Test medyası: iki video (farklı boyut ve ses), bir fotoğraf, bir müzik dosyası
@@ -52,7 +53,7 @@ screen_texts() {
   adb shell cat /sdcard/ui.xml 2>/dev/null | grep -o 'text="[^"]\+"' | sed 's/text=//' | head -40 | tr '\n' ' '
 }
 
-adb install -r "$APK" > "$OUT/install.txt" 2>&1 || { echo "APK kurulamadı"; cat "$OUT/install.txt"; }
+"$ADB" install -r "$APK" > "$OUT/install.txt" 2>&1 || { echo "APK kurulamadı"; cat "$OUT/install.txt"; }
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS > /dev/null 2>&1 || true
 adb shell pm grant $PKG android.permission.RECORD_AUDIO > /dev/null 2>&1 || true
 
@@ -98,7 +99,7 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans 6_katmanlar 
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
   fi
   [ $code -eq 124 ] && echo "$flow: 25 dk akış sınırı aşıldı" >> "$OUT/sonuclar.txt"
-  if ! timeout 30 adb shell echo ok > /dev/null 2>&1; then
+  if ! timeout 30 "$ADB" shell echo ok > /dev/null 2>&1; then
     echo "$flow sonrası emülatör yanıt vermiyor; kalan akışlar atlandı" >> "$OUT/sonuclar.txt"
     adb() { return 1; }  # aşağıdaki çıktı denetimleri ölü cihazı beklemesin
     break

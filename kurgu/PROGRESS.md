@@ -141,6 +141,10 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #63** (6b69bcf): test betiğindeki adb sarmalayıcısı hatalıydı (`timeout` kabuk yerleşik
+`command`'ını çalıştıramadı) → APK kurulmadı, tüm akışlar "paket yüklü değil" ile başarısız. Uygulama
+hatası değil; betik düzeltildi (adb'nin tam yolu kullanılıyor, kurulum süre sınırsız).
+
 Önizlemedeki `FAILED_RUNTIME_CHECK` hatası (H-8) CI #42'den beri görülmüyor.
 
 ## 10. Teslim
