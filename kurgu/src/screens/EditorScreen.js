@@ -1344,7 +1344,6 @@ export default function EditorScreen({ params, focused }) {
         return selectedAudio && <AudioFxPanel value={selectedAudio.audioFx} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, patch), key)} onClose={close} />;
       case 'audioSpeed':
         return selectedAudio && <SpeedPanel clip={selectedAudio} onChange={(patch, key) => apply((p) => TL.updateAudio(p, selectedAudio.id, { speed: Math.max(0.25, Math.min(4, patch.speed)) }), key)} onClose={close} />;
-      case 'text':
       case 'textKeys':
         return (
           selectedText && (
@@ -1356,6 +1355,7 @@ export default function EditorScreen({ params, focused }) {
             />
           )
         );
+      case 'text':
       case 'textAnim':
         return selectedText && <TextPanel item={selectedText} initialTab={panel === 'textAnim' ? 'animation' : 'style'} onChange={(patch, key) => apply((p) => TL.updateText(p, selectedText.id, patch), key)} onClose={close} />;
       default:

@@ -116,17 +116,11 @@ appId: app.kurgu.editor
     id: "ai-run-textToSpeech"
 - waitForAnimationToEnd:
     timeout: 20000
-- takeScreenshot:
-    path: 33_seslendirme
-    optional: true
 - runFlow:
     when:
       visible:
         id: "audio-item-.*"
     commands:
-      - takeScreenshot:
-          path: 34_seslendirme_eklendi
-          optional: true
       # Ses efekti ön ayarı ve ses düzeyi anahtar karesi (yerel işlem zinciri önizlemede kurulur)
       - tapOn:
           id: "tool-back"
@@ -160,9 +154,6 @@ appId: app.kurgu.editor
           timeout: 3000
       - tapOn:
           id: "play-toggle"
-      - takeScreenshot:
-          path: 34b_ses_efekti
-          optional: true
       - assertNotVisible:
           text: ".*(ERROR_CODE|Önizleme hatası|Preview error).*"
 # Ters oynatma: ilk klip cihazda ters kodlanır (sonuç günlükte: [KurguUI] reverse frames=...)
@@ -177,9 +168,6 @@ appId: app.kurgu.editor
     notVisible:
       id: "busy"
     timeout: 300000
-- takeScreenshot:
-    path: 35_ters
-    optional: true
 - assertVisible:
     id: "clip-0"
 

@@ -143,6 +143,12 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #71** (ce350cb, metin anahtar kareleri dahil — Kotlin derlemesi geçti): 2, 4, 5 (p50 29 ms), 7, 8 GEÇTİ.
+**Gerçek hata bulundu:** yeni anahtar kare paneli `case 'text'` ile `case 'textAnim'` arasına eklendiği için
+"metin ekle" düzenleme paneli yerine anahtar kare panelini açıyordu → 1 ve 3 metin kutusunu bulamadı (düzeltildi).
+6: katman eklendikten sonraki ekran görüntüsü `optional` olmasına rağmen Maestro altyapı hatası olarak akışı
+düşürdü → o adımlar kaldırıldı.
+
 **CI #69** (1d1287c): emülatör donmadı. 1 (dışa aktarma, aynı doğrulamalar), 2, 4, 5 (p50 32 ms, p90 32 ms), 8 GEÇTİ.
 3, 6, 7 zamanlama: yazılımsal kod çözücüyle emülatör yavaşladı — ekran görüntüsü null (3), panel geç açıldı (6),
 ses alt araç çubuğu 30 sn'de görünmedi (7). Önlem: ekran görüntüleri `optional`, 6/7'de yeniden dokunma ve

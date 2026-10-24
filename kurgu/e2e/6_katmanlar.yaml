@@ -67,9 +67,6 @@ appId: app.kurgu.editor
     id: "mask-ellipse"
 - waitForAnimationToEnd:
     timeout: 3000
-- takeScreenshot:
-    path: 61_katman_maske
-    optional: true
 - tapOn:
     id: "panel-done"
 # Geri al / yinele: maske kaybolup geri gelmeli (çökme olmamalı)
@@ -90,9 +87,6 @@ appId: app.kurgu.editor
       visible:
         text: "(Takip tamamlandı|Tracking done).*"
     commands:
-      - takeScreenshot:
-          path: 62_hareket_takibi
-          optional: true
       - tapOn:
           id: "undo"
 - tapOn:
