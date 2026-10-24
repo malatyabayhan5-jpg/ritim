@@ -211,5 +211,20 @@
       "off": "Sunucu yok: bulut özellikleri kapalı.",
       "placeholder": "https://sunucunuz.ornek"
     }
+  },
+  "tools": {
+    "track": "Takip"
+  },
+  "track": {
+    "needVideo": "Takip için oynatma kafası bir video klibin üzerinde olmalı",
+    "tooShort": "Takip için en az 0,3 saniye gerekir",
+    "running": "Hareket izleniyor…",
+    "progress": "Hareket izleniyor… %{percent}",
+    "lost": "Nesne izlenemedi. Katmanı nesnenin üzerine koyup yeniden deneyin.",
+    "failed": "Hareket takibi başarısız oldu",
+    "partial_one": "Takip tamamlandı ({n} anahtar kare); nesne yer yer kayboldu",
+    "partial_other": "Takip tamamlandı ({n} anahtar kare); nesne yer yer kayboldu",
+    "done_one": "Takip tamamlandı: {n} anahtar kare",
+    "done_other": "Takip tamamlandı: {n} anahtar kare"
   }
 }

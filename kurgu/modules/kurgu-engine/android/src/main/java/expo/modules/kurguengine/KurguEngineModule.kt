@@ -43,6 +43,15 @@ class KurguEngineModule : Module() {
       SceneDetector.scores(context, uri, fromMs.toLong(), toMs.toLong(), samplesPerSecond)
     }
 
+    // Hareket takibi: görünen karede kutu [cx, cy, w, h] (0..1) -> kaynak ms başına merkez
+    AsyncFunction("trackMotion") { uri: String, fromMs: Double, toMs: Double, box: List<Double>, samplesPerSecond: Int, promise: Promise ->
+      background("track", promise) {
+        MotionTracker.track(context, uri, fromMs.toLong(), toMs.toLong(), box, samplesPerSecond) { p ->
+          sendEvent("onAiProgress", mapOf("phase" to "track", "progress" to p))
+        }
+      }
+    }
+
     AsyncFunction("synthesizeSpeech") { text: String, lang: String, outPath: String, rate: Double, pitch: Double, promise: Promise ->
       Speech.synthesize(context, text, lang, outPath.removePrefix("file://"), rate.toFloat(), pitch.toFloat(), promise)
     }
@@ -124,6 +133,7 @@ class KurguEngineModule : Module() {
     AsyncFunction("cancelAi") {
       Reverser.cancel()
       Captions.cancel()
+      MotionTracker.cancel()
     }
 
     AsyncFunction("encoderCapabilities") {

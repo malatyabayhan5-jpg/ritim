@@ -181,6 +181,14 @@ async function withAiProgress(onProgress, run) {
   }
 }
 
+/**
+ * Hareket takibi: görünen karede kutu [cx, cy, w, h] (0..1) kaynak aralığında izlenir.
+ * Dönüş [{ t (kaynak ms), x, y (0..1), c (güven) }]; iptal cancelAi ile.
+ */
+export function trackMotion(media, fromMs, toMs, box, onProgress, samplesPerSecond = 15) {
+  return withAiProgress(onProgress, (engine) => engine.trackMotion(mediaUri(media), fromMs, toMs, box, samplesPerSecond));
+}
+
 export function downloadCaptionModel(id, onProgress) {
   return withAiProgress(onProgress, (engine) => engine.downloadCaptionModel(id));
 }

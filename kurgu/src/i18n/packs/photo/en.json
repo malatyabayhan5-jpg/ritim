@@ -211,5 +211,20 @@
       "off": "No server: cloud features are off.",
       "placeholder": "https://your-server.example"
     }
+  },
+  "tools": {
+    "track": "Track"
+  },
+  "track": {
+    "needVideo": "Place the playhead over a video clip to track",
+    "tooShort": "Tracking needs at least 0.3 seconds",
+    "running": "Tracking motion…",
+    "progress": "Tracking motion… {percent}%",
+    "lost": "Couldn't track the object. Place the layer over it and try again.",
+    "failed": "Motion tracking failed",
+    "partial_one": "Tracking done ({n} keyframe); the object was lost at times",
+    "partial_other": "Tracking done ({n} keyframes); the object was lost at times",
+    "done_one": "Tracking done: {n} keyframe",
+    "done_other": "Tracking done: {n} keyframes"
   }
 }

@@ -21,7 +21,8 @@ import {
   VolumePanel,
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
-import OverlayHandle from '../editor/OverlayHandle';
+import OverlayHandle, { overlayBox } from '../editor/OverlayHandle';
+import { applyTrackKeys, trackToOverlayKeys, trackingBox } from '../model/tracking';
 import LayerPanel from '../editor/LayerPanel';
 import RecordPanel from '../editor/RecordPanel';
 import FxPanel from '../editor/FxPanel';
@@ -39,7 +40,7 @@ import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { splitLive } from '../engine/live';
-import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -387,6 +388,42 @@ export default function EditorScreen({ params, focused }) {
     if (!hex) return toast(t('layer.keyNotFound'));
     apply((p) => TL.updateOverlay(p, o.id, { chroma: { color: hex, on: true } }));
     toast(t('layer.keyFound', { color: hex }));
+  };
+
+  // Hareket takibi: katman, oynatma kafasındaki ana video klibinde altındaki nesneyi
+  // izler; katmanın sonuna (ya da klibin sonuna) kadar konum anahtar kareleri yazılır.
+  const trackOverlay = async () => {
+    const o = selectedOverlay;
+    if (!o) return;
+    const hit = TL.clipAt(project, position);
+    const clip = hit?.clip;
+    const media = clip ? project.media[clip.mediaId] : null;
+    if (!clip || clip.kind !== 'video' || !media) return toast(t('track.needVideo'));
+    const from = Math.max(position, o.start, hit.start);
+    const to = Math.min(o.start + TL.overlayDuration(o), hit.end);
+    if (to - from < 300) return toast(t('track.tooShort'));
+    const ovLocal = from - o.start;
+    const clipLocal = from - hit.start;
+    const v = { x: TL.overlayPropAt(o, 'x', ovLocal), y: TL.overlayPropAt(o, 'y', ovLocal), scale: TL.overlayPropAt(o, 'scale', ovLocal), rotation: 0 };
+    const b = overlayBox(o, project.media[o.mediaId], project.canvas.width, project.canvas.height, v);
+    const box = trackingBox(o, clip, media, project.canvas, ovLocal, clipLocal, b.w / project.canvas.width, b.h / project.canvas.height);
+    const srcFrom = sourceAt(clip, clipLocal);
+    const srcTo = sourceAt(clip, to - hit.start);
+    setBusy(t('track.running'));
+    try {
+      const points = await trackMotion(media, srcFrom, srcTo, box, (phase, p) => phase === 'track' && setBusy(t('track.progress', { percent: fmt.number(Math.round(p * 100)) })));
+      const r = trackToOverlayKeys(points, { clip, clipStart: hit.start, media, canvas: project.canvas, overlay: o, anchorMs: from });
+      console.log(`[KurguAI] track box=${JSON.stringify(box.map((x) => Math.round(x * 1000) / 1000))} points=${points.length} keys=${r?.keyframes.x.length ?? 0} lost=${r?.lost ?? points.length}`);
+      setBusy(null);
+      if (!r) return toast(t('track.lost'), 'error');
+      apply((p) => TL.updateOverlay(p, o.id, applyTrackKeys(o, r.keyframes)));
+      toast(r.lost > r.used * 0.3 ? t('track.partial', { count: r.keyframes.x.length }) : t('track.done', { count: r.keyframes.x.length }));
+    } catch (e) {
+      setBusy(null);
+      if (e?.code === 'CANCELLED') return toast(t('captions.cancelled'));
+      console.log(`[KurguAI] track failed ${e?.code} ${e?.message}`);
+      toast(t('track.failed'), 'error');
+    }
   };
 
   // --- Seslendirme (mikrofon) ---
@@ -1037,6 +1074,7 @@ export default function EditorScreen({ params, focused }) {
         T('layerEdit', 'move-outline', () => openPanel('layer')),
         T('mask', 'ellipse-outline', () => openPanel('layerMask')),
         T('chromaKey', 'color-wand-outline', () => openPanel('layerChroma')),
+        T('track', 'locate-outline', trackOverlay),
         T('split', 'cut-outline', split),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('ovVolume')) : null,
         !isImage ? T('speed', 'speedometer-outline', () => openPanel('ovSpeed')) : null,

@@ -83,7 +83,8 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Otomatik iyileştirme (video + fotoğraf) | 🟡 | B (`enhance.test.mjs`) + D; cihazda görsel doğrulama yok |
 | Altyazı çevirisi | 🟡 | Yukarıda |
 | Metinden görsel üretme | ☁️ | Altyapı + örnek vekil sunucu hazır (B: sahte sağlayıcıyla); kullanıcı sunucusu ve sağlayıcı anahtarı olmadan **çalışmaz** ve arayüzde "Bağlı değil" yazar |
-| Hareket takibi, video arka plan kaldırma, AI otomatik kurgu, süper çözünürlük | ⏳ / ☁️ | Yapılmadı; uygun açık lisanslı mobil model ve gerçek cihaz ölçümü gerekir |
+| Hareket takibi (üst katman: çıkartma, şekil, görsel, video → nesneyi izler; konum anahtar kareleri) | 🟡 | J (`TrackerTest`: ortalama hata 0,38 px, parlaklık değişimi, örtülme sonrası yeniden yakalama, 9 px/kare hızlı hareket) + B (`tracking.test.mjs`: kaynak↔kanvas dönüşümü döndürme/çevirme/ölçek/açı/doldur, hız eşleme, sadeleştirme). e2e 6. akışa adım eklendi — sonuç Bölüm 9. Metin katmanları anahtar kare desteklemediğinden takip edilemez; ölçek/dönüş takibi yok (yalnızca konum) |
+| Video arka plan kaldırma, AI otomatik kurgu, süper çözünürlük | ⏳ / ☁️ | Yapılmadı; uygun açık lisanslı mobil model ve gerçek cihaz ölçümü gerekir |
 
 ## 7. Kütüphane boyutları (önce kalite)
 

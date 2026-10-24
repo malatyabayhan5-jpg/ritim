@@ -21,3 +21,6 @@ $J -cp "$OUT/fx" AudioFxTest tests/fixtures/audio-presets.txt
 
 run img $SRC/vision/ImageOps.java tools/anim-test/ImageOpsTest.java
 $J -cp "$OUT/img" ImageOpsTest
+
+run trk $SRC/vision/Tracker.java tools/anim-test/TrackerTest.java
+$J -cp "$OUT/trk" TrackerTest

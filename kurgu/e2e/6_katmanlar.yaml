@@ -64,6 +64,22 @@ appId: app.kurgu.editor
     id: "undo"
 - tapOn:
     id: "redo"
+# Hareket takibi (katman videodaki nesneyi izler). Sonuç ne olursa olsun bildirim
+# görünmeli ve uygulama çökmemeli; ardından geri alınır (katman testi sabit konumu bekler).
+- tapOn:
+    id: "tool-track"
+- extendedWaitUntil:
+    visible:
+      text: "(Takip tamamlandı|Nesne izlenemedi|Hareket takibi başarısız|Tracking done|Couldn't track|Motion tracking failed).*"
+    timeout: 120000
+- runFlow:
+    when:
+      visible:
+        text: "(Takip tamamlandı|Tracking done).*"
+    commands:
+      - takeScreenshot: 62_hareket_takibi
+      - tapOn:
+          id: "undo"
 - tapOn:
     id: "tool-back"
     optional: true
