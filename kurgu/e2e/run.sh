@@ -63,20 +63,15 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 
 adb logcat -c
 : > "$OUT/sonuclar.txt"
-# Ağır GPU efektli dışa aktarma (kabul akışı) en sona: emülatörü dondurursa (CI #62)
-# diğer akışların sonuçları yine alınır. 2/5/7 numaralı akışlar 3/4'ün projelerini açar.
+# Akışlar CI'da üç gruba bölünür, her grup taze bir emülatörde çalışır (E2E_FLOWS):
+# uzun oturumda emülatörün sanal GPU'su tükenip donabiliyor (CI #62, #65). Grup
+# içinde 2/5 numaralı akışlar 3/4'ün, 7 numaralı akış 6'nın projesini açar.
+FLOWS=${E2E_FLOWS:-"3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme 8_fotograf 1_kabul_akisi"}
+ran() { [[ " $FLOWS " == *" $1 "* ]]; }
 mp4s() { adb shell ls /sdcard/Movies/Kurgu/ 2>/dev/null | tr -d '\r' | grep '\.mp4$' | sort; }
-for flow in 3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans 6_katmanlar 7_seslendirme 8_fotograf 1_kabul_akisi; do
+for flow in $FLOWS; do
   [ "$flow" = 5_performans ] && adb shell dumpsys gfxinfo $PKG reset > /dev/null 2>&1
   mp4s > "$OUT/once_$flow.txt"
-  # Performans ölçümü 5. akıştan hemen sonra alınır (katman akışı ölçümü bozmasın)
-  if [ "$flow" = 6_katmanlar ]; then
-    {
-      echo "Performans (emülatör, yazılımsal GPU — gerçek cihaz değildir):"
-      adb shell dumpsys gfxinfo $PKG 2>/dev/null | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|95th percentile|99th percentile|Number Slow UI thread|Number Frame deadline missed" | sed 's/^/  /'
-      adb shell dumpsys meminfo $PKG 2>/dev/null | grep -E "TOTAL PSS|TOTAL RSS|Native Heap|Graphics" | head -4 | sed 's/^ */  /'
-    } > "$OUT/performans.txt"
-  fi
   # Akış başına üst sınır: tek bir takılan akış tüm işi zaman aşımına uğratmasın
   (cd "$OUT" && timeout 1500 maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
   code=$?
@@ -99,6 +94,14 @@ for flow in 3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans 6_katmanlar 
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
   fi
   [ $code -eq 124 ] && echo "$flow: 25 dk akış sınırı aşıldı" >> "$OUT/sonuclar.txt"
+  # Performans ölçümü 5. akıştan hemen sonra (sonraki akışlar ölçümü bozmasın)
+  if [ "$flow" = 5_performans ]; then
+    {
+      echo "Performans (emülatör, yazılımsal GPU — gerçek cihaz değildir):"
+      adb shell dumpsys gfxinfo $PKG 2>/dev/null | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|95th percentile|99th percentile|Number Slow UI thread|Number Frame deadline missed" | sed 's/^/  /'
+      adb shell dumpsys meminfo $PKG 2>/dev/null | grep -E "TOTAL PSS|TOTAL RSS|Native Heap|Graphics" | head -4 | sed 's/^ */  /'
+    } > "$OUT/performans.txt"
+  fi
   if ! timeout 30 "$ADB" shell echo ok > /dev/null 2>&1; then
     echo "$flow sonrası emülatör yanıt vermiyor; kalan akışlar atlandı" >> "$OUT/sonuclar.txt"
     adb() { return 1; }  # aşağıdaki çıktı denetimleri ölü cihazı beklemesin
@@ -110,7 +113,9 @@ cat "$OUT/performans.txt" >> "$OUT/sonuclar.txt" 2>/dev/null
 
 # Katman akışının çıktısı: akış sırasında oluşan yeni dosya
 LAYERFILE=$(head -1 "$OUT/yeni_6_katmanlar.txt" 2>/dev/null)
-if [ -n "$LAYERFILE" ]; then
+if ! ran 6_katmanlar; then
+  :
+elif [ -n "$LAYERFILE" ]; then
   adb pull "/sdcard/Movies/Kurgu/$LAYERFILE" "$OUT/katman.mp4" > /dev/null
   python3 "$(dirname "$0")/layer_check.py" "$OUT/katman.mp4" > "$OUT/katman.txt" 2>&1
   tail -1 "$OUT/katman.txt" >> "$OUT/sonuclar.txt"
@@ -123,7 +128,9 @@ fi
 # Dışa aktarılan videoyu cihazdan al ve bağımsız bir araçla (ffprobe) denetle
 adb shell ls -l /sdcard/Movies/Kurgu/ > "$OUT/galeri.txt" 2>&1
 OUTFILE=$(head -1 "$OUT/yeni_1_kabul_akisi.txt" 2>/dev/null)
-if [ -n "$OUTFILE" ]; then
+if ! ran 1_kabul_akisi; then
+  :
+elif [ -n "$OUTFILE" ]; then
   adb pull "/sdcard/Movies/Kurgu/$OUTFILE" "$OUT/cikti.mp4" > /dev/null
   ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of default=nw=1 "$OUT/cikti.mp4" > "$OUT/ffprobe.txt" 2>&1
   # Çıktının tamamı hatasız çözülebiliyor mu?
@@ -151,7 +158,9 @@ fi
 
 # Fotoğraf akışının çıktısı (Pictures/Kurgu): 1080×1350 kaynak 1:1 kırpıldı → 1080x1080 beklenir
 PHOTOFILE=$(adb shell ls /sdcard/Pictures/Kurgu/ 2>/dev/null | tr -d '\r' | grep -E '\.(jpg|png)$' | tail -1)
-if [ -n "$PHOTOFILE" ]; then
+if ! ran 8_fotograf; then
+  :
+elif [ -n "$PHOTOFILE" ]; then
   adb pull "/sdcard/Pictures/Kurgu/$PHOTOFILE" "$OUT/fotograf_cikti.jpg" > /dev/null
   dims=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$OUT/fotograf_cikti.jpg" 2>/dev/null)
   [ "$dims" = "1080x1080" ] && verdict="GEÇTİ" || verdict="BEKLENMEYEN BOYUT"
@@ -166,7 +175,7 @@ adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPl
 cat "$OUT/sonuclar.txt"
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
-for flow in 1_kabul_akisi 2_dil_rtl 3_ai_araclari 4_otomatik_altyazi 5_performans 6_katmanlar 7_seslendirme 8_fotograf; do
+for flow in $FLOWS; do
   echo "===== $flow (son 40 satır) ====="
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done

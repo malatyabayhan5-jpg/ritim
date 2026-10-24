@@ -142,6 +142,10 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #65** (0e820bf): emülatör yine dondu (QEMU "hanging thread"), bu kez ilk akışta (3) şekil
+eklenirken; kalan akışlar atlandı. Uygulama çökme kaydı yok. Önlem: e2e üç paralel gruba bölündü,
+her grup taze emülatörde çalışır (ai-dil-performans / katman-ses-fotograf / kabul-dışa-aktarma).
+
 **CI #64** (e52abe3): emülatör sistem görüntüsü indirilirken bozuldu (altyapı, "Error on ZipFile unknown archive"); uygulama çalışmadı.
 
 **CI #63** (6b69bcf): test betiğindeki adb sarmalayıcısı hatalıydı (`timeout` kabuk yerleşik

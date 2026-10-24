@@ -82,7 +82,22 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 110
+    timeout-minutes: 75
+    # Her grup taze bir emülatörde: uzun oturumda emülatörün sanal GPU'su tükenip
+    # donabiliyor (CI #62, #65). Grup içi akışlar birbirinin projesini kullanır.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - grup: ai-dil-performans
+            akislar: 3_ai_araclari 4_otomatik_altyazi 2_dil_rtl 5_performans
+          - grup: katman-ses-fotograf
+            akislar: 6_katmanlar 7_seslendirme 8_fotograf
+          - grup: kabul-disa-aktarma
+            akislar: 1_kabul_akisi
+    name: e2e (${{ matrix.grup }})
+    env:
+      E2E_FLOWS: ${{ matrix.akislar }}
     steps:
       - uses: actions/checkout@v4
 
@@ -101,7 +116,7 @@ jobs:
 
       - name: Emülatörde kabul testi
         continue-on-error: true
-        timeout-minutes: 90
+        timeout-minutes: 60
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -120,13 +135,13 @@ jobs:
         run: |
           if [ -d e2e-out ]; then
             summary=$( (cat e2e-out/cihaz.txt | head -1; cat e2e-out/sonuclar.txt) 2>/dev/null | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
-            echo "::notice title=Kurgu emulator testi::$summary"
+            echo "::notice title=Kurgu emulator testi (${{ matrix.grup }})::$summary"
           else
-            echo "::warning title=Kurgu emulator testi::Emülatör testi çalışmadı"
+            echo "::warning title=Kurgu emulator testi (${{ matrix.grup }})::Emülatör testi çalışmadı"
           fi
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Kurgu-e2e
+          name: Kurgu-e2e-${{ matrix.grup }}
           path: e2e-out
