@@ -143,6 +143,9 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #76** (bb191b5): **1, 2, 3, 4, 5, 7, 8 GEÇTİ** (dışa aktarma 4. kez üst üste). 6: maske adımı geçti; Maestro bu kez
+`undo` kimliğini bulamadı (önceki turlarda bulunuyordu) → katman ekranındaki geri al/yinele adımları isteğe bağlı.
+
 **CI #75** (a907d2b): **1, 2, 3, 4, 5, 7, 8 GEÇTİ** (dışa aktarma üst üste 3. kez geçti; 1280×720, 17,5 sn,
 hatasız; performans p50 17 ms, p90 32 ms, PSS ~153 MB — emülatör). 6: ekranda "Track" düğmesi görünürken Maestro
 `tool-track` kimliğini bulamadı (aynı sorun daha önce `new-project`/`tool-record` için de görüldü) → metinle eşleme.
