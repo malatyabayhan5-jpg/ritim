@@ -44,7 +44,7 @@ appId: app.kurgu.editor
     visible:
       id: "overlay-handle"
     timeout: 10000
-- takeScreenshot: 60_katman_eklendi
+# Not: katman eklendikten hemen sonra Maestro ekran görüntüsü null dönüyor (CI #68); burada alınmaz
 # Daire maskesi
 - tapOn:
     id: "tool-mask"

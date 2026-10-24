@@ -142,6 +142,19 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #68** (cdb47b0, `-feature -HardwareDecoder`): **emülatör hiçbir grupta donmadı.**
+
+| Akış | Sonuç |
+|---|---|
+| 1 — Kabul (dışa aktarma) | ✅ GEÇTİ — 1280×720 H.264+AAC 17,5 sn, hatasız çözüldü, efekt doğru aralıkta |
+| 2 — Dil / RTL | ✅ GEÇTİ |
+| 4 — Otomatik altyazı + altyazı listesi | ✅ GEÇTİ |
+| 5 — Performans | ✅ GEÇTİ — p50 28 ms, p90 44 ms, %39,5 takılan kare, PSS ~157 MB (yazılımsal GPU, gerçek cihaz değil) |
+| 7 — Mikrofonla seslendirme | ✅ GEÇTİ |
+| 8 — Fotoğraf düzenleyici | ✅ GEÇTİ — çıktı 1080×1080 |
+| 3 — AI araçları | Sahne, sessizlik, şekil, metinden konuşma, ses efekti ön ayarı geçti; ses düzeyi düğmesine panel kapanırken erken dokunuldu → bekleme eklendi |
+| 6 — Katmanlar | Katman eklendi; hemen sonraki ekran görüntüsü Maestro'da null döndü (altyapı) → adım kaldırıldı |
+
 **CI #67** (7acd28d, üç paralel grup; derleme hareket takibiyle geçti):
 
 | Akış | Sonuç |

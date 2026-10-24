@@ -122,6 +122,11 @@ appId: app.kurgu.editor
           timeout: 3000
       - tapOn:
           id: "panel-done"
+      # Panel kapanınca araç çubuğu yeniden çizilir (CI #68: erken dokunuş boşa gitti)
+      - extendedWaitUntil:
+          visible:
+            id: "tool-volume"
+          timeout: 10000
       - tapOn:
           id: "tool-volume"
       - tapOn:
