@@ -57,3 +57,26 @@ appId: app.kurgu.editor
     id: "text-item-.*"
 - assertVisible:
     text: "(?i).*hello.*"
+# Altyazı düzenleme listesi: paneli yeniden aç, listeyi aç, ilk satırı sil
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-ai"
+    optional: true
+- tapOn:
+    id: "ai-run-autoCaptions"
+- tapOn:
+    id: "caption-edit"
+- extendedWaitUntil:
+    visible:
+      id: "caption-text-0"
+    timeout: 10000
+- takeScreenshot: 43_altyazi_listesi
+- tapOn:
+    id: "caption-time-0"
+- tapOn:
+    id: "caption-delete-0"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 44_altyazi_satir_silindi

@@ -74,6 +74,26 @@ appId: app.kurgu.editor
 - tapOn:
     id: "tool-back"
     optional: true
+# Video zaman çizelgesine şekil: saydam PNG çizilip üst katman olarak eklenmeli
+- tapOn:
+    id: "tool-text"
+- tapOn:
+    id: "tool-shape"
+- tapOn:
+    id: "shape-star"
+- tapOn:
+    id: "shape-add"
+- extendedWaitUntil:
+    visible:
+      id: "overlay-handle"
+    timeout: 20000
+- takeScreenshot: 32b_sekil_katmani
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-back"
+    optional: true
 - tapOn:
     id: "tool-ai"
 - tapOn:

@@ -68,9 +68,9 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Metin animasyonları: 20 giriş, 20 çıkış, 5 döngü (kelime/harf, daktilo imleci, bulanıklık, dalga…) | 🟡 | J (`TextAnimTest`, 14.131 denetim; eski animasyonlar birebir korunur; Arapça kelime bazlı). Cihazda görsel doğrulama yok |
 | Arapça / RTL | ✅ | E (2_dil_rtl akışı); B (çeviri kapsamı 1277 anahtar × 3 dil) |
 | Çıkartmalar (emoji, video ve fotoğraf) | 🟡 | Kod + B (fotoğraf modeli); emülatörde fotoğraf akışında metin adımı var |
-| Şekiller | 🟡 | Fotoğraf düzenleyicide 8 şekil ✅ (B); video zaman çizelgesinde şekil ⏳ |
+| Şekiller | 🟡 | Fotoğraf düzenleyicide 8 şekil ✅ (B); video zaman çizelgesinde şekil (saydam PNG üst katman) kodda var, e2e 3. akışa adım eklendi — sonuç Bölüm 9 |
 | Otomatik altyazı (whisper.cpp, cihaz içi) | ✅ | E (CI #29: konuşma kelimesi kelimesine doğru); 64 bit cihaz |
-| Altyazı düzenleme listesi (metin, zamana git, sil) | 🟡 | Kod + D; e2e adımı yok |
+| Altyazı düzenleme listesi (metin, zamana git, sil) | 🟡 | Kod + D; e2e 4. akışa liste açma/satır silme adımı eklendi — sonuç Bölüm 9 |
 | Altyazı çevirisi | 🟡 | Cihaz içinde yalnızca **İngilizceye** (whisper "translate"); D. Diğer hedef diller ☁️ |
 
 ## 6. AI araçları
@@ -140,6 +140,8 @@ dondu (QEMU "hanging thread", 00:30) ve iş 90 dk sınırına kadar takılı kal
 hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelmediği **henüz bilinmiyor**.
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
+
+**CI #64** (e52abe3): emülatör sistem görüntüsü indirilirken bozuldu (altyapı, "Error on ZipFile unknown archive"); uygulama çalışmadı.
 
 **CI #63** (6b69bcf): test betiğindeki adb sarmalayıcısı hatalıydı (`timeout` kabuk yerleşik
 `command`'ını çalıştıramadı) → APK kurulmadı, tüm akışlar "paket yüklü değil" ile başarısız. Uygulama
