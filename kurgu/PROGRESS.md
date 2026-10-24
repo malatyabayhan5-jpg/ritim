@@ -84,7 +84,7 @@ laboratuvarı (`tools/fx-lab`, Chromium/SwiftShader) · **D** CI'da APK derlemes
 | Otomatik iyileştirme (video + fotoğraf) | 🟡 | B (`enhance.test.mjs`) + D; cihazda görsel doğrulama yok |
 | Altyazı çevirisi | 🟡 | Yukarıda |
 | Metinden görsel üretme | ☁️ | Altyapı + örnek vekil sunucu hazır (B: sahte sağlayıcıyla); kullanıcı sunucusu ve sağlayıcı anahtarı olmadan **çalışmaz** ve arayüzde "Bağlı değil" yazar |
-| Hareket takibi (üst katman: çıkartma, şekil, görsel, video → nesneyi izler; konum anahtar kareleri) | 🟡 | J (`TrackerTest`: ortalama hata 0,38 px, parlaklık değişimi, örtülme sonrası yeniden yakalama, 9 px/kare hızlı hareket) + B (`tracking.test.mjs`: kaynak↔kanvas dönüşümü döndürme/çevirme/ölçek/açı/doldur, hız eşleme, sadeleştirme). e2e 6. akışa adım eklendi — sonuç Bölüm 9. Metin katmanları da takip edilebilir (kutu metnin yaklaşık boyutundan; B). Ölçek/dönüş takibi yok (yalnızca konum) |
+| Hareket takibi (üst katman: çıkartma, şekil, görsel, video ve metin → nesneyi izler; konum anahtar kareleri) | ✅ (katman, emülatör) / 🟡 (metin) | E (CI #77, 6. akış: 46 kare izlendi, 26 anahtar kare, kayıp 0, 213×120 izleme çözünürlüğü) + J (`TrackerTest`: ortalama 0,38 px) + B (`tracking.test.mjs`). Metin takibi yalnızca B; ölçek/dönüş takibi yok (yalnızca konum); gerçek cihazda ölçülmedi |
 | Video arka plan kaldırma, AI otomatik kurgu, süper çözünürlük | ⏳ / ☁️ | Yapılmadı; uygun açık lisanslı mobil model ve gerçek cihaz ölçümü gerekir |
 
 ## 7. Kütüphane boyutları (önce kalite)
@@ -142,6 +142,14 @@ dondu (QEMU "hanging thread", 00:30) ve iş 90 dk sınırına kadar takılı kal
 hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelmediği **henüz bilinmiyor**.
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
+
+**CI #77** (6323313): 1, 2, 4, 5, 7, 8 GEÇTİ. **Hareket takibi emülatörde ilk kez çalıştı** (46 nokta, 26 anahtar kare,
+kayıp 0). Hemen ardından emülatörün Android sistem süreci aşırı yükten çöktü (`FATAL EXCEPTION IN SYSTEM PROCESS:
+FinalizerWatchdogDaemon`, sistem yeniden başladı; uygulama çökme kaydı yok) → 6 düştü. 3: ses düzeyi düğmesi yine geç
+bulundu → metinle eşleme.
+
+**Özet (son 6 tur, aynı uygulama kodu):** her akış en az bir kez geçti; kalan başarısızlıklar emülatör/Maestro
+kaynaklı (sistem süreci çökmesi, kimlik bulunamaması, ekran görüntüsü null). Gerçek cihazda doğrulama yapılmadı.
 
 **CI #76** (bb191b5): **1, 2, 3, 4, 5, 7, 8 GEÇTİ** (dışa aktarma 4. kez üst üste). 6: maske adımı geçti; Maestro bu kez
 `undo` kimliğini bulamadı (önceki turlarda bulunuyordu) → katman ekranındaki geri al/yinele adımları isteğe bağlı.
