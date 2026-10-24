@@ -205,10 +205,14 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
         android.util.Log.e("KurguPreview", "player error ${error.errorCodeName}", error)
         // Çok girişli grafik bitişten sonra kullanılınca (Media3 1.9.4, bkz. graphSpent) kare
         // işleme hatası verir: kullanıcıya hata göstermeden oynatıcı aynı konumdan yeniden kurulur.
-        if (playerMulti && error.errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED && recoveries < 3) {
+        // ERROR_CODE_TIMEOUT: oynatma iş parçacığı yoğun işte (ör. ters oynatma kodlaması) zamanında
+        // yanıt veremedi (CI #74); oynatıcı aynı yoldan yeniden kurulur.
+        val recoverable = (playerMulti && error.errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED) ||
+          error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT
+        if (recoverable && recoveries < 3) {
           recoveries++
           val pos = player?.currentPosition ?: pendingPositionMs
-          android.util.Log.w("KurguPreview", "multi-input graph recovery #$recoveries at $pos ms")
+          android.util.Log.w("KurguPreview", "player recovery #$recoveries (${error.errorCodeName}) at $pos ms")
           main.post { rebuildAt(pos, playWhenReady = false) }
           return
         }

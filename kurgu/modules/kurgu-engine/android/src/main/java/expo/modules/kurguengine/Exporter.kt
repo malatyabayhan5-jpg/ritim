@@ -112,8 +112,10 @@ class Exporter(
       )
       // Yoğun efektli projelerde yavaş cihazlarda görüntü, sesin gerisinde kalabilir;
       // varsayılan 10 sn bekleme sınırı dışa aktarmayı gereksiz yere iptal ediyordu.
-      // Gerçekten takılan bir işin yine de bitmesi için sınır 2 dakikadır.
-      .setMaxDelayBetweenMuxerSamplesMs(120_000L)
+      // Gerçekten takılan bir işin yine de bitmesi için sınır 5 dakikadır: yazılımsal kod
+      // çözmeli emülatörde ikinci ana klibe geçişte %70→%75 arası 3 dk 14 sn sürdü (CI #74),
+      // 2 dakikalık sınır aynı yerde MUXING_TIMEOUT verdi (CI #72).
+      .setMaxDelayBetweenMuxerSamplesMs(300_000L)
       .addListener(object : Transformer.Listener {
         override fun onCompleted(composition: Composition, exportResult: ExportResult) {
           finish()

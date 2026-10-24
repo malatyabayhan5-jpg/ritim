@@ -143,6 +143,13 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #74** (a8589c9): **1 (kabul, dışa aktarma) GEÇTİ** — 1280×720, 17,5 sn, hatasız çözüldü, efekt doğru aralıkta;
+ilerleme günlüğü: %70→%75 arası 3 dk 14 sn (ikinci ana klibe geçiş; yazılımsal kod çözmeli emülatör), geri kalanı
+saniyeler → muxer bekleme sınırı 5 dk'ya çıkarıldı (#72'deki MUXING_TIMEOUT aynı yerdeydi; gerçek cihazda ölçülmedi).
+2, 4, 5 (p50 31 ms) GEÇTİ. 3: ters oynatma sonrası önizleme `ERROR_CODE_TIMEOUT` → önizleme bu hatada da oynatıcıyı
+aynı konumdan yeniden kurar. #73'teki ses kodlayıcı hatası (`ENCODING_FAILED`) bu turda tekrarlanmadı; nedeni
+henüz bilinmiyor (artık neden zinciri günlüğe yazılıyor).
+
 **CI #73** (be7e718): 2, 3, 4, 5 (p50 26 ms), 7, 8 GEÇTİ. 1: dışa aktarma bu kez başlar başlamaz ses
 kodlayıcı hatasıyla düştü (`ENCODING_FAILED`, AAC 44,1 kHz mono; kabul akışı galerideki ilk üç öğeyi seçtiğinden
 proje turdan tura değişiyor) → Exporter artık istisna zincirinin tamamını günlüğe yazar. 6: Takip düğmesi dar
