@@ -128,6 +128,17 @@ class Exporter(
           file.delete()
           // Teşhis: Media3'ün iç izleme özeti (hangi aşamanın durduğunu gösterir)
           Log.e("KurguExport", "export failed ${exportException.errorCodeName}: ${exportException.cause?.message ?: exportException.message}".take(4000))
+          // Neden zinciri (ör. kodlayıcı yapılandırma hatasının asıl istisnası) ve en derin nedenin ilk kareleri
+          var c: Throwable? = exportException.cause
+          var depth = 0
+          var deepest: Throwable? = null
+          while (c != null && depth < 6) {
+            Log.e("KurguExport", "cause[$depth] ${c.javaClass.name}: ${c.message?.substringBefore("DebugTrace")?.take(600)}")
+            deepest = c
+            c = c.cause
+            depth++
+          }
+          deepest?.stackTrace?.take(8)?.forEach { Log.e("KurguExport", "  at $it") }
           onFail("EXPORT_FAILED", "${exportException.errorCodeName}: ${exportException.message ?: ""}")
         }
       })

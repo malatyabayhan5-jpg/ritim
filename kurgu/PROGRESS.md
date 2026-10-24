@@ -143,6 +143,11 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #73** (be7e718): 2, 3, 4, 5 (p50 26 ms), 7, 8 GEÇTİ. 1: dışa aktarma bu kez başlar başlamaz ses
+kodlayıcı hatasıyla düştü (`ENCODING_FAILED`, AAC 44,1 kHz mono; kabul akışı galerideki ilk üç öğeyi seçtiğinden
+proje turdan tura değişiyor) → Exporter artık istisna zincirinin tamamını günlüğe yazar. 6: Takip düğmesi dar
+ekranda kısmen görünür kaldığı için Maestro "görünmüyor" saydı → katman araç çubuğunda Konum'un hemen arkasına alındı.
+
 **CI #72** (6469074): **3 (AI araçları: sahne, sessizlik, videoya şekil, metin anahtar kare paneli, metinden
 konuşma, ses efekti + ses düzeyi anahtar karesi, ters oynatma), 2, 4, 5 (p50 29 ms, p90 32 ms), 7, 8 GEÇTİ.**
 1: dışa aktarma %70'te 120 sn örnek yazılmadan durdu (`MUXING_TIMEOUT`; ilerleme yazılımsal kod çözmeli

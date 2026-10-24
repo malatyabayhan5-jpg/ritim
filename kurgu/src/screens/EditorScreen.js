@@ -1102,9 +1102,9 @@ export default function EditorScreen({ params, focused }) {
       const isImage = selectedOverlay.kind === 'image';
       return [
         T('layerEdit', 'move-outline', () => openPanel('layer')),
+        T('track', 'locate-outline', trackOverlay),
         T('mask', 'ellipse-outline', () => openPanel('layerMask')),
         T('chromaKey', 'color-wand-outline', () => openPanel('layerChroma')),
-        T('track', 'locate-outline', trackOverlay),
         T('split', 'cut-outline', split),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('ovVolume')) : null,
         !isImage ? T('speed', 'speedometer-outline', () => openPanel('ovSpeed')) : null,
