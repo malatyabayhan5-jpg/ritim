@@ -18,11 +18,21 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "tool-audio"
-# Alt araç çubuğu yeniden çizilirken erken dokunuş boşa gidebiliyor (CI #53)
+# Alt araç çubuğu yeniden çizilirken erken dokunuş boşa gidebiliyor (CI #53, #69)
+- runFlow:
+    when:
+      notVisible:
+        id: "tool-record"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - tapOn:
+          id: "tool-audio"
+          optional: true
 - extendedWaitUntil:
     visible:
       text: "(Seslendir|Voiceover|تعليق صوتي)"
-    timeout: 30000
+    timeout: 60000
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn:
@@ -44,11 +54,15 @@ appId: app.kurgu.editor
     start: "50%, 20%"
     end: "50%, 20%"
     duration: 3000
-- takeScreenshot: 70_kayit
+- takeScreenshot:
+    path: 70_kayit
+    optional: true
 - tapOn:
     id: "record-stop"
 - extendedWaitUntil:
     visible:
       id: "audio-item-.*"
     timeout: 20000
-- takeScreenshot: 71_seslendirme_eklendi
+- takeScreenshot:
+    path: 71_seslendirme_eklendi
+    optional: true

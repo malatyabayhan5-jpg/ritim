@@ -21,12 +21,16 @@ appId: app.kurgu.editor
     id: "lang-ar"
 - waitForAnimationToEnd:
     timeout: 3000
-- takeScreenshot: 20_ayarlar_arapca
+- takeScreenshot:
+    path: 20_ayarlar_arapca
+    optional: true
 - assertVisible:
     text: "الإعدادات"
 - tapOn:
     id: "settings-back"
-- takeScreenshot: 21_ana_ekran_arapca
+- takeScreenshot:
+    path: 21_ana_ekran_arapca
+    optional: true
 - tapOn:
     id: "project-prj_.*"
 - extendedWaitUntil:
@@ -35,12 +39,16 @@ appId: app.kurgu.editor
     timeout: 30000
 - waitForAnimationToEnd:
     timeout: 5000
-- takeScreenshot: 22_editor_arapca
+- takeScreenshot:
+    path: 22_editor_arapca
+    optional: true
 - assertVisible:
     text: "تصدير"
 - tapOn:
     id: "tool-text"
-- takeScreenshot: 23_metin_araclari_arapca
+- takeScreenshot:
+    path: 23_metin_araclari_arapca
+    optional: true
 - tapOn:
     id: "tool-back"
 - tapOn:
@@ -51,10 +59,14 @@ appId: app.kurgu.editor
     id: "lang-en"
 - assertVisible:
     text: "Settings"
-- takeScreenshot: 24_ayarlar_ingilizce
+- takeScreenshot:
+    path: 24_ayarlar_ingilizce
+    optional: true
 - tapOn:
     id: "settings-back"
-- takeScreenshot: 25_ana_ekran_ingilizce
+- takeScreenshot:
+    path: 25_ana_ekran_ingilizce
+    optional: true
 - tapOn:
     id: "open-settings"
 - tapOn:

@@ -26,7 +26,9 @@ appId: app.kurgu.editor
     visible:
       id: "photo-preview"
     timeout: 30000
-- takeScreenshot: 80_fotograf_acildi
+- takeScreenshot:
+    path: 80_fotograf_acildi
+    optional: true
 # Görsel katmanını seç, parlaklık ayarla
 - tapOn:
     id: "layer-image-0"
@@ -53,7 +55,9 @@ appId: app.kurgu.editor
     id: "crop-1:1"
 - tapOn:
     id: "panel-done"
-- takeScreenshot: 81_fotograf_ayar_kirp
+- takeScreenshot:
+    path: 81_fotograf_ayar_kirp
+    optional: true
 # Cihaz içi arka plan kaldırma
 - tapOn:
     id: "ptool-ai"
@@ -85,7 +89,9 @@ appId: app.kurgu.editor
     id: "photo-undo"
 - tapOn:
     id: "photo-redo"
-- takeScreenshot: 82_fotograf_metin
+- takeScreenshot:
+    path: 82_fotograf_metin
+    optional: true
 # Dışa aktar (JPG, galeriye)
 - tapOn:
     id: "photo-export"
@@ -97,7 +103,9 @@ appId: app.kurgu.editor
     visible:
       text: "(Galeriye kaydedildi|Saved to gallery).*"
     timeout: 60000
-- takeScreenshot: 83_fotograf_disa_aktarildi
+- takeScreenshot:
+    path: 83_fotograf_disa_aktarildi
+    optional: true
 # Ana ekrana dön: proje listede
 - tapOn:
     id: "photo-back"

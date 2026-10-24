@@ -32,14 +32,18 @@ appId: app.kurgu.editor
     visible:
       id: "panel-ai"
     timeout: 5000
-- takeScreenshot: 30_ai_paneli
+- takeScreenshot:
+    path: 30_ai_paneli
+    optional: true
 - tapOn:
     id: "ai-run-sceneDetect"
 - extendedWaitUntil:
     visible:
       id: "clip-2"
     timeout: 90000
-- takeScreenshot: 31_sahneler
+- takeScreenshot:
+    path: 31_sahneler
+    optional: true
 - tapOn:
     id: "undo"
 - extendedWaitUntil:
@@ -55,7 +59,9 @@ appId: app.kurgu.editor
     visible:
       id: "clip-1"
     timeout: 90000
-- takeScreenshot: 32_sessizlik_kaldirildi
+- takeScreenshot:
+    path: 32_sessizlik_kaldirildi
+    optional: true
 # Metinden konuşma (emülatörde yüklü ses yoksa uygulama açıklayıcı hata gösterir)
 - tapOn:
     id: "tool-text"
@@ -110,13 +116,17 @@ appId: app.kurgu.editor
     id: "ai-run-textToSpeech"
 - waitForAnimationToEnd:
     timeout: 20000
-- takeScreenshot: 33_seslendirme
+- takeScreenshot:
+    path: 33_seslendirme
+    optional: true
 - runFlow:
     when:
       visible:
         id: "audio-item-.*"
     commands:
-      - takeScreenshot: 34_seslendirme_eklendi
+      - takeScreenshot:
+          path: 34_seslendirme_eklendi
+          optional: true
       # Ses efekti ön ayarı ve ses düzeyi anahtar karesi (yerel işlem zinciri önizlemede kurulur)
       - tapOn:
           id: "tool-back"
@@ -150,7 +160,9 @@ appId: app.kurgu.editor
           timeout: 3000
       - tapOn:
           id: "play-toggle"
-      - takeScreenshot: 34b_ses_efekti
+      - takeScreenshot:
+          path: 34b_ses_efekti
+          optional: true
       - assertNotVisible:
           text: ".*(ERROR_CODE|Önizleme hatası|Preview error).*"
 # Ters oynatma: ilk klip cihazda ters kodlanır (sonuç günlükte: [KurguUI] reverse frames=...)
@@ -165,7 +177,9 @@ appId: app.kurgu.editor
     notVisible:
       id: "busy"
     timeout: 300000
-- takeScreenshot: 35_ters
+- takeScreenshot:
+    path: 35_ters
+    optional: true
 - assertVisible:
     id: "clip-0"
 

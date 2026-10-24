@@ -65,6 +65,8 @@ appId: app.kurgu.editor
       id: "fx-amount"
     direction: RIGHT
     duration: 1500
-- takeScreenshot: 50_performans
+- takeScreenshot:
+    path: 50_performans
+    optional: true
 - tapOn:
     id: "panel-done"

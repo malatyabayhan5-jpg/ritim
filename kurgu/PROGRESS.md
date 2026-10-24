@@ -143,6 +143,11 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #69** (1d1287c): emülatör donmadı. 1 (dışa aktarma, aynı doğrulamalar), 2, 4, 5 (p50 32 ms, p90 32 ms), 8 GEÇTİ.
+3, 6, 7 zamanlama: yazılımsal kod çözücüyle emülatör yavaşladı — ekran görüntüsü null (3), panel geç açıldı (6),
+ses alt araç çubuğu 30 sn'de görünmedi (7). Önlem: ekran görüntüleri `optional`, 6/7'de yeniden dokunma ve
+daha uzun bekleme. Uygulama çökme kaydı yok.
+
 **CI #68** (cdb47b0, `-feature -HardwareDecoder`): **emülatör hiçbir grupta donmadı.**
 
 | Akış | Sonuç |

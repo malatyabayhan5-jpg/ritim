@@ -35,7 +35,9 @@ appId: app.kurgu.editor
     id: "caption-lang-en"
 - tapOn:
     id: "caption-model-base"
-- takeScreenshot: 40_altyazi_paneli
+- takeScreenshot:
+    path: 40_altyazi_paneli
+    optional: true
 - tapOn:
     id: "caption-start"
 # Model indirme onayı
@@ -45,14 +47,18 @@ appId: app.kurgu.editor
     visible:
       id: "caption-progress"
     timeout: 10000
-- takeScreenshot: 41_altyazi_ilerleme
+- takeScreenshot:
+    path: 41_altyazi_ilerleme
+    optional: true
 - extendedWaitUntil:
     notVisible:
       id: "caption-progress"
     timeout: 900000
 - waitForAnimationToEnd:
     timeout: 3000
-- takeScreenshot: 42_altyazi_sonuc
+- takeScreenshot:
+    path: 42_altyazi_sonuc
+    optional: true
 - assertVisible:
     id: "text-item-.*"
 - assertVisible:
@@ -76,11 +82,15 @@ appId: app.kurgu.editor
     visible:
       id: "caption-text-0"
     timeout: 10000
-- takeScreenshot: 43_altyazi_listesi
+- takeScreenshot:
+    path: 43_altyazi_listesi
+    optional: true
 - tapOn:
     id: "caption-time-0"
 - tapOn:
     id: "caption-delete-0"
 - waitForAnimationToEnd:
     timeout: 3000
-- takeScreenshot: 44_altyazi_satir_silindi
+- takeScreenshot:
+    path: 44_altyazi_satir_silindi
+    optional: true

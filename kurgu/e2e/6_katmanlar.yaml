@@ -48,15 +48,28 @@ appId: app.kurgu.editor
 # Daire maskesi
 - tapOn:
     id: "tool-mask"
+# Yavaş emülatörde ilk dokunuş araç çubuğu yeniden çizilirken boşa gidebiliyor (CI #69)
+- runFlow:
+    when:
+      notVisible:
+        id: "panel-layer"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - tapOn:
+          id: "tool-mask"
+          optional: true
 - extendedWaitUntil:
     visible:
       id: "panel-layer"
-    timeout: 5000
+    timeout: 20000
 - tapOn:
     id: "mask-ellipse"
 - waitForAnimationToEnd:
     timeout: 3000
-- takeScreenshot: 61_katman_maske
+- takeScreenshot:
+    path: 61_katman_maske
+    optional: true
 - tapOn:
     id: "panel-done"
 # Geri al / yinele: maske kaybolup geri gelmeli (çökme olmamalı)
@@ -77,7 +90,9 @@ appId: app.kurgu.editor
       visible:
         text: "(Takip tamamlandı|Tracking done).*"
     commands:
-      - takeScreenshot: 62_hareket_takibi
+      - takeScreenshot:
+          path: 62_hareket_takibi
+          optional: true
       - tapOn:
           id: "undo"
 - tapOn:
