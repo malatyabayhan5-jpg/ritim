@@ -3,6 +3,7 @@
 
 import { MAIN_KEY_PROPS, assignAudioLanes, audioDuration, clipDuration, mainLayout, totalDuration } from '../model/timeline';
 import { MASK_TYPES } from '../model/schema';
+import { BLEND_MODES } from '../model/photo';
 import { KEYFRAME_PROPS, packTrack } from '../model/keyframes';
 import { clipVisuals } from '../model/color';
 import { TRANSITIONS, TRANSITION_MIN_MS } from '../model/catalog';
@@ -155,14 +156,21 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     .map((e) => effectRenderSpec(e, e.start, Math.min(totalMs, e.start + e.duration)))
     .filter(Boolean);
 
-  const laneIds = [...new Set(overlays.map((o) => o.lane))].sort((a, b) => a - b);
+  // Karışım modlu görsel katmanları birleştiriciye değil, kompozisyon efektine gider
+  // (BlendLayerFx.kt). Video katmanlarında karışım desteklenmez: normal çizilir.
+  const blended = (o) => isBlendedOverlay(o);
+  const laneIds = [...new Set(overlays.filter((o) => !blended(o)).map((o) => o.lane))].sort((a, b) => a - b);
   const trLanes = transitionLayers(project, layout, main, transitions);
   const layers = [...trLanes, ...laneIds.map((lane) =>
     overlays
-      .filter((o) => o.lane === lane)
+      .filter((o) => o.lane === lane && !blended(o))
       .sort((a, b) => a.start - b.start)
       .map((o) => overlaySpec(project, o, resolveUri)),
   )];
+  const blendLayers = overlays
+    .filter(blended)
+    .sort((a, b) => a.lane - b.lane || a.start - b.start)
+    .map((o) => ({ ...overlaySpec(project, o, resolveUri), blend: BLEND_MODES.indexOf(o.blend) }));
 
   return {
     width: project.canvas.width,
@@ -175,6 +183,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     texts,
     effectLayers,
     layers,
+    blendLayers,
     globalFx: {},
   };
 }
@@ -274,6 +283,11 @@ function textKeyframes(t) {
     if (packed) kf[prop] = packed;
   }
   return kf;
+}
+
+/** Görsel katman ve karışım modu normal dışı (geçerli bir mod) mu? */
+export function isBlendedOverlay(o) {
+  return o.kind === 'image' && !!o.blend && o.blend !== 'normal' && BLEND_MODES.includes(o.blend);
 }
 
 /** Katman -> LayerClip (RenderSpec.kt). Dizi düzenleri LayerFx.kt / _layer.glsl ile aynıdır. */

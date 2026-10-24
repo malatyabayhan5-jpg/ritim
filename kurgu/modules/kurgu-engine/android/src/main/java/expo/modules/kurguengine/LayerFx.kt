@@ -34,18 +34,11 @@ class LayerFx(
     LayerFxProgram(context, useHdr, layer, canvasW, canvasH, liveKey)
 }
 
-@OptIn(UnstableApi::class)
-internal class LayerFxProgram(
-  context: Context,
-  useHdr: Boolean,
-  private val layer: LayerClip,
-  private val canvasW: Int,
-  private val canvasH: Int,
-  private val liveKey: String?,
-) : BaseGlShaderProgram(useHdr, 1) {
-  private val program: GlProgram
-  private var srcW = 1
-  private var srcH = 1
+/**
+ * _layer.glsl uniform'ları: konum/ölçek/döndürme (anahtar kare ve canlı değerlerle), opaklık,
+ * çevirme, kırpma, maske, chroma ve geçiş. LayerFx ve BlendLayerFx aynı hesabı kullanır.
+ */
+internal class LayerUniforms(private val layer: LayerClip, private val liveKey: String?) {
   private val xf = FloatArray(4)
   private val lay = FloatArray(4)
   private val maskA = FloatArray(4)
@@ -56,24 +49,10 @@ internal class LayerFxProgram(
   private val trU = FloatArray(4)
   private val trP = FloatArray(4)
 
-  init {
-    try {
-      program = GlProgram(ShaderFx.VERTEX, ShaderFx.layerSource(context))
-    } catch (e: Exception) {
-      throw VideoFrameProcessingException("LAYER_SHADER: ${e.message}", e)
-    }
-    program.setBufferAttribute("aFramePosition", GlUtil.getNormalizedCoordinateBounds(), GlUtil.HOMOGENEOUS_COORDINATE_VECTOR_SIZE)
-  }
-
-  override fun configure(inputWidth: Int, inputHeight: Int): Size {
-    srcW = inputWidth
-    srcH = inputHeight
-    return Size(canvasW, canvasH)
-  }
-
   private fun kf(name: String, tMs: Double, base: Float): Float = Keyframes.valueAt(layer.keyframes[name], tMs, base)
 
-  override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
+  /** `opacityScale`: katman zaman penceresi dışında 0 (karışım katmanı tüm kompozisyona uygulanır). */
+  fun apply(program: GlProgram, presentationTimeUs: Long, canvasW: Int, canvasH: Int, srcW: Int, srcH: Int, opacityScale: Float = 1f) {
     val t = presentationTimeUs / 1000.0 - layer.startMs
     // Önizlemede kaydırıcı değerleri canlı okunur: [x, y, ölçek, döndürme, opaklık,
     // maske cx, cy, açı, yarı gen., yarı yük., yumuşaklık, köşe, tolerans, kenar, taşma]
@@ -84,7 +63,7 @@ internal class LayerFxProgram(
     xf[1] = kf("y", t, live?.get(1) ?: layer.xf[1])
     xf[2] = kf("scale", t, live?.get(2) ?: layer.xf[2])
     xf[3] = (kf("rotation", t, live?.get(3) ?: layer.xf[3]) * PI / 180.0).toFloat()
-    lay[0] = kf("opacity", t, live?.get(4) ?: layer.opacity)
+    lay[0] = kf("opacity", t, live?.get(4) ?: layer.opacity) * opacityScale
     lay[1] = if (layer.flipH) 1f else 0f
     lay[2] = if (layer.flipV) 1f else 0f
     maskA[0] = m[0]
@@ -113,22 +92,56 @@ internal class LayerFxProgram(
       trU[3] = 0.37f
       trP[0] = tr[4]
     }
+    program.setFloatsUniformIfPresent("uRes", floatArrayOf(canvasW.toFloat(), canvasH.toFloat()))
+    program.setFloatsUniformIfPresent("uSrcRes", floatArrayOf(srcW.toFloat(), srcH.toFloat()))
+    program.setFloatsUniformIfPresent("uXf", xf)
+    program.setFloatsUniformIfPresent("uLay", lay)
+    program.setFloatsUniformIfPresent("uCrop", layer.crop)
+    program.setFloatsUniformIfPresent("uMaskA", maskA)
+    program.setFloatsUniformIfPresent("uMaskB", maskB)
+    program.setFloatsUniformIfPresent("uMaskInv", floatArrayOf(m[8]))
+    program.setFloatsUniformIfPresent("uKey", key)
+    program.setFloatsUniformIfPresent("uKeyP", keyP)
+    program.setFloatsUniformIfPresent("uLay2", lay2)
+    program.setFloatsUniformIfPresent("uTr", trU)
+    program.setFloatsUniformIfPresent("uTrP", trP)
+  }
+}
+
+@OptIn(UnstableApi::class)
+internal class LayerFxProgram(
+  context: Context,
+  useHdr: Boolean,
+  layer: LayerClip,
+  private val canvasW: Int,
+  private val canvasH: Int,
+  liveKey: String?,
+) : BaseGlShaderProgram(useHdr, 1) {
+  private val program: GlProgram
+  private var srcW = 1
+  private var srcH = 1
+  private val uniforms = LayerUniforms(layer, liveKey)
+
+  init {
+    try {
+      program = GlProgram(ShaderFx.VERTEX, ShaderFx.layerSource(context))
+    } catch (e: Exception) {
+      throw VideoFrameProcessingException("LAYER_SHADER: ${e.message}", e)
+    }
+    program.setBufferAttribute("aFramePosition", GlUtil.getNormalizedCoordinateBounds(), GlUtil.HOMOGENEOUS_COORDINATE_VECTOR_SIZE)
+  }
+
+  override fun configure(inputWidth: Int, inputHeight: Int): Size {
+    srcW = inputWidth
+    srcH = inputHeight
+    return Size(canvasW, canvasH)
+  }
+
+  override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
     try {
       program.use()
       program.setSamplerTexIdUniform("uTex", inputTexId, 0)
-      program.setFloatsUniformIfPresent("uRes", floatArrayOf(canvasW.toFloat(), canvasH.toFloat()))
-      program.setFloatsUniformIfPresent("uSrcRes", floatArrayOf(srcW.toFloat(), srcH.toFloat()))
-      program.setFloatsUniformIfPresent("uXf", xf)
-      program.setFloatsUniformIfPresent("uLay", lay)
-      program.setFloatsUniformIfPresent("uCrop", layer.crop)
-      program.setFloatsUniformIfPresent("uMaskA", maskA)
-      program.setFloatsUniformIfPresent("uMaskB", maskB)
-      program.setFloatsUniformIfPresent("uMaskInv", floatArrayOf(m[8]))
-      program.setFloatsUniformIfPresent("uKey", key)
-      program.setFloatsUniformIfPresent("uKeyP", keyP)
-      program.setFloatsUniformIfPresent("uLay2", lay2)
-      program.setFloatsUniformIfPresent("uTr", trU)
-      program.setFloatsUniformIfPresent("uTrP", trP)
+      uniforms.apply(program, presentationTimeUs, canvasW, canvasH, srcW, srcH)
       program.bindAttributesAndUniforms()
       GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
     } catch (e: GlUtil.GlException) {

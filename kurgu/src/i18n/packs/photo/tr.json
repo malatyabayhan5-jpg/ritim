@@ -227,5 +227,10 @@
     "partial_other": "Takip tamamlandı ({n} anahtar kare); nesne yer yer kayboldu",
     "done_one": "Takip tamamlandı: {n} anahtar kare",
     "done_other": "Takip tamamlandı: {n} anahtar kare"
+  },
+  "layer": {
+    "tab": {
+      "blend": "Karışım"
+    }
   }
 }

@@ -92,6 +92,16 @@ window.renderFx = async (shaders, imgUrl, frames, lut, opts = {}) => {
   }
   const u = (n) => gl.getUniformLocation(pr, n);
   gl.uniform1i(u('uTex'), 0); gl.uniform2f(u('uRes'), c.width, c.height);
+  if (opts.base) {
+    // Alttaki kompozisyon karesi (karışım shader'ı _blend_main.glsl): BlendLayerFx.kt'de girdi dokusu
+    const bimg = new Image(); bimg.src = opts.base; await bimg.decode();
+    const bt = gl.createTexture(); gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, bt);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bimg);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(u('uBase'), 3);
+  }
   if (lut) {
     // LUT dokusu (_lut.glsl): ızgara düzeni Android'deki LutFx.kt ile aynı, Y çevrilmez
     const lt = gl.createTexture(); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, lt);
@@ -319,6 +329,27 @@ async function layer() {
   });
 }
 
+/**
+ * Karışım modlu görsel katmanı (_blend_main.glsl): --base kanvas boyutunda alt kare,
+ * --layer üstteki görsel; her mod için bir PNG (blend_<mod>.png) yazılır.
+ *   node lab.cjs blend --base bg.png --layer fg.png --modes 0,1,2 --u '{"uXf":[0,0,0.6,0]}' --out dir
+ */
+async function blend() {
+  const read = (f) => fs.readFileSync(path.join(FX_DIR, f), 'utf8');
+  const src = ['_common.glsl', '_layer.glsl', '_blend_main.glsl'].map(read).join('\n');
+  const [w, h] = imageSize(arg('base'));
+  const file = arg('layer');
+  const modes = arg('modes', '0,1,2,3,4,5,6,7,8,9,10').split(',').map(Number);
+  const out = arg('out');
+  fs.mkdirSync(out, { recursive: true });
+  const base = { ...LAYER_DEFAULTS, ...JSON.parse(arg('u', '{}')), uSrcRes: imageSize(file) };
+  const frames = modes.map((m) => ({ time: 0, amount: 1, p: [0, 0, 0, 0, 0, 0, 0, 0], u: { ...base, uBlend: m } }));
+  await withPage(async (page) => {
+    const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [src, dataUrl(file), frames, { size: [w, h], base: dataUrl(arg('base')) }]);
+    modes.forEach((m, i) => writePng(path.join(out, `blend_${m}.png`), urls[i]));
+  });
+}
+
 const cmd = process.argv[2];
-({ render, motion, thumbs, lut, perf, layer, transition }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
+({ render, motion, thumbs, lut, perf, layer, transition, blend }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
   .catch((e) => { console.error(e.message || e); process.exit(1); });

@@ -227,5 +227,10 @@
     "partial_other": "Tracking done ({n} keyframes); the object was lost at times",
     "done_one": "Tracking done: {n} keyframe",
     "done_other": "Tracking done: {n} keyframes"
+  },
+  "layer": {
+    "tab": {
+      "blend": "Blend"
+    }
   }
 }

@@ -60,6 +60,10 @@ class ShaderFx(private val spec: ShaderFxSpec, private val liveKey: String? = nu
     }
 
     /** Katman shader'ı: ortak çekirdek + katman + geçişler + giriş noktası. */
+    /** Karışım modlu görsel katmanı (BlendLayerFx): katman yerleşimi + W3C karışım formülleri. */
+    fun blendSource(context: Context): String =
+      listOf("_common.glsl", "_layer.glsl", "_blend_main.glsl").joinToString("\n") { read(context, it) }
+
     fun layerSource(context: Context): String =
       listOf("_common.glsl", "_layer.glsl", "_trcommon.glsl", "_transitions2.glsl", "_transitions.glsl", "_layer_main.glsl").joinToString("\n") { read(context, it) }
 

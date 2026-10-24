@@ -164,6 +164,8 @@ data class RenderSpec(
   val effectLayers: List<ShaderFxSpec>,
   // Alttan üste katman şeritleri; her şerit kendi dizisinde, öğeleri çakışmaz.
   val layers: List<List<LayerClip>> = emptyList(),
+  // Karışım modlu görsel katmanları (alttan üste): kompozisyon düzeyinde BlendLayerFx ile çizilir
+  val blendLayers: List<BlendLayerSpec> = emptyList(),
 ) {
   companion object {
     fun parse(json: String): RenderSpec = parse(JSONObject(json))
@@ -187,6 +189,7 @@ data class RenderSpec(
         globalFx = parseFx(o.optJSONObject("globalFx")),
         effectLayers = o.optJSONArray("effectLayers").objects().map { parseShaderFx(it) },
         layers = o.optJSONArray("layers").arrays().map { lane -> lane.objects().map { parseLayer(it) } }.filter { it.isNotEmpty() },
+        blendLayers = o.optJSONArray("blendLayers").objects().map { BlendLayerSpec(parseLayer(it), it.optInt("blend", 0).coerceIn(0, 10)) },
       )
     }
 
@@ -403,3 +406,6 @@ internal fun JSONArray?.arrays(): List<JSONArray> {
   if (this == null) return emptyList()
   return (0 until length()).mapNotNull { optJSONArray(it) }
 }
+
+/** Karışım modlu görsel katmanı: katman yerleşimi + mod (src/model/photo.js BLEND_MODES sırası). */
+data class BlendLayerSpec(val layer: LayerClip, val mode: Int)

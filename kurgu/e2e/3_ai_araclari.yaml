@@ -104,6 +104,21 @@ appId: app.kurgu.editor
     visible:
       id: "overlay-handle"
     timeout: 20000
+# Karışım modu (görsel katmanı → kompozisyon efekti BlendLayerFx): shader cihazda derlenmeli,
+# önizleme hata vermemeli. Bu ekranda Maestro kimlikleri tutarsız bulduğundan metinle eşlenir.
+- tapOn:
+    text: "(Konum|Position)"
+- tapOn:
+    text: "(Karışım|Blend)"
+- tapOn:
+    text: "(Ekran|Screen)"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertNotVisible:
+    text: "(Önizleme hatası|Preview error).*"
+- tapOn:
+    id: "panel-done"
+    optional: true
 - tapOn:
     id: "tool-back"
     optional: true

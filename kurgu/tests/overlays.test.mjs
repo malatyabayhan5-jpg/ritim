@@ -131,3 +131,33 @@ test('katman silme ve çoğaltma', () => {
   p = TL.deleteOverlay(d.project, id);
   assert.equal(p.overlays.length, 1);
 });
+
+test('karışım modlu görsel katmanı şeritlerden ayrılır (blendLayers), video katmanı normal kalır', () => {
+  let p = base();
+  let r = TL.addOverlay(p, image('st'), 1000);
+  p = TL.updateOverlay(r.project, r.newId, { blend: 'screen', transform: { x: 0.2 } });
+  const stId = r.newId;
+  r = TL.addOverlay(p, video('ov', 2000), 3000);
+  p = TL.updateOverlay(r.project, r.newId, { blend: 'multiply' });
+  r = TL.addOverlay(p, image('nm'), 6000);
+  p = r.project;
+  const spec = buildRenderSpec(p, uri);
+  assert.equal(spec.blendLayers.length, 1);
+  const bl = spec.blendLayers[0];
+  assert.equal(bl.key, stId);
+  assert.equal(bl.blend, 2); // BLEND_MODES: normal, multiply, screen…
+  assert.equal(bl.kind, 'image');
+  assert.equal(bl.xf[0], 0.2);
+  const laneKeys = spec.layers.flat().map((l) => l.key);
+  assert.ok(!laneKeys.includes(stId), 'karışım katmanı şeritte olmamalı');
+  assert.equal(laneKeys.length, 2, 'video (normal çizilir) ve normal görsel şeritte');
+  // Canlı ayrıştırma: konum değişince yapı aynı kalır, değer canlı anahtardan gelir
+  const a = splitLive(spec);
+  const moved = buildRenderSpec(TL.updateOverlay(p, stId, { transform: { x: 0.5 } }), uri);
+  const b = splitLive(moved);
+  assert.equal(a.structure, b.structure);
+  assert.equal(b.live[`ly:${stId}`][0], 0.5);
+  // Mod değişimi yapıdır (yeniden kurulur)
+  const other = splitLive(buildRenderSpec(TL.updateOverlay(p, stId, { blend: 'overlay' }), uri));
+  assert.notEqual(a.structure, other.structure);
+});

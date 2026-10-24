@@ -8,6 +8,7 @@ import { useI18n } from '../i18n';
 import { Chip, Icon, Panel, Row, Slider, Txt } from '../ui';
 import { colors, radius, space } from '../theme';
 import { MASK_TYPES } from '../model/schema';
+import { BLEND_MODES } from '../model/photo';
 import { keyAt } from '../model/keyframes';
 import { overlayPropAt, overlayPropPatch, toggleOverlayKey } from '../model/timeline';
 
@@ -67,7 +68,7 @@ export default function LayerPanel({ item, localMs, onChange, onLane, onDetectKe
     <Panel title={t('layer.title')} onClose={onClose} testID="panel-layer">
       <View style={styles.body}>
         <Hscroll>
-          {TABS.map((k) => (
+          {(item.kind === 'image' ? [...TABS.slice(0, 3), 'blend', 'order'] : TABS).map((k) => (
             <Chip key={k} label={t(`layer.tab.${k}`)} active={tab === k} onPress={() => setTab(k)} testID={`layer-tab-${k}`} />
           ))}
         </Hscroll>
@@ -163,6 +164,19 @@ export default function LayerPanel({ item, localMs, onChange, onLane, onDetectKe
               <Txt dim style={styles.label}>{t('layer.spill')}</Txt>
               <Slider value={c.spill} min={0} max={1} onChange={(v) => onChange({ chroma: { spill: round3(v) } }, 'key-spill')} formatValue={pct} />
             </View>
+          </>
+        ) : null}
+
+        {tab === 'blend' ? (
+          <>
+            <Hscroll>
+              {BLEND_MODES.map((m) => (
+                <Chip key={m} testID={`layer-blend-${m}`} label={t(`photo.blend.${m}`)} active={(item.blend || 'normal') === m} onPress={() => onChange({ blend: m })} />
+              ))}
+            </Hscroll>
+            <Txt faint style={styles.hint}>
+              {t('layer.blendNote')}
+            </Txt>
           </>
         ) : null}
 

@@ -840,7 +840,7 @@
     "spill": "Spill removal",
     "bringForward": "Bring forward",
     "sendBackward": "Send backward",
-    "blendNote": "Video overlays currently support only the \"Normal\" blend mode (opacity and masks are supported).",
+    "blendNote": "Blend modes apply to image layers (stickers, shapes, photos) and blend with all layers below. Video overlays support only \"Normal\" (opacity and masks are supported).",
     "lanesFull": "Up to 6 overlay tracks can be used.",
     "keyNotFound": "No dominant screen color found at the edges; pick a color manually.",
     "keyFound": "Key color: {color}"

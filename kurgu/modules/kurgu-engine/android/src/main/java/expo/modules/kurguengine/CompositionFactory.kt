@@ -136,6 +136,9 @@ object CompositionFactory {
     if (!spec.globalFx.isNoOp || glitchTransitions.isNotEmpty()) {
       compositionEffects.add(FxEffect(spec.globalFx, glitchTransitions))
     }
+    // Karışım modlu görsel katmanları: tüm alt katmanlar birleştikten sonra, efekt izinin ve
+    // metinlerin altında çizilir (Media3 birleştiricisi yalnızca alfa karışımı yapar).
+    spec.blendLayers.forEach { compositionEffects.add(BlendLayerFx(it.layer, it.mode, w, h, if (live) "ly:${it.layer.key}" else null)) }
     // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
     spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it) }

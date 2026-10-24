@@ -102,6 +102,7 @@ Uygulamaya yeni yazı tipi, görsel, ses, LUT veya efekt paketi eklenmedi.
 | Otomatik iyileştirme | `src/model/enhance.js`, `PhotoRenderer.imageStats` | Yüzdelik tabanlı ton genişletme + gri dünya beyaz dengesi (klasik) |
 | Metin animasyonları | `anim/TextAnim.java`, `TextLayer.kt` | Özgün; yay/esneklik eğrileri standart sönümlü salınım formülleri |
 | Hız eğrisi | `src/model/speed.js` | Parçalı sabit hız, harmonik ortalama ile süre korunumu (özgün) |
+| Video karışım modları | `BlendLayerFx.kt`, `assets/kurgu_fx/_blend_main.glsl` | W3C "Compositing and Blending Level 1" ayrılabilir/ayrılamaz karışım formülleri (yöntem; kod yazılımcı tarafından yazıldı), fotoğraf düzenleyicideki Android `BlendMode` ile aynı tanımlar |
 | Hareket takibi | `vision/Tracker.java`, `MotionTracker.kt`, `src/model/tracking.js` | Sıfır ortalamalı normalize çapraz korelasyonla şablon eşleme (Lewis, "Fast Normalized Cross-Correlation", 1995 — yöntem), parabolik alt piksel tepe, yavaş şablon güncellemesi; yol sadeleştirme Ramer–Douglas–Peucker. Model kullanılmaz |
 | Ters oynatma | `Reverser.kt` | Android MediaCodec/MediaMuxer ile yeniden kodlama (platform API'si) |
 

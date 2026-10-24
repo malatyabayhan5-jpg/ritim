@@ -65,7 +65,15 @@ export function splitLive(spec) {
       return out;
     }),
   );
-  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers });
+  // Karışım modlu görsel katmanları (BlendLayerFx): aynı yerleşim değerleri canlıdır
+  const blendLayers = (spec.blendLayers || []).map((l) => {
+    const m = l.mask;
+    const c = l.chroma;
+    live[`ly:${l.key}`] = [...l.xf, l.opacity, m[1], m[2], m[3], m[4], m[5], m[6], m[7], c[4], c[5], c[6]];
+    const cm = l.colorMatrix ? ((live[`cm:${l.key}`] = l.colorMatrix), LIVE) : null;
+    return { ...l, colorMatrix: cm, xf: LIVE, opacity: LIVE, mask: [m[0], LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, m[8]], chroma: [c[0], c[1], c[2], c[3], LIVE, LIVE, LIVE] };
+  });
+  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers });
   return { structure, live };
 }
 

@@ -840,7 +840,7 @@
     "spill": "Renk taşması giderme",
     "bringForward": "Öne getir",
     "sendBackward": "Arkaya gönder",
-    "blendNote": "Video katmanlarında karışım modu şimdilik yalnızca \"Normal\"dir (opaklık ve maske desteklenir).",
+    "blendNote": "Karışım modları görsel katmanlarda (çıkartma, şekil, fotoğraf) kullanılır ve alttaki tüm katmanlarla karışır. Video katmanlarında yalnızca \"Normal\" desteklenir (opaklık ve maske desteklenir).",
     "lanesFull": "En fazla 6 katman şeridi kullanılabilir.",
     "keyNotFound": "Kenarlarda baskın bir perde rengi bulunamadı; rengi elle seçin.",
     "keyFound": "Anahtar renk: {color}"
