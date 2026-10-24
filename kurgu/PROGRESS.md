@@ -143,6 +143,10 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #75** (a907d2b): **1, 2, 3, 4, 5, 7, 8 GEÇTİ** (dışa aktarma üst üste 3. kez geçti; 1280×720, 17,5 sn,
+hatasız; performans p50 17 ms, p90 32 ms, PSS ~153 MB — emülatör). 6: ekranda "Track" düğmesi görünürken Maestro
+`tool-track` kimliğini bulamadı (aynı sorun daha önce `new-project`/`tool-record` için de görüldü) → metinle eşleme.
+
 **CI #74** (a8589c9): **1 (kabul, dışa aktarma) GEÇTİ** — 1280×720, 17,5 sn, hatasız çözüldü, efekt doğru aralıkta;
 ilerleme günlüğü: %70→%75 arası 3 dk 14 sn (ikinci ana klibe geçiş; yazılımsal kod çözmeli emülatör), geri kalanı
 saniyeler → muxer bekleme sınırı 5 dk'ya çıkarıldı (#72'deki MUXING_TIMEOUT aynı yerdeydi; gerçek cihazda ölçülmedi).

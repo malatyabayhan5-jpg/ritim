@@ -77,12 +77,13 @@ appId: app.kurgu.editor
 # Hareket takibi (katman videodaki nesneyi izler). Sonuç ne olursa olsun bildirim
 # görünmeli ve uygulama çökmemeli; ardından geri alınır (katman testi sabit konumu bekler).
 # Geri al/yinele sonrası araç çubuğu yeniden çizilir (CI #72: erken dokunuş)
+# Maestro bu düğmeyi kimliğiyle bulamıyor (CI #74/#75: ekranda "Track" görünürken); metinle eşlenir
 - extendedWaitUntil:
     visible:
-      id: "tool-track"
+      text: "(Takip|Track|تتبّع)"
     timeout: 15000
 - tapOn:
-    id: "tool-track"
+    text: "(Takip|Track|تتبّع)"
 - extendedWaitUntil:
     visible:
       text: "(Takip tamamlandı|Nesne izlenemedi|Hareket takibi başarısız|Tracking done|Couldn't track|Motion tracking failed).*"
