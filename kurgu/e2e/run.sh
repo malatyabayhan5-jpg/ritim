@@ -94,6 +94,12 @@ for flow in $FLOWS; do
   else
     echo "$flow: BAŞARISIZ (çıkış $code) — ekranda: $(screen_texts | cut -c1-1500)" >> "$OUT/sonuclar.txt"
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
+    # Tanı: araç düğmelerinin ekrandaki sınırları (görünür sayılmayan düğme ekran dışında mı?)
+    {
+      echo "--- $flow hata anı: ekran $(adb shell wm size 2>/dev/null | tr -d '\r' | tail -1); tool-* sınırları ---"
+      adb shell cat /sdcard/ui.xml 2>/dev/null | grep -o 'resource-id="tool-[^"]*"[^>]*bounds="[^"]*"' | sed -E 's/resource-id="([^"]*)".*bounds="([^"]*)"/\1 \2/' | head -24
+      python3 "$(dirname "$0")/ascii_shot.py" "$OUT/hata_$flow.png" --rows 44 2>&1
+    } >> "$OUT/ekran_ascii.txt"
   fi
   [ $code -eq 124 ] && echo "$flow: 25 dk akış sınırı aşıldı" >> "$OUT/sonuclar.txt"
   # Performans ölçümü 5. akıştan hemen sonra (sonraki akışlar ölçümü bozmasın)

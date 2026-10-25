@@ -23,7 +23,7 @@ is blurred in the reference), so the preview area always counts as different.
 | S01 home | S01_home | 01_ana_ekran | 3.8 / 100, different (CI #123) |
 | S03 editor | S03_editor | 04_editor | 25.2 / 100, preview left out 19.4 (CI #128) |
 | S04 clip toolbar | S04_clip_b | 06_bolme | 30.8 / 100, preview left out 24.7 (CI #128) |
-| S15 filters / adjust | S15_adjust_custom | 08a_ayarla | CI #128 compared it with the Filters tab (9.4), the wrong tab; now the Adjust tab is captured |
+| S15 filters / adjust | S15_adjust_custom | 08a_ayarla | 7.5 / 100, preview left out 9.3 (CI #129, Adjust tab) |
 
 CI #123 (c30200d) produced the first scores (0 = nothing alike, 100 = same edges). For scale: two
 different screens of the reference app score 75 against each other. CI #126 printed both editor
@@ -38,6 +38,12 @@ audio / text rows now sit at the same heights as in the recording; what still di
 height), the controls row (a little lower in Kurgu), Kurgu's brighter and larger toolbar icons, and
 the clip audio / cover column on the left. The reference home screen is light-themed and a template
 feed, so its 3.8 stays expected.
+
+Adjust (S15, 7.5): in the recording a panel opens as a tall bottom sheet (~30 % of the height) and
+the timeline shrinks to a thin clip strip; in Kurgu the panel is short (~19 %) and the full timeline
+stays above it. Planned: shrink the timeline while a panel is open so the preview and the panel get
+the room. Not done yet because several e2e flows tap timeline items with a panel open; it needs a
+pass over the flows first.
 
 The home screen is expected to score low: Kurgu's home is a drafts list plus New project, without
 CapCut's promo banner, tool grid or template tabs. Those are out of scope.
