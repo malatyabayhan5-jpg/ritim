@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, direction: 'ltr' },
   ruler: { position: 'absolute', top: 0, height: RULER_H },
   tick: { position: 'absolute', top: 0, height: RULER_H, borderLeftWidth: 1, borderLeftColor: colors.textFaint, paddingLeft: 3 },
-  tickText: { color: colors.textFaint, fontSize: 9, fontVariant: ['tabular-nums'] },
+  tickText: { color: colors.textFaint, fontSize: 10, fontVariant: ['tabular-nums'] },
   halfTick: { position: 'absolute', top: RULER_H - 6, height: 6, width: 1, backgroundColor: colors.border },
   marker: { position: 'absolute', top: 0, width: 10, height: 10, backgroundColor: colors.marker, transform: [{ rotate: '45deg' }], borderRadius: 2 },
   mainTrack: { position: 'absolute', height: MAIN_H, right: 0 },

@@ -7,7 +7,7 @@ export const colors = {
   border: '#2E2E3A',
   text: '#F4F4F8',
   textDim: '#A3A3B5',
-  textFaint: '#6C6C80',
+  textFaint: '#85859A', // AA 4.5:1 surface ve surface2 üzerinde (replica/design/tokens.json)
   accent: '#8B6CFF',
   accentSoft: 'rgba(139,108,255,0.18)',
   accent2: '#2EE6C9',
