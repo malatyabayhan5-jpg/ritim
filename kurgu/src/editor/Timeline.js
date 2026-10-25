@@ -94,8 +94,7 @@ function useDragGesture({ onTap, onDragStart, onDragMove, onDragEnd, enabled = t
 
 export default function Timeline({
   project,
-  positionMs,
-  isPlaying,
+  playhead,
   pxPerMs,
   selection,
   onSeek,
@@ -121,20 +120,32 @@ export default function Timeline({
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const userScroll = useRef(false);
   const lastSetX = useRef(0);
-  const scrollTick = useRef(0);
 
-  // Oynatma veya dışarıdan arama: kaydırma konumunu oynatma kafasına eşitle.
-  useEffect(() => {
+  // Görünür pencere (yalnızca bu aralıktaki küçük resimler/dalga biçimleri çizilir) yalnızca
+  // kaydırma yarım ekranı aşınca güncellenir: her karede durum değiştirmek tüm izleri yeniden
+  // çizdiriyordu (gerçek cihazda kaydırma/oynatma takılması).
+  const shownX = useRef(0);
+  const updateWindow = (x, force = false) => {
+    if (!force && Math.abs(x - shownX.current) < screenW / 2) return;
+    shownX.current = x;
+    setScrollX(x);
+  };
+
+  // Oynatma veya dışarıdan arama: kaydırma konumu oynatma kafasına doğrudan (React çizimi
+  // olmadan) eşitlenir.
+  const syncRef = useRef(null);
+  syncRef.current = (ms, force) => {
     if (userScroll.current) return;
-    const x = positionMs * pxPerMs;
-    if (Math.abs(x - lastSetX.current) < 0.5) return;
+    const x = ms * pxPerMs;
+    if (!force && Math.abs(x - lastSetX.current) < 0.5) return;
     lastSetX.current = x;
     scrollRef.current?.scrollTo({ x, animated: false });
-    if (!isPlaying || Date.now() - scrollTick.current > 120) {
-      scrollTick.current = Date.now();
-      setScrollX(x);
-    }
-  }, [positionMs, pxPerMs, isPlaying]);
+    updateWindow(x, force);
+  };
+  useEffect(() => playhead.subscribe((ms) => syncRef.current(ms, false)), [playhead]);
+  useEffect(() => {
+    syncRef.current(playhead.get(), true);
+  }, [playhead, pxPerMs]);
 
   const onScroll = (e) => {
     const x = e.nativeEvent.contentOffset.x;
@@ -142,10 +153,7 @@ export default function Timeline({
       lastSetX.current = x;
       onSeek(Math.max(0, Math.min(total, x / pxPerMs)), true);
     }
-    if (Date.now() - scrollTick.current > 50) {
-      scrollTick.current = Date.now();
-      setScrollX(x);
-    }
+    updateWindow(x);
   };
   const endScroll = () => {
     userScroll.current = false;
@@ -182,7 +190,7 @@ export default function Timeline({
   const textLanes = useMemo(() => laneOf(project.texts, (t) => t.start, (t) => t.duration), [project.texts]);
   const effectLayers = project.effectLayers || [];
   const fxLanes = useMemo(() => laneOf(effectLayers, (e) => e.start, (e) => e.duration), [effectLayers]);
-  const visible = { from: scrollX - screenW, to: scrollX + screenW * 1.5 };
+  const visible = useMemo(() => ({ from: scrollX - screenW, to: scrollX + screenW * 2 }), [scrollX, screenW]);
   const lockScroll = (locked) => setScrollEnabled(!locked);
 
   // Üst katman şeritleri ana izin üstünde; en üst şerit en üstte çizilir (önizlemedeki sırayla aynı).

@@ -102,6 +102,8 @@ for flow in $FLOWS; do
       echo "Performans (emülatör, yazılımsal GPU — gerçek cihaz değildir):"
       adb shell dumpsys gfxinfo $PKG 2>/dev/null | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|95th percentile|99th percentile|Number Slow UI thread|Number Frame deadline missed" | sed 's/^/  /'
       adb shell dumpsys meminfo $PKG 2>/dev/null | grep -E "TOTAL PSS|TOTAL RSS|Native Heap|Graphics" | head -4 | sed 's/^ */  /'
+      # Editör ekranı çizim sayısı: oynat/duraklat anlarındaki toplam (aradaki fark oynatma sırasındaki çizimler)
+      grep "\[5_performans\].*\[KurguUI\] \(play\|pause\) " "$OUT/kurgu_gunluk.txt" | sed 's/.*\[KurguUI\] /  editör çizimi: /' | head -6
     } > "$OUT/performans.txt"
   fi
   if ! timeout 30 "$ADB" shell echo ok > /dev/null 2>&1; then

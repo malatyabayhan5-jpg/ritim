@@ -40,6 +40,7 @@ import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
 import { MAX_CLIP_EFFECTS } from '../model/timeline';
 import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
+import { PlayheadValue, createPlayhead, usePlayhead } from '../editor/playhead';
 import { splitLive } from '../engine/live';
 import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
@@ -67,8 +68,16 @@ export default function EditorScreen({ params, focused }) {
   const [selection, setSelection] = useState(null);
   const [panel, setPanel] = useState(null);
   const [sub, setSub] = useState(null); // alt araç çubuğu: 'audio' | 'text'
-  const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // Oynatma kafası: depo (bkz. editor/playhead.js). Ekran konumu yalnızca duraklatılmışken ve
+  // kaydırma bitince izler; oynatma/kaydırma sırasında yalnızca küçük aboneler çizilir.
+  const [playhead] = useState(() => createPlayhead());
+  const [scrubbing, setScrubbingState] = useState(false);
+  const scrubRef = useRef(false);
+  // Ölçüm: editör ekranının çizim sayısı (e2e 5 oynatma/kaydırma sırasında artışı izler)
+  const renders = useRef(0);
+  renders.current += 1;
+  const position = usePlayhead(playhead, { enabled: !playing && !scrubbing });
   const [pxPerMs, setPxPerMs] = useState(0.06);
   const [previewBox, setPreviewBox] = useState({ w: 0, h: 0 });
   const [specJson, setSpecJson] = useState(null);
@@ -198,21 +207,25 @@ export default function EditorScreen({ params, focused }) {
 
   // --- Oynatma ---
   const seek = useCallback((ms, scrubbing) => {
-    setPosition(ms);
+    playhead.set(ms);
+    if (!!scrubbing !== scrubRef.current) {
+      scrubRef.current = !!scrubbing;
+      setScrubbingState(!!scrubbing);
+      previewRef.current?.setScrubbing?.(!!scrubbing);
+    }
     const now = Date.now();
     if (!scrubbing || now - lastSeek.current > 60) {
       lastSeek.current = now;
       previewRef.current?.seekTo?.(ms);
     }
-    previewRef.current?.setScrubbing?.(!!scrubbing);
-  }, []);
+  }, [playhead]);
 
   const togglePlay = () => {
     // e2e tanılama: oynatma kafası konumu (logcat KurguUI)
-    console.log(`[KurguUI] ${playing ? 'pause' : 'play'} position=${Math.round(position)} total=${Math.round(total)}`);
+    console.log(`[KurguUI] ${playing ? 'pause' : 'play'} position=${Math.round(playhead.get())} total=${Math.round(total)} renders=${renders.current}`);
     if (playing) previewRef.current?.pause?.();
     else {
-      if (position >= total - 50) seek(0, false);
+      if (playhead.get() >= total - 50) seek(0, false);
       previewRef.current?.play?.();
     }
   };
@@ -232,7 +245,7 @@ export default function EditorScreen({ params, focused }) {
     }
   }, [selection, selectedMain, selectedAudio, selectedText, selectedEffect, selectedOverlay]);
 
-  const clipAtPlayhead = () => (project ? TL.clipAt(project, position)?.clip : null);
+  const clipAtPlayhead = () => (project ? TL.clipAt(project, playhead.get())?.clip : null);
 
   const ensureClipSelected = () => {
     if (selectedMain) return selectedMain;
@@ -266,24 +279,24 @@ export default function EditorScreen({ params, focused }) {
   // --- İşlemler ---
   const split = () => {
     if (selectedAudio) {
-      const r = TL.splitAudioAt(project, selectedAudio.id, position);
+      const r = TL.splitAudioAt(project, selectedAudio.id, playhead.get());
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
     } else if (selectedText) {
-      const r = TL.splitTextAt(project, selectedText.id, position);
+      const r = TL.splitTextAt(project, selectedText.id, playhead.get());
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
     } else if (selectedEffect) {
-      const r = TL.splitEffectLayerAt(project, selectedEffect.id, position);
+      const r = TL.splitEffectLayerAt(project, selectedEffect.id, playhead.get());
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
     } else if (selectedOverlay) {
-      const r = TL.splitOverlayAt(project, selectedOverlay.id, position);
+      const r = TL.splitOverlayAt(project, selectedOverlay.id, playhead.get());
       if (r.changed) apply(r.project);
       else toast(t('editor.cannotSplit'));
     } else {
-      const r = TL.splitMainAt(project, position);
-      console.log(`[KurguUI] split position=${Math.round(position)} changed=${r.changed}`);
+      const r = TL.splitMainAt(project, playhead.get());
+      console.log(`[KurguUI] split position=${Math.round(playhead.get())} changed=${r.changed}`);
       if (r.changed) {
         apply(r.project);
         setSelection({ type: 'main', id: r.newId });
@@ -331,7 +344,7 @@ export default function EditorScreen({ params, focused }) {
       const media = await doImport(source === 'files' ? await pickFiles('visual') : await pickFromGallery());
       const visual = media.filter((m) => m.kind !== 'audio');
       if (!visual.length) return;
-      apply((p) => TL.addMediaToProject(p, visual, p.main.length ? position : null, { imageDurationMs: settings.current.imageDurationMs }).project);
+      apply((p) => TL.addMediaToProject(p, visual, p.main.length ? playhead.get() : null, { imageDurationMs: settings.current.imageDurationMs }).project);
     } catch {
       setBusy(null);
       toast(t('errors.generic'), 'error');
@@ -344,7 +357,7 @@ export default function EditorScreen({ params, focused }) {
       const media = await doImport(await pickFromGallery({ multiple: false }));
       const m = media.find((x) => x.kind === 'video' || x.kind === 'image');
       if (!m) return;
-      const r = TL.addOverlay(project, m, position);
+      const r = TL.addOverlay(project, m, playhead.get());
       if (r.error === 'LANES_FULL') return toast(t('layer.lanesFull'));
       apply(r.project);
       setSelection({ type: 'overlay', id: r.newId });
@@ -367,7 +380,7 @@ export default function EditorScreen({ params, focused }) {
       const r = await renderPhoto(spec, tmp, W, 'png', 100);
       const a = await adoptFile(r.path, `${shape}.png`, 'image/png');
       const m = { id: a.id, kind: 'image', path: a.path, name: t(`photo.shape.${shape}`), size: a.size, durationMs: 0, width: r.width, height: r.height, hasAudio: false, importedAt: Date.now() };
-      const res = TL.addOverlay(project, m, position);
+      const res = TL.addOverlay(project, m, playhead.get());
       setBusy(null);
       if (res.error === 'LANES_FULL') return toast(t('layer.lanesFull'));
       apply((p) => TL.updateOverlay(res.project, res.newId, { scale: 0.4 }));
@@ -384,7 +397,7 @@ export default function EditorScreen({ params, focused }) {
   const detectKeyColor = async () => {
     const o = selectedOverlay;
     if (!o) return;
-    const local = Math.max(0, Math.min(position - o.start, TL.overlayDuration(o) - 1));
+    const local = Math.max(0, Math.min(playhead.get() - o.start, TL.overlayDuration(o) - 1));
     const hex = await keyColor(project.media[o.mediaId], o.kind === 'image' ? 0 : o.srcIn + local * (o.speed || 1));
     if (!hex) return toast(t('layer.keyNotFound'));
     apply((p) => TL.updateOverlay(p, o.id, { chroma: { color: hex, on: true } }));
@@ -398,12 +411,12 @@ export default function EditorScreen({ params, focused }) {
     const isText = !!selectedText;
     const o = isText ? selectedText : selectedOverlay;
     if (!o) return;
-    const hit = TL.clipAt(project, position);
+    const hit = TL.clipAt(project, playhead.get());
     const clip = hit?.clip;
     const media = clip ? project.media[clip.mediaId] : null;
     if (!clip || clip.kind !== 'video' || !media) return toast(t('track.needVideo'));
     const dur = isText ? o.duration : TL.overlayDuration(o);
-    const from = Math.max(position, o.start, hit.start);
+    const from = Math.max(playhead.get(), o.start, hit.start);
     const to = Math.min(o.start + dur, hit.end);
     if (to - from < 300) return toast(t('track.tooShort'));
     const ovLocal = from - o.start;
@@ -455,11 +468,11 @@ export default function EditorScreen({ params, focused }) {
         return false;
       }
       recPath.current = `${CACHE_DIR}voice_${Date.now()}.m4a`;
-      recStart.current = position;
+      recStart.current = playhead.get();
       await startRecording(recPath.current);
       // Önizleme kayıtla birlikte oynar (kulaklık önerilir)
       previewRef.current?.play?.();
-      console.log(`[KurguUI] record start position=${Math.round(position)}`);
+      console.log(`[KurguUI] record start position=${Math.round(playhead.get())}`);
       return true;
     } catch (e) {
       console.log(`[KurguUI] record failed ${e?.code} ${e?.message}`);
@@ -491,7 +504,7 @@ export default function EditorScreen({ params, focused }) {
       const media = await doImport(await pickFiles('audio', false));
       const a = media.find((m) => m.kind === 'audio' || m.hasAudio);
       if (!a) return;
-      const r = TL.addAudio(project, a, position, 'music');
+      const r = TL.addAudio(project, a, playhead.get(), 'music');
       apply(r.project);
       setSelection({ type: 'audio', id: r.newId });
       setSub(null);
@@ -504,7 +517,7 @@ export default function EditorScreen({ params, focused }) {
   const addText = (layoutId) => {
     const lay = TEXT_LAYOUTS.find((l) => l.id === layoutId);
     const text = lay ? t(lay.textKey) : t('text.default');
-    const r = TL.addText(project, position, text, lay?.style || {}, lay ? { y: lay.y, animIn: lay.animIn, animOut: lay.animOut, animLoop: lay.animLoop || 'none' } : {});
+    const r = TL.addText(project, playhead.get(), text, lay?.style || {}, lay ? { y: lay.y, animIn: lay.animIn, animOut: lay.animOut, animLoop: lay.animLoop || 'none' } : {});
     apply(r.project);
     setSelection({ type: 'text', id: r.newId });
     setSub(null);
@@ -535,7 +548,7 @@ export default function EditorScreen({ params, focused }) {
 
   // Çıkartma: emoji metin öğesi olarak eklenir (gölgesiz, büyük, hafif sekme animasyonu)
   const addSticker = (emoji) => {
-    const r = TL.addText(project, position, emoji, { size: 0.12, shadow: false, stroke: '#00000000', strokeWidth: 0, background: '#00000000' }, { animIn: 'pop', animOut: 'fade' });
+    const r = TL.addText(project, playhead.get(), emoji, { size: 0.12, shadow: false, stroke: '#00000000', strokeWidth: 0, background: '#00000000' }, { animIn: 'pop', animOut: 'fade' });
     apply(r.project);
     setSelection({ type: 'text', id: r.newId });
     setSub(null);
@@ -543,7 +556,7 @@ export default function EditorScreen({ params, focused }) {
   };
 
   const freeze = async () => {
-    const hit = TL.clipAt(project, position);
+    const hit = TL.clipAt(project, playhead.get());
     if (!hit || hit.clip.kind !== 'video') return;
     const media = project.media[hit.clip.mediaId];
     setBusy(t('editor.working'));
@@ -555,7 +568,7 @@ export default function EditorScreen({ params, focused }) {
       await FS.copyAsync({ from: uri, to: tmp });
       const adopted = await adoptFile(tmp, 'freeze.jpg', 'image/jpeg');
       const img = { id: adopted.id, kind: 'image', path: adopted.path, name: `${media.name} (freeze)`, size: adopted.size, durationMs: 0, width: media.width, height: media.height, hasAudio: false, importedAt: Date.now() };
-      const r = TL.insertFreezeFrame(project, position, img);
+      const r = TL.insertFreezeFrame(project, playhead.get(), img);
       apply(r.project);
       setSelection({ type: 'main', id: r.newId });
     } catch {
@@ -620,7 +633,7 @@ export default function EditorScreen({ params, focused }) {
   };
 
   // --- Cihaz içi AI araçları ---
-  const textAtPlayhead = () => project?.texts.find((x) => position >= x.start && position < x.start + x.duration) || null;
+  const textAtPlayhead = () => project?.texts.find((x) => playhead.get() >= x.start && playhead.get() < x.start + x.duration) || null;
   const aiTargets = () => {
     const clip = selectedMain || clipAtPlayhead();
     const text = selectedText || textAtPlayhead();
@@ -848,7 +861,6 @@ export default function EditorScreen({ params, focused }) {
 
   const canvas = project.canvas;
   const fitted = fitBox(previewBox, canvas.width / canvas.height);
-  const timeLabel = `${ltr(formatTimecode(position))} / ${ltr(formatTimecode(total))}`;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -887,7 +899,7 @@ export default function EditorScreen({ params, focused }) {
               spec={specJson}
               live={liveJson}
               previewQuality={settings.current.previewQuality}
-              onPosition={(e) => setPosition(e.nativeEvent.positionMs)}
+              onPosition={(e) => playhead.set(e.nativeEvent.positionMs)}
               onPlaybackState={(e) => setPlaying(!!e.nativeEvent.isPlaying)}
               onPreviewError={(e) => {
                 console.log(`[KurguUI] previewError ${e.nativeEvent.code} ${e.nativeEvent.message || ''}`);
@@ -902,15 +914,18 @@ export default function EditorScreen({ params, focused }) {
             </View>
           )}
           {selectedOverlay && fitted.w > 0 ? (
+            <PlayheadValue store={playhead} stepMs={33}>
+            {(ms) => (
             <OverlayHandle
               item={selectedOverlay}
               media={project.media[selectedOverlay.mediaId]}
-              values={['x', 'y', 'scale', 'rotation'].reduce((acc, k) => ({ ...acc, [k]: TL.overlayPropAt(selectedOverlay, k, position - selectedOverlay.start) }), {})}
+              values={['x', 'y', 'scale', 'rotation'].reduce((acc, k) => ({ ...acc, [k]: TL.overlayPropAt(selectedOverlay, k, ms - selectedOverlay.start) }), {})}
               boxW={fitted.w}
               boxH={fitted.h}
-              visible={position >= selectedOverlay.start && position <= selectedOverlay.start + TL.overlayDuration(selectedOverlay)}
+              visible={ms >= selectedOverlay.start && ms <= selectedOverlay.start + TL.overlayDuration(selectedOverlay)}
               onChange={(v) =>
                 apply((p) => {
+                  const position = playhead.get();
                   let o = p.overlays.find((x) => x.id === selectedOverlay.id);
                   let next = p;
                   for (const k of ['x', 'y', 'scale', 'rotation']) {
@@ -922,16 +937,21 @@ export default function EditorScreen({ params, focused }) {
                 }, 'ovl-drag')
               }
             />
+            )}
+            </PlayheadValue>
           ) : null}
           {selectedText && fitted.w > 0 ? (
+            <PlayheadValue store={playhead} stepMs={33}>
+            {(ms) => (
             <TextHandle
-              item={{ ...selectedText, ...TL.textValuesAt(selectedText, position - selectedText.start) }}
+              item={{ ...selectedText, ...TL.textValuesAt(selectedText, ms - selectedText.start) }}
               boxW={fitted.w}
               boxH={fitted.h}
-              visible={position >= selectedText.start && position <= selectedText.start + selectedText.duration}
+              visible={ms >= selectedText.start && ms <= selectedText.start + selectedText.duration}
               onChange={(patch, key) =>
                 apply((p) => {
                   // Anahtar kare izi olan özellik oynatma kafasındaki kareye yazılır
+                  const position = playhead.get();
                   let x = p.texts.find((tx) => tx.id === selectedText.id);
                   let next = p;
                   const local = position - x.start;
@@ -945,6 +965,8 @@ export default function EditorScreen({ params, focused }) {
               }
               onEdit={() => openPanel('text')}
             />
+            )}
+            </PlayheadValue>
           ) : null}
         </View>
         {previewError ? (
@@ -956,10 +978,12 @@ export default function EditorScreen({ params, focused }) {
 
       {/* Oynatma denetimleri */}
       <Row style={styles.controls}>
-        <Text style={styles.time}>{timeLabel}</Text>
+        <PlayheadValue store={playhead} stepMs={100}>
+          {(ms) => <Text style={styles.time}>{`${ltr(formatTimecode(ms))} / ${ltr(formatTimecode(total))}`}</Text>}
+        </PlayheadValue>
         <IconButton icon={playing ? 'pause' : 'play'} size={28} label={t(playing ? 'editor.pause' : 'editor.play')} onPress={togglePlay} testID="play-toggle" />
         <Row gap={0}>
-          <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, position))} />
+          <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, playhead.get()))} />
           <IconButton icon="arrow-undo" directional size={20} label={t('editor.undo')} disabled={!canUndo(hist)} onPress={() => setHist(undo)} testID="undo" />
           <IconButton icon="arrow-redo" directional size={20} label={t('editor.redo')} disabled={!canRedo(hist)} onPress={() => setHist(redo)} testID="redo" />
         </Row>
@@ -969,7 +993,7 @@ export default function EditorScreen({ params, focused }) {
       <View style={styles.timeline}>
         <Timeline
           project={missing.size ? markMissing(project, missing) : project}
-          positionMs={position}
+          playhead={playhead}
           isPlaying={playing}
           pxPerMs={pxPerMs}
           selection={selection}
@@ -980,7 +1004,7 @@ export default function EditorScreen({ params, focused }) {
             setPanel(null);
             if (sel.type === 'text') {
               const tx = project.texts.find((x) => x.id === sel.id);
-              if (tx && (position < tx.start || position > tx.start + tx.duration)) seek(tx.start + 1, false);
+              if (tx && (playhead.get() < tx.start || playhead.get() > tx.start + tx.duration)) seek(tx.start + 1, false);
             }
           }}
           onTrim={onTrim}
@@ -988,10 +1012,10 @@ export default function EditorScreen({ params, focused }) {
             apply((p) => TL.moveMain(p, from, to));
             haptic();
           }}
-          onMoveAudio={(id, start) => apply((p) => TL.updateAudio(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
-          onMoveText={(id, start) => apply((p) => TL.updateText(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
-          onMoveEffect={(id, start) => apply((p) => TL.updateEffectLayer(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [position])) }))}
-          onMoveOverlay={(id, start) => apply((p) => TL.moveOverlay(p, id, TL.snapTime(p, start, 12 / pxPerMs, [position])))}
+          onMoveAudio={(id, start) => apply((p) => TL.updateAudio(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [playhead.get()])) }))}
+          onMoveText={(id, start) => apply((p) => TL.updateText(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [playhead.get()])) }))}
+          onMoveEffect={(id, start) => apply((p) => TL.updateEffectLayer(p, id, { start: Math.round(TL.snapTime(p, start, 12 / pxPerMs, [playhead.get()])) }))}
+          onMoveOverlay={(id, start) => apply((p) => TL.moveOverlay(p, id, TL.snapTime(p, start, 12 / pxPerMs, [playhead.get()])))}
           effectName={(effectId) => t(`fx.${effectId}.name`)}
           onZoom={zoom}
           onTransitionPress={(clipId) => {
@@ -1272,8 +1296,8 @@ export default function EditorScreen({ params, focused }) {
               if (selectedEffect) {
                 apply((p) => TL.updateEffectLayer(p, selectedEffect.id, { effectId, values: {}, amount: 1 }));
               } else {
-                const r = TL.addEffectLayer(project, effectId, position, 3000);
-                console.log(`[KurguUI] effectLayer position=${Math.round(position)}`);
+                const r = TL.addEffectLayer(project, effectId, playhead.get(), 3000);
+                console.log(`[KurguUI] effectLayer position=${Math.round(playhead.get())}`);
                 apply(r.project);
                 setSelection({ type: 'effect', id: r.newId });
               }

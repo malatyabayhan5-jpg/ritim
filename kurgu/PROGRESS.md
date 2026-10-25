@@ -143,6 +143,16 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**Gerçek cihaz geri bildirimi (kullanıcı, Xiaomi/Redmi/Poco):** önizleme oynatırken, zaman çizelgesinde ve
+düzenleme yapınca **donuyor**. Emülatör testleri bunu yakalamamıştı. Bulunan neden: oynatma konumu editör ekranının
+React durumundaydı; önizleme konumu saniyede ~60 kez gelince 1400 satırlık ekranın tamamı (zaman çizelgesi, küçük
+resimler, araç çubuğu, paneller) her seferinde yeniden çiziliyordu; zaman çizelgesi de görünür pencereyi 50–120 ms'de
+bir durum olarak güncelliyordu. Düzeltme: konum abonelikli bir depoda (`src/editor/playhead.js`); editör ekranı
+yalnızca duraklatılmışken ve kaydırma bitince güncellenir; zaman göstergesi (100 ms) ve seçili tutamaçlar kendi
+küçük aboneleriyle çizilir; zaman çizelgesi kaydırmayı React çizimi olmadan yapar, görünür pencereyi yalnızca yarım
+ekran kayınca yeniler. Önizlemede katman şeridi varsa önizleme çözünürlüğü 640–800 px'e iner (dışa aktarma
+etkilenmez). Ölçüm: e2e 5 artık editör çizim sayısını yazar. Durum 🟡 — gerçek cihazda yeniden doğrulanmalı.
+
 **CI #85** (1969ece): **8/8 akış GEÇTİ** (1 kabul + dışa aktarma, 2 dil/RTL, 3 AI araçları + karışım modu,
 4 otomatik altyazı, 5 performans p50 28 ms, 6 katmanlar, 7 seslendirme, 8 fotoğraf); katman testi, takip testi
 (46 nokta, 26 kare, kayıp 0), fotoğraf çıktısı (1080×1080) ve dışa aktarılan MP4 denetimi (17,5 sn, hatasız

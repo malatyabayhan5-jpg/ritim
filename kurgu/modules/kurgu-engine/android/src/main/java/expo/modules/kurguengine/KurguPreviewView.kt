@@ -124,9 +124,12 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     else -> {
       val effects = s.main.sumOf { it.effects.size } + s.effectLayers.size
       val heavy = s.main.any { m -> m.effects.any { it.heavy } } || s.effectLayers.any { it.heavy }
+      // Her katman şeridi (üst katman, geçiş) ayrı çözücü + tam kanvas geçişi demektir; orta
+      // sınıf telefonda çok girişli önizleme çözünürlüğü düşürülür (dışa aktarma etkilenmez).
+      val lanes = s.layers.size + s.blendLayers.size
       when {
-        heavy || effects >= 4 -> 640
-        effects >= 1 -> 800
+        heavy || effects >= 4 || lanes >= 2 -> 640
+        effects >= 1 || lanes >= 1 -> 800
         else -> 960
       }
     }
