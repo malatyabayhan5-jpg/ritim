@@ -58,11 +58,35 @@ Expected: AA 4.5:1 for the 14 sp bold label.  Actual: about 3.4:1.
 Evidence: `contrast.py` on-accent pair.
 Status: fixed in 2fad693 (dark label, `onAccent`).
 
+### BUG-006: Preview failed whenever a fit clip had a colour or blur canvas background
+
+- Severity: S1 (preview unusable)
+- Flow / case: F02, F05, F06 / e2e 2, 3, 6, 7
+- Screen: S03
+- Build: image background commit (before 781c3a2)  Device: CI emulator #118
+
+Steps
+1. Open a project whose clip does not fill the canvas (default fit).
+2. Wait for the preview.
+
+Expected: the clip plays with the bars filled.
+Actual: "Preview error (ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED)".
+Evidence: CI #118 logcat `IllegalStateException: No call to setSamplerTexId() before bind` at
+`CanvasBgProgram.drawFrame(CanvasBgFx.kt:120)`.
+Cause: the shader declares the `uBgImg` sampler in every mode, but it was only set in image mode;
+Media3's GlProgram refuses to draw with an unset sampler. Missed because Kotlin and GL run only in CI,
+and fx-lab sets every uniform itself.
+Status: fixed (pending CI): the input texture is bound as a placeholder when there is no image.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.
 - text_check at 160x90 lost thin letters — fixed in c46a929.
 - Flow 6 redo tap missed after undo — retried by label in f904ac9.
+- Clip animation check compared brightness, but flow 1's duotone effect layer turns black into a dark
+  purple, so a fully transparent first frame measured Y≈35 against 48 (CI #118). It now compares
+  contrast (YHIGH − YLOW); validated on synthetic fade-in videos with a colour lift (20 vs 155 passes,
+  no fade 155 vs 155 fails). The export also logs the opacity applied to its first frames.
 - text_check failed when the picker returned different clips (CI #100): the frame before the text was a bright scene, and the effect layer that starts with the text darkens everything after, so the before-frame baseline could not be beaten. Now frames with the same background (mid-animation, after / exit) count as the baseline; validated on synthetic bright-then-dark videos with and without text.
 
 ### BUG-005: Keyframe button added keys outside the selected clip; Curve tool did not appear

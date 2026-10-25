@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Matrix
 import android.opengl.GLES20
 import android.opengl.Matrix as GlMatrix
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.VideoFrameProcessingException
@@ -96,9 +97,15 @@ class KeyedPlacement(
 @OptIn(UnstableApi::class)
 class KeyedOpacity(private val base: Float, private val track: FloatArray?, private val clipStartMs: Long) : RgbMatrix {
   private val out = FloatArray(16)
+  private var logged = 0
 
   override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray {
     val k = Keyframes.valueAt(track, presentationTimeUs / 1000.0 - clipStartMs, base).coerceIn(0f, 1f)
+    // Tanı: ilk birkaç karede uygulanan opaklık (e2e klip animasyonu denetimi için)
+    if (logged < 3) {
+      logged++
+      Log.i("KurguExport", "opacity t=${presentationTimeUs / 1000} start=$clipStartMs k=$k")
+    }
     GlMatrix.setIdentityM(out, 0)
     out[0] = k
     out[5] = k

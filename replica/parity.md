@@ -20,10 +20,15 @@ is blurred in the reference), so the preview area always counts as different.
 
 | screen | reference | clone screenshot | score |
 | --- | --- | --- | --- |
-| S01 home | S01_home | 01_ana_ekran | pending CI (7cdde58 or later) |
-| S03 editor | S03_editor | 04_editor | pending CI |
-| S04 clip toolbar | S04_clip_b | 06_bolme | pending CI |
-| S15 filters / adjust | S15_adjust_custom | 08_filtre | pending CI |
+| S01 home | S01_home | 01_ana_ekran | not measured yet |
+| S03 editor | S03_editor | 04_editor | not measured yet |
+| S04 clip toolbar | S04_clip_b | 06_bolme | not measured yet |
+| S15 filters / adjust | S15_adjust_custom | 08_filtre | not measured yet |
+
+CI #118 (781c3a2): the e2e flow ran and took these screenshots, but run.sh found none of them in the
+working or flow directory, so no score exists yet. run.sh now also looks under `~/.maestro` (where
+newer Maestro versions write screenshots), copies them into the artifact, and lists the PNGs it did
+find when one is missing.
 
 The home screen is expected to score low: Kurgu's home is a drafts list plus New project, without
 CapCut's promo banner, tool grid or template tabs. Those are out of scope.

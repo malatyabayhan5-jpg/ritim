@@ -112,7 +112,9 @@ internal class CanvasBgProgram(
       if (bg[0] > 1.5f) ensureImage()
       program.use()
       program.setSamplerTexIdUniform("uTex", inputTexId, 0)
-      if (imageTex >= 0) program.setSamplerTexIdUniform("uBgImg", imageTex, 1)
+      // Gölgelendirici uBgImg'yi her kipte tanımlar; GlProgram ayarlanmamış örnekleyiciyle
+      // çizmez. Resim yoksa giriş dokusu yer tutucu olarak bağlanır (kip 2 dışında okunmaz).
+      program.setSamplerTexIdUniform("uBgImg", if (imageTex >= 0) imageTex else inputTexId, 1)
       program.setFloatsUniformIfPresent("uRes", floatArrayOf(canvasW.toFloat(), canvasH.toFloat()))
       program.setFloatsUniformIfPresent("uAmount", floatArrayOf(1f))
       program.setFloatsUniformIfPresent("uP0", p0)

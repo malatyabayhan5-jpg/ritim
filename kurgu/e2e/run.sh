@@ -258,16 +258,23 @@ else
   echo "Galeride (Pictures/Kurgu) dışa aktarılmış fotoğraf bulunamadı" >> "$OUT/sonuclar.txt"
 fi
 
-# Klip animasyonu: akış 1 ilk klibe "yakınlaş" girişi verir (500 ms, opaklık 0 → 1). Dışa aktarılan
-# videonun başındaki kare, 1. saniyedeki kareden belirgin biçimde karanlık olmalı.
+# Klip animasyonu: akış 1 ilk klibe "yakınlaş" girişi verir (500 ms, opaklık 0 → 1). Akışın efekt
+# katmanı (duotone) siyahı da renklendirdiği için parlaklık değil karşıtlık ölçülür: başta görüntü
+# neredeyse düzdür (YHIGH − YLOW küçük), 1. saniyede klip tam görünür.
 if ran 1_kabul_akisi && [ -f "$OUT/cikti.mp4" ]; then
   if grep -q "\[1_kabul_akisi\].*\[KurguUI\] clipAnim .*zoomIn" "$OUT/kurgu_gunluk.txt"; then
-    yavg() { ffmpeg -v error -ss "$1" -i "$OUT/cikti.mp4" -frames:v 1 -vf "signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" -f null - 2>/dev/null | grep -o "YAVG=[0-9.]*" | head -1 | cut -d= -f2; }
-    y0=$(yavg 0.04); y1=$(yavg 1.0)
-    if [ -n "$y0" ] && [ -n "$y1" ] && python3 -c "import sys; a,b=float(sys.argv[1]),float(sys.argv[2]); sys.exit(0 if a < 0.6*b + 2 and b > 20 else 1)" "$y0" "$y1"; then
-      echo "Klip animasyonu testi: GEÇTİ (ilk kare parlaklığı $y0, 1. sn $y1)" >> "$OUT/sonuclar.txt"
+    yrange() { ffmpeg -v error -ss "$1" -i "$OUT/cikti.mp4" -frames:v 1 -vf "signalstats,metadata=print:file=-" -f null - 2>/dev/null | python3 -c "
+import re, sys
+t = sys.stdin.read()
+hi = re.search(r'YHIGH=([0-9.]+)', t); lo = re.search(r'YLOW=([0-9.]+)', t)
+print(float(hi.group(1)) - float(lo.group(1)) if hi and lo else '')"; }
+    r0=$(yrange 0.04); r1=$(yrange 1.0)
+    if [ -n "$r0" ] && [ -n "$r1" ] && python3 -c "import sys; a,b=float(sys.argv[1]),float(sys.argv[2]); sys.exit(0 if a < 0.5*b and b > 15 else 1)" "$r0" "$r1"; then
+      echo "Klip animasyonu testi: GEÇTİ (karşıtlık başta $r0, 1. sn $r1)" >> "$OUT/sonuclar.txt"
     else
-      echo "Klip animasyonu testi: BAŞARISIZ (ilk kare parlaklığı ${y0:-?}, 1. sn ${y1:-?}; giriş animasyonu izi yok)" >> "$OUT/sonuclar.txt"
+      echo "Klip animasyonu testi: BAŞARISIZ (karşıtlık başta ${r0:-?}, 1. sn ${r1:-?}; giriş animasyonu izi yok)" >> "$OUT/sonuclar.txt"
+      # Tanı: dışa aktarmada ilk karelere uygulanan opaklık (Fx.kt KeyedOpacity)
+      grep -E "\[1_kabul_akisi\].*KurguExport *: opacity " "$OUT/kurgu_gunluk.txt" | sed 's/.*KurguExport *: /  /' | tail -6 >> "$OUT/sonuclar.txt"
     fi
   else
     echo "Klip animasyonu testi: BAŞARISIZ (günlükte animasyon seçimi yok)" >> "$OUT/sonuclar.txt"
@@ -279,13 +286,15 @@ fi
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IMGDIFF="$REPO_ROOT/.claude/skills/replica-diff/imgdiff.py"
 REF="$REPO_ROOT/replica/screens/phone"
-if [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
+if ran 1_kabul_akisi && [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
   for pair in S01_home:01_ana_ekran S03_editor:04_editor S04_clip_b:06_bolme S15_adjust_custom:08_filtre; do
     ref=${pair%%:*}; shot=${pair##*:}
-    # Maestro ekran görüntüsünü sürüme göre çalışma dizinine ya da akış dosyasının yanına yazar
-    img=$(find "$OUT" "$(dirname "$0")" -maxdepth 3 -name "$shot.png" 2>/dev/null | head -1)
+    # Maestro ekran görüntüsünü sürüme göre çalışma dizinine, akış dosyasının yanına ya da
+    # ~/.maestro/tests/<zaman> altına yazar; bulunan kopya yapıta girsin diye $OUT'a alınır
+    img=$(find "$OUT" "$(dirname "$0")" "$HOME/.maestro" /tmp -maxdepth 5 -name "$shot.png" 2>/dev/null | head -1)
+    if [ -n "$img" ] && [ "$(dirname "$img")" != "$OUT" ]; then cp "$img" "$OUT/$shot.png" && img="$OUT/$shot.png"; fi
     if [ ! -f "$REF/$ref.png" ] || [ -z "$img" ]; then
-      echo "Düzen farkı $ref: ekran görüntüsü yok ($shot.png)" >> "$OUT/sonuclar.txt"
+      echo "Düzen farkı $ref: ekran görüntüsü yok ($shot.png; bulunan png: $(find "$OUT" "$(dirname "$0")" "$HOME/.maestro" -maxdepth 5 -name '0*.png' 2>/dev/null | head -3 | tr '\n' ' '))" >> "$OUT/sonuclar.txt"
       continue
     fi
     if python3 "$IMGDIFF" "$REF/$ref.png" "$img" --out "$OUT/fark_$ref.png" --json > "$OUT/fark_$ref.json" 2> "$OUT/fark_$ref.err"; then
