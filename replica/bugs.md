@@ -76,7 +76,25 @@ Evidence: CI #118 logcat `IllegalStateException: No call to setSamplerTexId() be
 Cause: the shader declares the `uBgImg` sampler in every mode, but it was only set in image mode;
 Media3's GlProgram refuses to draw with an unset sampler. Missed because Kotlin and GL run only in CI,
 and fx-lab sets every uniform itself.
-Status: fixed (pending CI): the input texture is bound as a placeholder when there is no image.
+Status: fixed in c30200d: the input texture is bound as a placeholder when there is no image.
+CI #123: no preview error in any flow; e2e 2–8 passed.
+
+### BUG-007: Keyframe button was disabled while playback ran past the selected clip
+
+- Severity: S3
+- Flow / case: F08 / F08-H1
+- Screen: S03
+- Build: c30200d  Device: CI emulator #123 (e2e 1)
+
+Steps
+1. Play, select the first clip while playback continues past it (or the pause tap does not land).
+2. Tap the keyframe diamond.
+
+Expected: a key is added on the selected clip.
+Actual: nothing; the diamond was disabled because the playhead had left the clip (BUG-005's guard).
+Evidence: CI #123 flow 1 ended at 12.5 / 12.5 with the clip toolbar and no keyframe log line.
+Status: fixed (pending CI): the diamond is always active; pressing it pauses playback, moves the
+playhead to the nearest point inside the item and toggles the key there.
 
 ## Test tooling bugs (not app bugs)
 

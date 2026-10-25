@@ -1178,19 +1178,21 @@ export default function EditorScreen({ params, focused }) {
                 <PlayheadValue store={playhead} stepMs={100}>
                   {(ms) => {
                     const on = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, Math.round(ms - keyTarget.start), KT);
-                    // Oynatma kafası seçili öğenin dışındaysa kare eklenemez (öğenin süresi dışına düşerdi)
-                    const inside = ms >= keyTarget.start - 1 && ms <= keyTarget.start + keyTarget.dur + 1;
                     return (
                       <IconButton
                         icon={on ? 'diamond' : 'diamond-outline'}
                         size={20}
                         color={on ? colors.accent : colors.text}
-                        disabled={!inside}
                         label={t(on ? 'editor.keyRemove' : 'editor.keyAdd')}
                         onPress={() => {
-                          const local = Math.round(Math.max(0, Math.min(keyTarget.dur, playhead.get() - keyTarget.start)));
+                          // Oynatma durur; oynatma kafası öğenin dışındaysa öğenin en yakın ucuna gelir
+                          // (kare hiçbir zaman öğenin süresi dışına düşmez)
+                          if (playing) previewRef.current?.pause?.();
+                          const now = playhead.get();
+                          const local = Math.round(Math.max(0, Math.min(keyTarget.dur, now - keyTarget.start)));
+                          if (playing || Math.abs(keyTarget.start + local - now) > 1) seek(keyTarget.start + local, false);
                           const removing = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, local, KT);
-                          console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${removing ? 'remove' : 'add'}`);
+                          console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${removing ? 'remove' : 'add'}${playing ? ' paused' : ''}`);
                           apply((p) => TL.toggleAllKeys(p, keyTarget.type, keyTarget.id, local, KT));
                         }}
                         testID="key-toggle"
