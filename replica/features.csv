@@ -27,7 +27,7 @@ Clip animations in out combo,clip,should,yes,yes,"Animations in the clip toolbar
 Crop rotate flip clip,clip,must,yes,yes,
 Mask (shapes feather invert),clip,should,yes,yes,e2e 6 layer test
 Chroma key,clip,should,yes,partial,lab verified; no on-device visual check
-Remove background from video (person),ai,should,yes,partial,"video layers: Remove background segments every frame on the device (DeepLab v3, smoothed between frames), paints the rest key green and turns the layer's chroma key on; tap again to restore. Chroma step lab-verified after H.264; native pipeline compiled in CI but not run on a phone (no e2e video layer)"
+Remove background from video (person),ai,should,yes,partial,"video layers: Remove background segments every frame on the device (DeepLab v3, smoothed between frames), paints the rest key green and turns the layer's chroma key on; tap again to restore. Chroma step lab-verified after H.264; e2e 7 ran it on a video layer in CI #123 (150 frames, audio kept; the test clip has no person); not run on a phone"
 Opacity,clip,must,yes,yes,
 Blend modes for overlays,clip,could,yes,partial,images and stickers 11 modes; video overlays normal only
 Picture in picture overlays,overlay,must,yes,yes,e2e 6
@@ -54,7 +54,7 @@ Apply transition to all,transitions,should,yes,yes,transition panel Apply to all
 Aspect ratio presets,canvas,must,yes,yes,
 Canvas background colour or blur,canvas,should,yes,yes,"colour, blurred clip or a gallery image (cover-cropped, dim slider) behind fit clips; Ratio panel and the main toolbar Background; live in preview except a new image (rebuild); shader lab-verified for all three modes; unit tests; not checked on a device"
 Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
-Stabilization,ai,could,yes,partial,"translation only (GlobalMotion block matching, Gaussian path smoothing, zoom 1.05-1.15 via main clip x/y keys); rotation not corrected; not run on a phone"
+Stabilization,ai,could,yes,partial,"translation only (GlobalMotion block matching, Gaussian path smoothing, zoom 1.05-1.15 via main clip x/y keys); rotation not corrected; CI #123 ran it on the emulator (33 samples, 14 keys, 18 samples at the zoom margin); not run on a phone"
 Auto cut silence and scene detection,ai,could,yes,yes,
 Export resolution 480p to 4K,export,must,yes,yes,720p to 2160p offered
 Export frame rate 24 to 60,export,must,yes,yes,
