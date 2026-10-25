@@ -73,6 +73,13 @@ appId: app.kurgu.editor
     id: "panel-done"
 - tapOn:
     id: "key-toggle"
+# Klip animasyonu: giriş "yakınlaş" (dışa aktarılan videonun ilk karesi karanlık ve küçük olmalı; run.sh)
+- tapOn:
+    id: "tool-clipAnim"
+- tapOn:
+    id: "clip-anim-in-zoomIn"
+- tapOn:
+    id: "panel-done"
 - tapOn:
     id: "tool-split"
 - takeScreenshot:

@@ -23,7 +23,7 @@ Replace clip media,clip,should,yes,yes,"clip toolbar Replace: keeps timeline len
 Duplicate clip,clip,could,yes,yes,seen in the recording (clip toolbar); Kurgu has Duplicate
 Keyframes position scale rotation opacity,keyframes,must,yes,yes,"main track, overlays and text; one diamond button under the preview adds or removes keys for all properties at the playhead (unit tests, e2e 1)"
 Keyframe easing (linear ease in ease out),keyframes,should,yes,yes,"Curve tool appears in the clip / layer / text toolbar while the playhead is on a keyframe: 7 curves with previews (linear, in, out, in-out, smooth, spring, hold); unit test, e2e 1"
-Clip animations in out combo,clip,should,yes,no,Kurgu has text animations only
+Clip animations in out combo,clip,should,yes,yes,"Animations in the clip toolbar (3rd, like the recording): 9 in, 9 out, 5 combo with duration; merged into the clip's keyframes at render time, user keys kept; split keeps in on the first piece and out on the last; 5 unit tests, e2e 1 + brightness check on the export"
 Crop rotate flip clip,clip,must,yes,yes,
 Mask (shapes feather invert),clip,should,yes,yes,e2e 6 layer test
 Chroma key,clip,should,yes,partial,lab verified; no on-device visual check

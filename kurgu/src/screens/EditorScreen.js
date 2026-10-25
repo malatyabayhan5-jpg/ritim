@@ -16,6 +16,7 @@ import {
   RatioPanel,
   ExportPrefsPanel,
   KeyEasePanel,
+  ClipAnimPanel,
   SpeedPanel,
   TextPanel,
   TransformPanel,
@@ -55,6 +56,7 @@ import * as TL from '../model/timeline';
 import { sourceAt } from '../model/speed';
 import { importErrorText } from './HomeScreen';
 import { exportPrefs, setExportPrefs } from '../model/exportPrefs';
+import { hasAnim } from '../model/clipAnim';
 
 const SPEC_DEBOUNCE_MS = 180;
 const SAVE_DEBOUNCE_MS = 700;
@@ -1172,6 +1174,7 @@ export default function EditorScreen({ params, focused }) {
         keyTool,
         T('split', 'cut-outline', split),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
+        T('clipAnim', 'film-outline', () => openPanel('clipAnim'), { badge: hasAnim(selectedMain.anim) }),
         T('effects', 'sparkles-outline', () => {
           setFxSel(selectedMain.effects?.[selectedMain.effects.length - 1]?.id || null);
           openPanel('fxClip');
@@ -1448,6 +1451,18 @@ export default function EditorScreen({ params, focused }) {
         const maxMs = i > 0 ? Math.min(TL.clipDuration(project.main[i - 1]), TL.clipDuration(selectedMain)) : 0;
         return <TransitionPanel clip={selectedMain} maxMs={maxMs} onChange={updMain} onApplyAll={(patch) => { apply((p) => ({ ...TL.updateAllMain(p, patch) })); toast(t('panels.appliedToAll')); }} onClose={close} />;
       }
+      case 'clipAnim':
+        return selectedMain ? (
+          <ClipAnimPanel
+            clip={selectedMain}
+            durationMs={TL.clipDuration(selectedMain)}
+            onChange={(patch, key) => {
+              console.log(`[KurguUI] clipAnim ${JSON.stringify(patch)}`);
+              apply((p) => TL.setClipAnim(p, selectedMain.id, patch), key);
+            }}
+            onClose={close}
+          />
+        ) : null;
       case 'keyEase':
         return keyTarget && keyEase ? (
           <KeyEasePanel

@@ -10,6 +10,7 @@ import { TRANSITIONS, TRANSITION_MIN_MS } from '../model/catalog';
 import { effectRenderSpec } from '../model/effects';
 import { audioFxSpec } from '../model/audio-fx';
 import { edgeSpeed, packSegments } from '../model/speed';
+import { animTracks } from '../model/clipAnim';
 
 const DEFAULT_IMAGE_SOURCE_MS = 3000;
 
@@ -18,6 +19,14 @@ const DEFAULT_IMAGE_SOURCE_MS = 3000;
  * @param resolveUri (media) => mutlak dosya URI'si
  * @param options { rtl } metin katmanlarının yön ipucu (boş metinler için)
  */
+const MAIN_BASE_VALUE = {
+  x: (c) => c.transform?.x ?? 0,
+  y: (c) => c.transform?.y ?? 0,
+  scale: (c) => c.transform?.scale ?? 1,
+  angle: (c) => c.transform?.angle ?? 0,
+  opacity: (c) => clamp(c.opacity ?? 1, 0, 1),
+};
+
 export function buildRenderSpec(project, resolveUri, options = {}) {
   const layout = mainLayout(project);
   const totalMs = Math.round(totalDuration(project));
@@ -28,8 +37,10 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     const visuals = clipVisuals(clip);
     const isImage = clip.kind === 'image';
     const kf = {};
+    // Klip animasyonu (giriş / çıkış / kombo) kullanıcının kareleriyle birleşmiş izler olarak gider
+    const animated = animTracks(clip, Math.round(end - start), (prop) => MAIN_BASE_VALUE[prop](clip));
     for (const prop of MAIN_KEY_PROPS) {
-      const packed = packTrack(clip.keyframes?.[prop]);
+      const packed = packTrack(animated[prop] || clip.keyframes?.[prop]);
       if (packed) kf[prop] = packed;
     }
     return {

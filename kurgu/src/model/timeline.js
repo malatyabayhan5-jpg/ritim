@@ -7,6 +7,7 @@ import { createAudioClip, createMainClip, createOverlay, createText, newId } fro
 import { removeKey, setKey, shiftKeyframes, valueAt } from './keyframes';
 import { averageSpeed, edgeSpeed, localAt, sourceAt, speedDuration, splitCurve, subCurve } from './speed';
 import { createEffectInstance, createEffectLayer } from './effects';
+import { normalizeAnim, splitAnim } from './clipAnim';
 
 export const MIN_CLIP_MS = 100;
 export const MAX_IMAGE_MS = 60 * 60 * 1000;
@@ -102,6 +103,7 @@ export function splitMainAt(project, t) {
     a.keyframes = shiftKeyframes(clip.keyframes, 0, offset);
     b.keyframes = shiftKeyframes(clip.keyframes, -offset, dur - offset);
   }
+  if (clip.anim) [a.anim, b.anim] = splitAnim(clip.anim);
   const main = [...project.main];
   main.splice(hit.index, 1, a, b);
   return { project: replaceMain(project, main), changed: true, newId: b.id };
@@ -132,6 +134,7 @@ export function splitMainAtSourceTimes(project, clipId, timesMs) {
     transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
     ...(clip.speedCurve ? { speedCurve: subCurve(clip.speedCurve, (srcIn - clip.srcIn) / (clip.srcOut - clip.srcIn), (bounds[k + 1] - clip.srcIn) / (clip.srcOut - clip.srcIn)) } : {}),
     ...(clip.keyframes ? { keyframes: shiftKeyframes(clip.keyframes, -localAt(clip, srcIn), localAt(clip, bounds[k + 1]) - localAt(clip, srcIn)) } : {}),
+    ...(clip.anim ? { anim: { ...clip.anim, ...(k > 0 ? { in: 'none' } : {}), ...(k < bounds.length - 2 ? { out: 'none' } : {}) } } : {}),
   }));
   const main = [...project.main];
   main.splice(i, 1, ...pieces);
@@ -170,6 +173,7 @@ export function removeSourceRanges(project, clipId, ranges) {
     transition: k === 0 ? clip.transition : { ...clip.transition, type: 'none' },
     ...(clip.speedCurve ? { speedCurve: subCurve(clip.speedCurve, (srcIn - clip.srcIn) / (clip.srcOut - clip.srcIn), (srcOut - clip.srcIn) / (clip.srcOut - clip.srcIn)) } : {}),
     ...(clip.keyframes ? { keyframes: shiftKeyframes(clip.keyframes, -localAt(clip, srcIn), localAt(clip, srcOut) - localAt(clip, srcIn)) } : {}),
+    ...(clip.anim ? { anim: { ...clip.anim, ...(k > 0 ? { in: 'none' } : {}), ...(k < keep.length - 1 ? { out: 'none' } : {}) } } : {}),
   }));
   const after = pieces.reduce((sum, c) => sum + clipDuration(c), 0);
   if (before - after < 1) return { project, removedMs: 0, pieces: 1 };
@@ -887,4 +891,13 @@ export function setKeysEasing(project, type, id, localMs, e) {
     changed = true;
   }
   return changed ? tg.update(project, id, { keyframes }) : project;
+}
+
+/** Klip animasyonu (giriş / çıkış / kombo) ayarı; animasyon yoksa alan kaldırılır. */
+export function setClipAnim(project, clipId, patch) {
+  const clip = project.main.find((c) => c.id === clipId);
+  if (!clip) return project;
+  const anim = normalizeAnim({ ...clip.anim, ...patch });
+  const none = anim.in === 'none' && anim.out === 'none' && anim.combo === 'none';
+  return updateMain(project, clipId, { anim: none ? null : anim });
 }

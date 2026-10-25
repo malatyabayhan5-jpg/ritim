@@ -207,6 +207,21 @@ else
   echo "Galeride (Pictures/Kurgu) dışa aktarılmış fotoğraf bulunamadı" >> "$OUT/sonuclar.txt"
 fi
 
+# Klip animasyonu: akış 1 ilk klibe "yakınlaş" girişi verir (500 ms, opaklık 0 → 1). Dışa aktarılan
+# videonun başındaki kare, 1. saniyedeki kareden belirgin biçimde karanlık olmalı.
+if ran 1_kabul_akisi && [ -f "$OUT/cikti.mp4" ]; then
+  if grep -q "\[1_kabul_akisi\].*\[KurguUI\] clipAnim .*zoomIn" "$OUT/kurgu_gunluk.txt"; then
+    yavg() { ffmpeg -v error -ss "$1" -i "$OUT/cikti.mp4" -frames:v 1 -vf "signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" -f null - 2>/dev/null | grep -o "YAVG=[0-9.]*" | head -1 | cut -d= -f2; }
+    y0=$(yavg 0.04); y1=$(yavg 1.0)
+    if [ -n "$y0" ] && [ -n "$y1" ] && python3 -c "import sys; a,b=float(sys.argv[1]),float(sys.argv[2]); sys.exit(0 if a < 0.6*b + 2 and b > 20 else 1)" "$y0" "$y1"; then
+      echo "Klip animasyonu testi: GEÇTİ (ilk kare parlaklığı $y0, 1. sn $y1)" >> "$OUT/sonuclar.txt"
+    else
+      echo "Klip animasyonu testi: BAŞARISIZ (ilk kare parlaklığı ${y0:-?}, 1. sn ${y1:-?}; giriş animasyonu izi yok)" >> "$OUT/sonuclar.txt"
+    fi
+  else
+    echo "Klip animasyonu testi: BAŞARISIZ (günlükte animasyon seçimi yok)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Düzen karşılaştırması (replica-diff): kullanıcının CapCut kaydından referans kareler ile klonun
 # aynı ekranları. Kenar haritası ızgarası, renk yok sayılır; önizlemedeki videolar farklı olduğu için
 # önizleme alanı da farka katkı verir. Puanlar sonuclar.txt'ye, fark görselleri yapıta.

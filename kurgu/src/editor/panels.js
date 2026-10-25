@@ -24,6 +24,7 @@ import {
 import { DEFAULT_ADJUST } from '../model/schema';
 import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey, toggleVolumeKey, volumeAt, volumePatch } from '../model/timeline';
 import { EASING_IDS, ease, keyAt } from '../model/keyframes';
+import { CLIP_ANIMS_COMBO, CLIP_ANIMS_IN, CLIP_ANIMS_OUT, CLIP_ANIM_DEFAULT_MS, CLIP_ANIM_MAX_MS, CLIP_ANIM_MIN_MS, COMBO_MS, normalizeAnim } from '../model/clipAnim';
 import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
 const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 20, 50, 100];
@@ -389,6 +390,35 @@ export function TransitionPanel({ clip, maxMs, onChange, onApplyAll, onClose }) 
 import { FPS as EXPORT_FPS, RESOLUTIONS as EXPORT_RESOLUTIONS } from '../model/exportPrefs';
 
 const CANVAS_BG_COLORS = ['#000000FF', '#FFFFFFFF', '#1F2937FF', '#F5E6CCFF', '#E11D48FF', '#2563EBFF', '#16A34AFF', '#F59E0BFF'];
+
+/** Klip animasyonları (CapCut klip araç çubuğu "Animasyonlar"): giriş, çıkış, kombo sekmeleri. */
+export function ClipAnimPanel({ clip, durationMs, onChange, onClose }) {
+  const { t, fmt } = useI18n();
+  const [tab, setTab] = useState(() => (clip.anim?.combo && clip.anim.combo !== 'none' && (!clip.anim.in || clip.anim.in === 'none') ? 'combo' : 'in'));
+  const a = normalizeAnim(clip.anim);
+  const list = tab === 'in' ? CLIP_ANIMS_IN : tab === 'out' ? CLIP_ANIMS_OUT : CLIP_ANIMS_COMBO;
+  const msKey = tab === 'in' ? 'inMs' : tab === 'out' ? 'outMs' : 'comboMs';
+  const cur = a[tab];
+  const ms = a[msKey] || (tab === 'combo' ? COMBO_MS[cur] : CLIP_ANIM_DEFAULT_MS) || CLIP_ANIM_DEFAULT_MS;
+  const maxMs = tab === 'combo' ? CLIP_ANIM_MAX_MS : Math.max(CLIP_ANIM_MIN_MS + 50, Math.min(CLIP_ANIM_MAX_MS, durationMs));
+  const tabs = ['in', 'out', 'combo'].map((k) => ({ key: k, label: t(`panels.clipAnim.${k}`), active: tab === k, onPress: () => setTab(k), testID: `clip-anim-tab-${k}` }));
+  return (
+    <Panel title={t('tools.clipAnim')} onClose={onClose} testID="panel-clipAnim" tabs={tabs}>
+      <View style={styles.body}>
+        <Hscroll>
+          {list.map((id) => (
+            <Chip key={id} label={t(`clipAnim.${id}`)} active={cur === id} onPress={() => onChange({ [tab]: id }, null)} testID={`clip-anim-${tab}-${id}`} />
+          ))}
+        </Hscroll>
+        {cur !== 'none' ? (
+          <Labeled label={t(tab === 'combo' ? 'panels.clipAnim.cycle' : 'panels.clipAnim.duration')}>
+            <Slider value={Math.min(maxMs, ms)} min={CLIP_ANIM_MIN_MS} max={maxMs} step={50} onChange={(v) => onChange({ [msKey]: Math.round(v) }, 'clipAnimMs')} formatValue={(v) => fmt.duration(v)} testID="clip-anim-ms" />
+          </Labeled>
+        ) : null}
+      </View>
+    </Panel>
+  );
+}
 
 /** Anahtar kare eğrisi: oynatma kafasındaki karelerden sonraki geçişin yumuşatması. */
 export function KeyEasePanel({ value, onChange, onClose }) {

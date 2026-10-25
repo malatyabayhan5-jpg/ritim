@@ -151,7 +151,8 @@
     "autoCaptions": "Auto captions",
     "captionList": "Edit captions",
     "background": "Background",
-    "keyEase": "Curve"
+    "keyEase": "Curve",
+    "clipAnim": "Animations"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -193,6 +194,13 @@
       "smooth": "Smooth",
       "backOut": "Spring",
       "hold": "Hold"
+    },
+    "clipAnim": {
+      "in": "In",
+      "out": "Out",
+      "combo": "Combo",
+      "duration": "Duration",
+      "cycle": "Cycle"
     }
   },
   "adjust": {
@@ -924,5 +932,22 @@
     "tooShort": "Recording is too short",
     "saved": "Voiceover added",
     "name": "Voiceover"
+  },
+  "clipAnim": {
+    "none": "None",
+    "fade": "Fade",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "slideLeft": "Slide left",
+    "slideRight": "Slide right",
+    "slideUp": "Slide up",
+    "slideDown": "Slide down",
+    "rotate": "Rotate",
+    "spin": "Spin",
+    "pulse": "Pulse",
+    "swing": "Swing",
+    "float": "Float",
+    "shake": "Shake",
+    "breathe": "Breathe"
   }
 }

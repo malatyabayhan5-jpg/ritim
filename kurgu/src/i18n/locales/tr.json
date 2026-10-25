@@ -151,7 +151,8 @@
     "autoCaptions": "Otomatik altyazı",
     "captionList": "Altyazıları düzenle",
     "background": "Arka plan",
-    "keyEase": "Eğri"
+    "keyEase": "Eğri",
+    "clipAnim": "Animasyonlar"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -193,6 +194,13 @@
       "smooth": "Yumuşak",
       "backOut": "Esnek",
       "hold": "Sabit"
+    },
+    "clipAnim": {
+      "in": "Giriş",
+      "out": "Çıkış",
+      "combo": "Kombo",
+      "duration": "Süre",
+      "cycle": "Tur süresi"
     }
   },
   "adjust": {
@@ -924,5 +932,22 @@
     "tooShort": "Kayıt çok kısa",
     "saved": "Seslendirme eklendi",
     "name": "Seslendirme"
+  },
+  "clipAnim": {
+    "none": "Yok",
+    "fade": "Belirme",
+    "zoomIn": "Yakınlaş",
+    "zoomOut": "Uzaklaş",
+    "slideLeft": "Sola kay",
+    "slideRight": "Sağa kay",
+    "slideUp": "Yukarı kay",
+    "slideDown": "Aşağı kay",
+    "rotate": "Dönerek",
+    "spin": "Fırıl",
+    "pulse": "Nabız",
+    "swing": "Salınım",
+    "float": "Süzülme",
+    "shake": "Titreme",
+    "breathe": "Nefes"
   }
 }
