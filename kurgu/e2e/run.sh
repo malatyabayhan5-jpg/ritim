@@ -207,6 +207,29 @@ else
   echo "Galeride (Pictures/Kurgu) dışa aktarılmış fotoğraf bulunamadı" >> "$OUT/sonuclar.txt"
 fi
 
+# Düzen karşılaştırması (replica-diff): kullanıcının CapCut kaydından referans kareler ile klonun
+# aynı ekranları. Kenar haritası ızgarası, renk yok sayılır; önizlemedeki videolar farklı olduğu için
+# önizleme alanı da farka katkı verir. Puanlar sonuclar.txt'ye, fark görselleri yapıta.
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+IMGDIFF="$REPO_ROOT/.claude/skills/replica-diff/imgdiff.py"
+REF="$REPO_ROOT/replica/screens/phone"
+if [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
+  for pair in S01_home:01_ana_ekran S03_editor:04_editor S04_clip_b:06_bolme S15_adjust_custom:08_filtre; do
+    ref=${pair%%:*}; shot=${pair##*:}
+    [ -f "$REF/$ref.png" ] && [ -f "$OUT/$shot.png" ] || continue
+    if python3 "$IMGDIFF" "$REF/$ref.png" "$OUT/$shot.png" --out "$OUT/fark_$ref.png" --json > "$OUT/fark_$ref.json" 2> "$OUT/fark_$ref.err"; then
+      python3 - "$OUT/fark_$ref.json" "$ref" "$shot" >> "$OUT/sonuclar.txt" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+regs = ', '.join(f"{r['where']} {r['w']}x{r['h']}@{r['x']},{r['y']}" for r in d.get('regions', [])[:3])
+print(f"Düzen farkı {sys.argv[2]} ↔ {sys.argv[3]}: {d['score']} ({d['verdict']}), yükseklik farkı %{d.get('height_delta_pct', 0)}; en farklı: {regs}")
+PY
+    else
+      echo "Düzen farkı $ref: karşılaştırılamadı ($(head -c 200 "$OUT/fark_$ref.err"))" >> "$OUT/sonuclar.txt"
+    fi
+  done
+fi
+
 adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
 adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
 [ -s "$OUT/cokme.txt" ] && grep -q "$PKG" "$OUT/cokme.txt" && echo "UYARI: uygulama çökme kaydı var (cokme.txt)" >> "$OUT/sonuclar.txt"

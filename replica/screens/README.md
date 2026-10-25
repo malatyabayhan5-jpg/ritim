@@ -17,3 +17,5 @@ home-screen drafts and promo banner are blurred. Frames showing the launcher or 
 | S15_adjust_smart, _custom, _custom_b | S15 | adjust panel tabs (Presets / Filters / Adjust / Video quality), Smart / Custom |
 | S15_video_quality | S15 | video quality tab |
 | S20_export_progress | S20 | export progress |
+
+`phone/` holds the same frames cropped to the phone screen (x 49–431) for `imgdiff.py`; CI compares them with the clone's e2e screenshots (`kurgu/e2e/run.sh`, "Düzen farkı" lines).
