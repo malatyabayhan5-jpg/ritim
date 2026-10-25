@@ -200,7 +200,12 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
       override fun onPlaybackStateChanged(playbackState: Int) {
         if (playbackState == Player.STATE_ENDED && playerMulti) graphSpent = true
+        if (playbackState == Player.STATE_READY) finishSeek()
         emitState()
+      }
+
+      override fun onRenderedFirstFrame() {
+        finishSeek()
       }
 
       override fun onPlayerError(error: PlaybackException) {
@@ -294,10 +299,50 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     atTimelineEnd = false
     if (graphSpent && playerMulti) return rebuildAt(target, playWhenReady = false)
     if (player == null) return applyComposition()
-    player?.seekTo(target)
+    // Kaydırırken bir arama işlenirken gelen hedefler birikmez: yalnızca sonuncusu saklanır
+    if (scrubbing && seekInFlight) {
+      queuedSeekMs = target
+      return
+    }
+    issueSeek(target)
+  }
+
+  // Kaydırma sırasında arama birleştirme: çok girişli grafikte her arama tüm boru hattını
+  // boşaltır; parmak hızında art arda gelen aramalar kuyruğa dizilince önizleme geride kalıp
+  // donuyordu. Aynı anda en çok bir arama işlenir, son gelen hedef kazanır.
+  private var scrubbing = false
+  private var seekInFlight = false
+  private var queuedSeekMs = -1L
+  private val seekWatchdog = Runnable { finishSeek() }
+
+  private fun issueSeek(target: Long) {
+    val p = player ?: return
+    seekInFlight = scrubbing
+    p.seekTo(target)
+    if (seekInFlight) {
+      main.removeCallbacks(seekWatchdog)
+      // Kare gelmese bile (aynı kare, arabellekte) birleştirme kilitli kalmasın
+      main.postDelayed(seekWatchdog, 250)
+    }
+  }
+
+  private fun finishSeek() {
+    main.removeCallbacks(seekWatchdog)
+    if (!seekInFlight) return
+    seekInFlight = false
+    val q = queuedSeekMs
+    queuedSeekMs = -1L
+    if (q >= 0 && scrubbing) issueSeek(q)
   }
 
   fun setScrubbing(enabled: Boolean) {
+    scrubbing = enabled
+    if (!enabled) {
+      // Kaydırma bitti: son konuma arama JS'ten ayrıca gelir
+      main.removeCallbacks(seekWatchdog)
+      seekInFlight = false
+      queuedSeekMs = -1L
+    }
     try {
       player?.setScrubbingModeEnabled(enabled)
     } catch (e: Exception) {
@@ -337,6 +382,9 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private fun releasePlayer() {
     builtSpec = null
     main.removeCallbacks(positionTick)
+    main.removeCallbacks(seekWatchdog)
+    seekInFlight = false
+    queuedSeekMs = -1L
     player?.let {
       pendingPositionMs = it.currentPosition
       try {

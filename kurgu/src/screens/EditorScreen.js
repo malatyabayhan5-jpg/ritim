@@ -214,7 +214,8 @@ export default function EditorScreen({ params, focused }) {
       previewRef.current?.setScrubbing?.(!!scrubbing);
     }
     const now = Date.now();
-    if (!scrubbing || now - lastSeek.current > 60) {
+    if (!scrubbing || now - lastSeek.current > 33) {
+      // Yerel taraf aramaları birleştirir (KurguPreviewView: aynı anda en çok bir arama)
       lastSeek.current = now;
       previewRef.current?.seekTo?.(ms);
     }
