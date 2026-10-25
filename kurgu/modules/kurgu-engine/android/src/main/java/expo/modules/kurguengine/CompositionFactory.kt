@@ -73,7 +73,7 @@ object CompositionFactory {
     // diğer diziler (saat, katmanlar, ses şeritleri) ana izle aynı anda biter.
     var mainCursorUs = 0L
     val mainItems = spec.main.map { c ->
-      mainItem(c, w, h, spec.fps, live, forExport, mainCursorUs).also { mainCursorUs += mainOutUs(c) }
+      mainItem(c, w, h, spec.fps, live, forExport, mainCursorUs, spec.background).also { mainCursorUs += mainOutUs(c) }
     }
     val totalUs = mainCursorUs
     val sequences = mutableListOf<EditedMediaItemSequence>()
@@ -253,7 +253,7 @@ object CompositionFactory {
     return builder.build()
   }
 
-  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean, forExport: Boolean, itemOffsetUs: Long): EditedMediaItem {
+  private fun mainItem(clip: MainClip, w: Int, h: Int, fps: Int, live: Boolean, forExport: Boolean, itemOffsetUs: Long, background: FloatArray): EditedMediaItem {
     val isImage = clip.kind == "image"
     val mediaItem = if (isImage) {
       MediaItem.Builder()
@@ -281,8 +281,14 @@ object CompositionFactory {
           .build(),
       )
     }
-    val layout = if (clip.fit == "fill") Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP else Presentation.LAYOUT_SCALE_TO_FIT
-    video.add(Presentation.createForWidthAndHeight(w, h, layout))
+    if (clip.fit != "fill" && (live || !CanvasBgFx.isBlack(background))) {
+      // Sığdırılan klibin boşlukları kanvas arka planıyla (renk / bulanık kopya) dolar. Önizlemede
+      // her zaman bu yol kullanılır ki arka plan değişince kompozisyon yeniden kurulmasın.
+      video.add(CanvasBgFx(w, h, background, if (live) "bg:canvas" else null))
+    } else {
+      val layout = if (clip.fit == "fill") Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP else Presentation.LAYOUT_SCALE_TO_FIT
+      video.add(Presentation.createForWidthAndHeight(w, h, layout))
+    }
     val kf = clip.keyframes
     val animated = kf.keys.any { it in setOf("x", "y", "scale", "angle") } || abs(clip.angle) > 0.01f
     if (live) {

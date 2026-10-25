@@ -1360,12 +1360,15 @@ export default function EditorScreen({ params, focused }) {
         return (
           <RatioPanel
             project={project}
-            onChange={({ ratio, fit }) =>
-              apply((p) => ({
-                ...p,
-                updatedAt: Date.now(),
-                canvas: { ...p.canvas, ...(ratio ? { ratio, ...canvasSize(ratio, Math.min(p.canvas.width, p.canvas.height)) } : {}), ...(fit ? { fit } : {}) },
-              }))
+            onChange={({ ratio, fit, background }, key) =>
+              apply(
+                (p) => ({
+                  ...p,
+                  updatedAt: Date.now(),
+                  canvas: { ...p.canvas, ...(ratio ? { ratio, ...canvasSize(ratio, Math.min(p.canvas.width, p.canvas.height)) } : {}), ...(fit ? { fit } : {}), ...(background ? { background } : {}) },
+                }),
+                key,
+              )
             }
             onClose={close}
           />

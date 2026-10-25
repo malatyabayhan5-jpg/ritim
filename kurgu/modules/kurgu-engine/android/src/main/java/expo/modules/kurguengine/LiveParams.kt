@@ -20,6 +20,7 @@ object LiveParams {
   /** Tam render tanımındaki değerlerle kayıt defterini eşitler. */
   fun seed(spec: RenderSpec) {
     values.clear()
+    values["bg:canvas"] = spec.background
     for (m in spec.main) {
       m.colorMatrix?.let { values["cm:${m.key}"] = it }
       values["vol:${m.key}"] = floatArrayOf(m.volume, m.fadeInMs.toFloat(), m.fadeOutMs.toFloat())

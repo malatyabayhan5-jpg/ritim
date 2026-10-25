@@ -384,8 +384,12 @@ export function TransitionPanel({ clip, maxMs, onChange, onApplyAll, onClose }) 
   );
 }
 
+// Kanvas arka planı için hazır renkler (ilki varsayılan siyah)
+const CANVAS_BG_COLORS = ['#000000FF', '#FFFFFFFF', '#1F2937FF', '#F5E6CCFF', '#E11D48FF', '#2563EBFF', '#16A34AFF', '#F59E0BFF'];
+
 export function RatioPanel({ project, onChange, onClose }) {
   const { t } = useI18n();
+  const bg = project.canvas.background || {};
   return (
     <Panel title={t('tools.ratio')} onClose={onClose} testID="panel-ratio">
       <View style={styles.body}>
@@ -400,6 +404,27 @@ export function RatioPanel({ project, onChange, onClose }) {
             <Chip icon="expand-outline" label={t('panels.fill')} active={project.canvas.fit === 'fill'} onPress={() => onChange({ fit: 'fill' })} />
           </Row>
         </Labeled>
+        {(project.canvas.fit || 'fit') === 'fit' ? (
+          <Labeled label={t('panels.background')}>
+            <Hscroll>
+              <Chip label={t('panels.bgBlur')} icon="water-outline" active={bg.type === 'blur'} onPress={() => onChange({ background: { ...bg, type: 'blur' } })} testID="canvas-bg-blur" />
+              {CANVAS_BG_COLORS.map((c) => (
+                <Pressable
+                  key={c}
+                  onPress={() => onChange({ background: { ...bg, type: 'color', color: c } })}
+                  accessibilityRole="button"
+                  accessibilityLabel={c === CANVAS_BG_COLORS[0] ? t('panels.bgBlack') : t('panels.bgColor')}
+                  accessibilityState={{ selected: bg.type !== 'blur' && (bg.color || CANVAS_BG_COLORS[0]) === c }}
+                  testID={`canvas-bg-${c.slice(1, 7)}`}
+                  style={[styles.swatch, { backgroundColor: c }, bg.type !== 'blur' && (bg.color || CANVAS_BG_COLORS[0]) === c && styles.swatchActive]}
+                />
+              ))}
+            </Hscroll>
+            {bg.type === 'blur' ? (
+              <Slider value={bg.blur ?? 0.5} min={0} max={1} onChange={(v) => onChange({ background: { ...bg, blur: v } }, 'bgBlur')} formatValue={(v) => `${Math.round(v * 100)}%`} testID="canvas-bg-blur-amount" />
+            ) : null}
+          </Labeled>
+        ) : null}
         <Txt faint style={styles.hint}>
           {t('panels.ratioHint')}
         </Txt>

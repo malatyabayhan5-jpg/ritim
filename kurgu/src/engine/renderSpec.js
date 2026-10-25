@@ -185,8 +185,19 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     effectLayers,
     layers,
     blendLayers,
+    background: canvasBackground(project.canvas),
     globalFx: {},
   };
+}
+
+/**
+ * Kanvas arka planı (sığdırılan kliplerin boşlukları; CanvasBgFx.kt):
+ * [kip (0 renk, 1 bulanık), bulanıklık 0..1, karartma 0..1, R, G, B]. Varsayılan siyah.
+ */
+export function canvasBackground(canvas) {
+  const bg = canvas?.background || {};
+  const [r, g, b] = hexRgb(bg.color || '#000000FF');
+  return [bg.type === 'blur' ? 1 : 0, bg.blur ?? 0.5, bg.dim ?? 0.3, r, g, b];
 }
 
 const TR_N = Object.fromEntries(TRANSITIONS.map((x) => [x.id, x.n]));

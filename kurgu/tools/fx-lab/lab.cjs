@@ -350,6 +350,23 @@ async function blend() {
   });
 }
 
+/**
+ * Kanvas arka planı (_canvas_bg.glsl): --src kaynak kare, --size kanvas boyutu; kip ve renk
+ * --p ile (8 sayı: kaynak oranı, kip, bulanıklık, karartma, R, G, B, A). Kaynak oranı
+ * verilmezse görselin kendi oranı kullanılır.
+ *   node lab.cjs canvas --src portrait.png --size 640x360 --p '0,1,0.5,0.3,0,0,0,1' --out bg.png
+ */
+async function canvas() {
+  const file = arg('src');
+  const [w, h] = arg('size').split('x').map(Number);
+  const p = arg('p', '0,0,0,0,0,0,0,1').split(',').map(Number);
+  if (!p[0]) { const [sw, sh] = imageSize(file); p[0] = sw / sh; }
+  await withPage(async (page) => {
+    const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [shaderPair('_canvas_bg'), dataUrl(file), [{ time: 0, dur: 1, amount: 1, p }], { size: [w, h] }]);
+    writePng(arg('out'), urls[0]);
+  });
+}
+
 const cmd = process.argv[2];
-({ render, motion, thumbs, lut, perf, layer, transition, blend }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
+({ render, motion, thumbs, lut, perf, layer, transition, blend, canvas }[cmd] || (() => { console.error('render | motion | thumbs'); process.exit(2); }))()
   .catch((e) => { console.error(e.message || e); process.exit(1); });

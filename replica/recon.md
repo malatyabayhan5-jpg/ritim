@@ -15,9 +15,10 @@ Date: 2026-10-25
   policy blocks direct page fetches (HTTP 403 from the proxy), so pages were
   **not opened directly**. Every row below says where it came from. Facts that
   only one weak source supports are marked `low`.
-- **No reference screenshots yet.** `replica/screens/` is empty. The user has
-  CapCut on their phone and will send screenshots. Until then, layout facts
-  (exact toolbar order, icon placement) are `guess` and must be checked against them.
+- **Reference recording received (2026-10-25).** The user sent a 127 s screen
+  recording of CapCut on their own phone (Turkish UI). Key frames are in
+  `replica/screens/` with personal content blurred; layout facts now come from
+  it (source 16) and are marked `high (rec)`.
 - **Terms:** CapCut's Terms of Service page could not be opened (network
   policy), so its restriction clauses were not read. Nothing here uses a
   CapCut account, its code, its network calls or its assets. The work uses
@@ -45,7 +46,7 @@ Date: 2026-10-25
 | 13 | Lilach Bullock tutorial | https://www.lilachbullock.com/capcut-tutorial/ | Text menu: Add text, Stickers, Auto captions, Text to audio; Audio: Sounds, Extracted, Voiceover, Effects |
 | 14 | Shotkit / miracamp / tella text guides | https://shotkit.com/add-text-capcut/ · https://www.miracamp.com/learn/capcut/how-to-add-text · https://landingpage.tella.com/blog/how-to-add-text-on-capcut | text styles (font, colour, spacing, transparency, alignment), presets, animation in / out / loop with a speed slider. tella contradicts on animation (older version?) |
 | 15 | miracamp export guide | https://www.miracamp.com/learn/capcut/how-to-export-high-quality-videos | export: 480p / 720p / 1080p / 4K, 24 / 30 / 60 fps, bitrate Low / Medium / High, H.264 / HEVC. `low`: third party |
-| 16 | user's own phone (screenshots) | — | **pending**: the most valuable source, every real state |
+| 16 | user's own phone (screen recording) | `replica/screens/` | received 2026-10-25: home, editor, main and clip toolbars, text / audio / caption menus, auto captions, adjust panel, export progress |
 
 ## Core loop
 
@@ -55,31 +56,75 @@ gallery. Everything must feel instant while scrubbing and playing.
 
 ## Screens
 
-Confidence: `high` (official source), `med` (two or more third-party sources
+Confidence: `high (rec)` (seen in the user's recording), `high` (official source), `med` (two or more third-party sources
 agree), `low` (one weak source), `guess` (needs a screenshot).
 
 | ID | screen | route / how to reach | purpose | key components | states seen | conf |
 | --- | --- | --- | --- | --- | --- | --- |
-| S01 | Home | app launch | start a project, reopen drafts | "New project" button, drafts list (cover, name, duration, date), bottom nav (Edit / Templates / …) | empty (no drafts), filled | med [3][8]; nav labels guess |
+| S01 | Home | app launch | start a project, reopen drafts | top promo banner, two big cards (New video / Edit photo), drafts row (thumbnails, date), grid of quick tools (AutoCut, Retouch, AI creator, Photo tools, Shoot, Auto enhance, Cover maker, Auto captions, AI clip tool…), bottom nav (Edit / Templates / AI Lab / Library / Me) | filled | high (rec) |
 | S02 | Media picker | S01 New project; also Add in the editor | pick videos and photos | Video / Photo tabs, multi-select order numbers, Add button bottom right | empty gallery, permission denied, selected n | med [8] |
-| S03 | Editor | after S02 Add, or a draft from S01 | the whole edit | top bar (close, resolution label, Export), preview, play / time / undo / redo, multi-track timeline with centre playhead, main toolbar (scrolls) | loading, playing, scrubbing, nothing selected | med [1][8]; toolbar order guess |
-| S04 | Clip toolbar | tap a clip on the main track or overlay track | edit one clip | Split, Speed, Volume, Animation, Delete, Mask, Chroma key, Remove background, Reverse, Freeze, Replace, Opacity (Basic), Filters, Adjust | clip selected, trimming (white handles) | med [9][10][11] |
+| S03 | Editor | after S02 Add, or a draft from S01 | the whole edit | top bar: close X, search, resolution dropdown ("AI UHD ▾"), cyan Export button; preview; controls row: fullscreen (left), play (centre), keyframe button + undo + redo (right; shows "ON" keyframe toggle when nothing selected, diamond when a clip is selected); time `00:00 / 00:50` + ruler; timeline with a left column (Clip audio toggle, AI clip tool, Cover) and a "+" at the end of the main track, empty rows "+ Add audio" and "+ Add text"; floating round move-handle button bottom left; main toolbar | loading, nothing selected, clip selected (cyan frame around preview) | high (rec) |
+| S04 | Clip toolbar | tap a clip on the main track or overlay track | edit one clip | back "<" on the left, then (scrolling): Split, Volume, Animations, Effects, Delete, Speed, Beats, Crop, Duplicate, Replace, Retouch, Video quality, Remove background, AI remove, …, Opacity, Motion blur, Lip sync, Transform, Auto reframe, Stabilize, Extract audio, Separate audio, Reduce noise, Sound effects, Video translator, Freeze, Reverse, Mask, Unlink | clip selected (white trim handles, duration badge), toast for new tools | high (rec) |
 | S05 | Speed panel | S04 Speed | change clip speed | Normal tab (0.1x–100x slider), Curve tab (presets Montage, Hero…, custom editor with Add point) | normal, curve preset, custom | high [4][6] |
 | S06 | Keyframe | diamond button above the timeline / on the preview | animate a property over time | add / remove diamond at playhead, keyframe dots on the clip, easing (Linear, Ease in…) | none, has keyframes, on a keyframe | low [6] + guide; layout guess |
-| S07 | Text menu | main toolbar Text | add text things | Add text, Stickers (library, skip), Auto captions, Text to audio | — | med [13] |
+| S07 | Text menu | main toolbar Text | add text things | sub-toolbar (back "<"): Add text, Auto captions, Stickers, Draw, Text template, Text to speech, Auto lyrics | — | high (rec) |
 | S08 | Text editor | S07 Add text, or tap a text clip | type and style text | keyboard + input, tabs: presets / templates, style (font, colour, stroke, spacing, opacity, alignment), effects, animation (in / out / loop + speed) | empty input, editing, RTL | med [14] |
-| S09 | Auto captions | S07 Auto captions | captions from speech | source choice (original sound / voiceover), language, generate; progress; caption track | generating, no speech found, done | high [2] |
-| S10 | Edit captions | tap a caption → Edit captions | fix many captions | list of lines with times, Select for multi-select, batch replace / style | list, multi-select | high [2] |
-| S11 | Audio menu | main toolbar Audio | add sound | Sounds (library, skip), Extracted (from a video), Voiceover (record), Effects (SFX library, skip) | permission denied (mic) | med [13] |
+| S09 | Auto captions | S07 Auto captions | captions from speech | bottom sheet titled "Auto captions" with X: source (Video ›), spoken language (Auto detect ›), templates grid, advanced options (Pro badge), create button | sheet open | high (rec) |
+| S10 | Edit captions | caption sub-toolbar / tap a caption → Edit captions | fix many captions | captions sub-toolbar: Enter captions, Auto captions, Caption templates, Auto lyrics, Import captions; list of lines with times, Select for multi-select, batch replace / style | list, multi-select | high [2] + rec (toolbar) |
+| S11 | Audio menu | main toolbar Audio | add sound | sub-toolbar: Extract (from a video), Sounds (library, skip), Sound effects (library, skip), Record (voiceover), Text to speech, … | permission denied (mic) | high (rec) |
 | S12 | Voiceover recorder | S11 Voiceover | record narration at the playhead | hold / tap record button, level, timeline grows | recording, denied | low [13] |
 | S13 | Audio clip toolbar | tap an audio clip | edit audio | Volume, Fade, Split, Delete, Speed, Voice effects, Noise reduction, Beats | — | low (weak sources) |
 | S14 | Effects browser | main toolbar Effects | add a video effect | categories (blur, glow, shake…), thumbnails, intensity; effect track clip | browsing, applied | med [8][9] |
-| S15 | Filters / Adjust | main toolbar or S04 Filters / Adjust | colour | filter grid with intensity; adjust sliders (brightness, contrast, saturation…) | — | med (several guides) |
+| S15 | Filters / Adjust | main toolbar Filters / Adjust | colour | one panel with tabs Presets / Filters / Adjust / Video quality and a check (done) on the right; Adjust has Smart / Custom; Custom is a row of round icons (Brightness, Contrast, Saturation, Exposure, Sharpen, … Whites, Blacks, Temperature, Tint, Fade, Colour wheel, Highlights, Shadows) with one slider below and Reset bottom left; toast "Effect applied to main track" | — | high (rec) |
 | S16 | Transitions | tile between two clips on the main track | transition between clips | categories, duration slider, apply to all | none, applied | med; tile placement guess |
 | S17 | Ratio / Format | main toolbar Ratio (also called Format) | canvas aspect ratio | 9:16, 1:1, 16:9, 4:3… chips | — | med (two guides, labels differ) |
 | S18 | Overlay | main toolbar Overlay → Add overlay → S02 | picture in picture | overlay track, move / scale on preview, then S04 tools (mask, chroma key, blend, opacity) | — | med [5][12] |
 | S19 | Export settings | tap the resolution label next to Export | choose quality | resolution (480p–1080p, limited 4K), frame rate (24 / 30 / 60), bitrate Low / Medium / High, codec | — | high [1] for label; rest low [15] |
-| S20 | Export progress / done | Export | render and save | progress %, keep app open note, done: saved to gallery, share sheet | exporting, failed, done | guess |
+| S20 | Export progress / done | Export | render and save | title "Exporting at 1080p…", note "don't close the app or lock the screen", progress bar over the video thumbnail with the percent in the middle, back "<" top left, upgrade banner (Pro, skip) | exporting | high (rec); done state guess |
+
+## Layout from the user's recording (S03 / S04, 2026-10-25)
+
+Order is what the recording shows, left to right. Library-only and Pro / server
+AI tools are listed for order only; Kurgu does not copy them (see Out of scope).
+
+- **Main toolbar:** Edit, Audio, Text, Effects, Overlay, Captions, Filters,
+  Adjust, Stickers, Media generation (AI, skip), AI avatar (skip),
+  Aspect ratio, Background.
+- **Clip toolbar** (back "<" pinned left): Split, Volume, Animations,
+  Effects, Delete, Speed, Beats, Crop, Duplicate, Replace, Retouch,
+  Video quality, Remove background, AI remove, …, Opacity, Motion blur,
+  Lip sync, Transform, Auto reframe, Stabilize, Extract audio,
+  Separate audio, Reduce noise, Sound effects, Video translator, Freeze,
+  Reverse, Mask, Unlink.
+- **Text toolbar:** Add text, Auto captions, Stickers, Draw, Text template,
+  Text to speech, Auto lyrics.
+- **Audio toolbar:** Extract, Sounds, Sound effects, Record, Text to speech.
+- **Top bar:** close, search, resolution dropdown, Export (accent filled).
+  No project title in the editor.
+- **Controls row** (between preview and timeline): fullscreen left, play
+  centre, keyframe + undo + redo right. Time `current / total` sits on the
+  ruler row below it, left.
+- **Timeline:** left column with Clip audio (mute all), AI clip tool, Cover;
+  main track ends with a "+" tile; empty "+ Add audio" and "+ Add text"
+  rows under the main track that open the audio / text menus.
+- **Adjust:** one panel with Presets / Filters / Adjust / Video quality tabs,
+  round icon row + one slider + Reset.
+
+### Kurgu today vs this layout (build order)
+
+1. Main toolbar order: Kurgu has Edit, AI, Audio, Text, Overlay, Effects,
+   Filters, Adjust, Ratio. Move to Edit, Audio, Text, Effects, Overlay,
+   Captions, Filters, Adjust, Stickers, Ratio, Background, AI last.
+2. Controls row: Kurgu puts time left, play centre, marker + undo + redo
+   right; no fullscreen, no keyframe button. Add fullscreen preview and a
+   keyframe button for the selection; move time to the ruler row.
+3. Timeline "+ Add audio" / "+ Add text" rows when those tracks are empty.
+4. Clip toolbar order: Split, Volume, Animations (missing), Effects, Delete,
+   Speed, Crop (= Transform), Duplicate, Replace, … Freeze, Reverse, Mask.
+   Kurgu's main-track clips have no Mask or Opacity in the toolbar.
+5. Top bar: resolution dropdown next to Export (quick 720p / 1080p / 4K);
+   project title moves to the home screen rename.
+6. Filters / Adjust as one tabbed panel.
 
 ## Flows
 

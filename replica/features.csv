@@ -20,7 +20,7 @@ Fade in and out,audio,should,yes,yes,
 Reverse clip,clip,should,yes,yes,on-device re-encode; e2e 3
 Freeze frame,clip,should,yes,yes,
 Replace clip media,clip,should,yes,yes,"clip toolbar Replace: keeps timeline length, effects, volume; clears reverse link (bug fixed 2026-10-25); unit test"
-Duplicate clip,clip,could,low,no,not confirmed in CapCut mobile either
+Duplicate clip,clip,could,yes,yes,seen in the recording (clip toolbar); Kurgu has Duplicate
 Keyframes position scale rotation opacity,keyframes,must,yes,yes,main track and overlays; text keyframes partial
 Keyframe easing (linear ease in ease out),keyframes,should,yes,partial,check easing set against keyframes.js
 Clip animations in out combo,clip,should,yes,no,Kurgu has text animations only
@@ -52,7 +52,7 @@ Adjust brightness contrast saturation etc,color,must,yes,yes,
 Transitions between clips with duration,transitions,must,yes,yes,93 own transitions; export slow on emulator
 Apply transition to all,transitions,should,yes,yes,transition panel Apply to all; per-pair duration clamped to the shorter clip in renderSpec
 Aspect ratio presets,canvas,must,yes,yes,
-Canvas background colour or blur,canvas,should,yes,partial,letterbox bars are black; no colour / blur / image background yet (next)
+Canvas background colour or blur,canvas,should,yes,partial,colour and blurred-video background for fit clips (Ratio panel); live in preview; lab-verified shader; no image background; not checked on a device
 Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
 Stabilization,ai,could,yes,no,
 Auto cut silence and scene detection,ai,could,yes,yes,
@@ -61,8 +61,8 @@ Export frame rate 24 to 60,export,must,yes,yes,
 Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
 Share sheet after export,export,should,yes,partial,
-Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,needs the user's screenshots to compare (replica/screens empty)
-Fullscreen preview,ux,could,guess,no,needs screenshot
+Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"user's recording received (replica/screens); main toolbar, controls row and timeline rows differ — see recon.md Layout section"
+Fullscreen preview,ux,could,yes,no,"seen in the recording (controls row, left)"
 Template store,templates,could,yes,skip,their creators and content
 Music and sound effect library,audio,could,yes,skip,licensed catalogue
 Sticker and effect asset packs,effects,could,yes,skip,their content; Kurgu ships its own

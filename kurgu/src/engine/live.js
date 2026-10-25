@@ -13,6 +13,7 @@
 //   ly:<katman>    [x, y, ölçek, döndürme, opaklık, maske cx, cy, açı, yarı gen., yarı yük.,
 //                   yumuşaklık, köşe, chroma tolerans, kenar, taşma] (LayerFx.kt)
 //   tx:<metin>     [x, y, döndürme, opaklık] (TextLayer.kt)
+//   bg:canvas      [kip, bulanıklık, karartma, R, G, B] (CanvasBgFx.kt)
 //   txt:<metin>    metin tanımı nesnesi (yazı, stil, ölçek, süre, animasyon; LiveTextOverlay)
 //   tf:<klip>      [ölçek, konum x, konum y, açı] (ana iz; Fx.kt KeyedPlacement)
 
@@ -93,7 +94,9 @@ export function splitLive(spec) {
     live[`txt:${t.key}`] = { ...t, x: 0, y: 0, rotation: 0, opacity: 1 };
     return { key: t.key, text: LIVE };
   });
-  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers, texts });
+  // Kanvas arka planı (renk / bulanıklık) önizlemede canlıdır (CanvasBgFx)
+  if (spec.background) live['bg:canvas'] = spec.background;
+  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers, texts, background: LIVE });
   return { structure, live };
 }
 
