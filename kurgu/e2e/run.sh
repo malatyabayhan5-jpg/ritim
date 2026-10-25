@@ -175,6 +175,19 @@ for flow in 1_kabul_akisi 6_katmanlar; do
   fl=$(grep -E "\[$flow\].*\[KurguExport\] failed" "$OUT/kurgu_gunluk.txt" | head -1 | sed 's/.*\[KurguExport\] //')
   [ -n "$fl" ] && echo "UYARI: $flow dışa aktarma başarısız oldu ($fl); akış Tekrar dene ile sürdü" >> "$OUT/sonuclar.txt"
 done
+# Videoda arka plan kaldırma: akış 7 kişisiz test videosunda yerel boru hattını çalıştırır
+if ran 7_seslendirme; then
+  cl=$(grep -E "\[7_seslendirme\].*\[KurguUI\] cutout " "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguUI\] //')
+  if [ -z "$cl" ]; then
+    echo "Arka plan kaldırma testi: BAŞARISIZ (günlükte satır yok)" >> "$OUT/sonuclar.txt"
+  elif echo "$cl" | grep -q "failed"; then
+    echo "Arka plan kaldırma testi: BAŞARISIZ ($cl)" >> "$OUT/sonuclar.txt"
+  elif echo "$cl" | grep -qE "frames=[1-9]"; then
+    echo "Arka plan kaldırma testi: GEÇTİ (boru hattı çalıştı; test videosunda kişi yok: $cl)" >> "$OUT/sonuclar.txt"
+  else
+    echo "Arka plan kaldırma testi: BAŞARISIZ (kare işlenmedi: $cl)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')

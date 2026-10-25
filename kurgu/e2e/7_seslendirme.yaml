@@ -66,3 +66,30 @@ appId: app.kurgu.editor
 - takeScreenshot:
     path: 71_seslendirme_eklendi
     optional: true
+# Videoda arka plan kaldırma: 5 sn'lik test videosu katman olarak eklenir ve araç çalıştırılır.
+# Test videosunda kişi yoktur; beklenen "kişi bulunamadı" uyarısıdır. Amaç yerel boru hattının
+# (kare okuma, kişi ayırma, kodlama) cihazda baştan sona çalıştığını görmek (run.sh günlükten okur).
+- tapOn:
+    id: "tool-back"
+    optional: true
+- tapOn:
+    id: "tool-overlay"
+- extendedWaitUntil:
+    visible:
+      text: "00:05"
+    timeout: 20000
+- tapOn:
+    text: "00:05"
+- extendedWaitUntil:
+    visible:
+      id: "tool-removeBg"
+    timeout: 30000
+- tapOn:
+    id: "tool-removeBg"
+- extendedWaitUntil:
+    notVisible:
+      id: "busy"
+    timeout: 300000
+- takeScreenshot:
+    path: 72_arka_plan_kaldirma
+    optional: true
