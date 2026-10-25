@@ -1,0 +1,8 @@
+{
+  "avoid": ["CapCut", "ByteDance", "Bytedance", "lvoverseas", "Lemon Inc"],
+  "google_play": {
+    "title": "Kurgu: Video Düzenleyici",
+    "short_description": "Filigransız, hesapsız video düzenleme. Altyazı ve efektler telefonunda.",
+    "full_description": "Kurgu, telefonunda çok katmanlı video düzenlemenin en sade yolu. Filigran yok, hesap yok, abonelik yok.\n\nNeden Kurgu?\n- Telefonunun kodlayabildiği her çözünürlük ve kare hızı ücretsiz: 720p'den 4K'ya, 24'ten 60 fps'e\n- Dışa aktarılan videoda filigran yok\n- Hesap açmadan kullanılır\n- Otomatik altyazı telefonda oluşturulur (whisper.cpp; dil modeli ilk kullanımda bir kez indirilir), videon hiçbir yere yüklenmez\n- Dışa aktarma takılırsa uygulama baştan bir kez daha dener; yine olmazsa daha düşük çözünürlükle denemeyi önerir\n\nDüzenleme\n- Çok izli zaman çizelgesi: ana iz, katmanlar, ses, metin, efekt ve altyazı izleri\n- Böl, kırp, sil, sırala, dondur, ters çevir, değiştir\n- 0,1x ile 100x arası hız ve hız eğrileri\n- Anahtar kareler: konum, ölçek, açı, opaklık; her kare için eğri\n- Klip animasyonları: giriş, çıkış ve kombo\n- Maske, chroma key, karışım modları, hareket takibi\n- En boy oranı; boşluklar için renk, bulanık video ya da resim arka plan\n\nGörünüm\n- 122 efekt, 116 filtre, 93 geçiş, renk ayarları, LUT içe aktarma\n- 97 metin stili, giriş / çıkış / döngü animasyonları, 8 altyazı stili\n- Türkçe, İngilizce ve Arapça; sağdan sola yazı desteği\n\nSes\n- Videodan ses ayırma, müzik ekleme, seslendirme kaydı\n- Ses efektleri, gürültü azaltma, ses düzeyi anahtar kareleri\n- Ritim: sesteki vuruşlar zaman çizelgesine işaret olarak eklenir\n\nKurgu bağımsız bir uygulamadır; başka bir video uygulamasıyla bağlantısı yoktur."
+  }
+}

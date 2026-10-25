@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kurgu — Video Düzenleyici</title>
+<meta name="description" content="Telefonunda çok katmanlı video düzenleme. Filigran yok, hesap yok, ödeme duvarı yok.">
+<link rel="icon" href="../assets/favicon.png">
+<style>
+  /* Renkler kurgu/src/theme.js ile aynı roller (replica/design/tokens.json) */
+  :root {
+    --bg: #0B0B0F; --surface: #15151C; --surface2: #1E1E28; --border: #2E2E3A;
+    --text: #F4F4F8; --text-muted: #A3A3B5; --accent: #8B6CFF; --on-accent: #0B0B0F; --accent2: #FF7EB6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, Roboto, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.1; margin: 0 0 16px; }
+  h2 { font-size: 26px; margin: 0 0 16px; }
+  p.lead { font-size: 19px; color: var(--text-muted); max-width: 640px; }
+  .btn { display: inline-block; background: var(--accent); color: var(--on-accent); font-weight: 800; padding: 14px 22px; border-radius: 999px; text-decoration: none; }
+  .btn:focus-visible { outline: 3px solid var(--accent2); outline-offset: 3px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; }
+  .card p, li, dd { color: var(--text-muted); }
+  .fix { border-color: var(--accent); }
+  ol.steps { padding-left: 20px; }
+  ol.steps li { margin: 8px 0; }
+  dt { font-weight: 700; margin-top: 16px; }
+  dd { margin: 4px 0 0; }
+  .price { font-size: 40px; font-weight: 800; }
+  .shot { background: var(--surface2); border: 1px dashed var(--border); border-radius: 24px; aspect-ratio: 9 / 16; max-width: 260px; display: grid; place-items: center; color: var(--text-muted); text-align: center; padding: 16px; }
+  .hero { display: grid; gap: 32px; grid-template-columns: 1fr; align-items: center; }
+  @media (min-width: 760px) { .hero { grid-template-columns: 1.4fr 1fr; } }
+  footer { padding: 32px 0; color: var(--text-muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Videonu telefonunda düzenle. Filigran yok, hesap yok, ödeme duvarı yok.</h1>
+      <p class="lead">Kurgu'da telefonunun kodlayabildiği her çözünürlük ücretsiz; altyazılar telefonda oluşur, videon hiçbir yere yüklenmez.</p>
+      <!-- Mağaza sayfası yayımlanınca bağlantı eklenecek -->
+      <a class="btn" href="#indir">Kurgu'yu indir</a>
+    </div>
+    <!-- Gerçek bir editör ekran görüntüsü kullanıcının telefonundan eklenecek; uydurma görsel yok -->
+    <div class="shot" role="img" aria-label="Editör ekran görüntüsü için yer">Editör ekran görüntüsü<br>(telefondan eklenecek)</div>
+  </section>
+
+  <section>
+    <h2>Sorun</h2>
+    <p class="lead">Gündelik özelliklerin aboneliğe taşındığı, en sonda takılıp kalan dışa aktarmaların olduğu editörlerden bıktıysan Kurgu tam tersini yapar.</p>
+  </section>
+
+  <section>
+    <h2>Nasıl çalışır</h2>
+    <ol class="steps">
+      <li>Videolarını ve fotoğraflarını seç.</li>
+      <li>Zaman çizelgesinde kes, yazı, müzik ve efekt ekle.</li>
+      <li>Tek dokunuşla dışa aktar; video galerine kaydedilir.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Neler var</h2>
+    <div class="grid">
+      <div class="card fix"><h3>Her çözünürlük ücretsiz</h3><p>720p'den 4K'ya, 24'ten 60 fps'e: telefonun destekliyorsa ücretsiz ve filigransız.</p></div>
+      <div class="card fix"><h3>Altyazı telefonda</h3><p>Konuşma cihazda yazıya dökülür; dil modeli ilk kullanımda bir kez indirilir.</p></div>
+      <div class="card fix"><h3>Takılmayan dışa aktarma</h3><p>Dışa aktarma takılırsa Kurgu baştan bir kez daha dener, gerekirse daha düşük çözünürlük önerir.</p></div>
+      <div class="card"><h3>Çok izli düzenleme</h3><p>Ana iz, katmanlar, ses, metin, efekt ve altyazı izleri; böl, kırp, hız, ters çevir.</p></div>
+      <div class="card"><h3>Anahtar kare ve animasyon</h3><p>Konum, ölçek, açı, opaklık; her kare için eğri. Klip giriş, çıkış ve kombo animasyonları.</p></div>
+      <div class="card"><h3>Görünüm</h3><p>122 efekt, 116 filtre, 93 geçiş, 97 metin stili, 8 altyazı stili.</p></div>
+      <div class="card"><h3>Ses ve ritim</h3><p>Videodan ses, seslendirme, ses efektleri, gürültü azaltma; vuruşlar zaman çizelgesine işaretlenir.</p></div>
+      <div class="card"><h3>Türkçe, İngilizce, Arapça</h3><p>Sağdan sola yazı dahil.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fiyat</h2>
+    <p class="price">Ücretsiz.</p>
+    <p class="lead">Abonelik, filigran ya da kilitli çözünürlük yok.</p>
+  </section>
+
+  <section>
+    <h2>Sık sorulanlar</h2>
+    <dl>
+      <dt>Neden ücretsiz?</dt><dd>Kurgu'nun sunucusu yok; her şey telefonunda çalışır, faturalanacak bir şey yok.</dd>
+      <dt>Videom bir yere yükleniyor mu?</dt><dd>Hayır. Yalnızca altyazı için dil modeli ilk kullanımda bir kez indirilir.</dd>
+      <dt>4K dışa aktarabilir miyim?</dt><dd>Telefonunun video kodlayıcısı destekliyorsa evet; desteklemediği modlar kilitli görünür ve nedeni yazılır.</dd>
+      <dt>iPhone sürümü var mı?</dt><dd>Henüz yok; Kurgu şimdilik Android'de.</dd>
+    </dl>
+  </section>
+
+  <section id="indir">
+    <h2>Hemen başla</h2>
+    <a class="btn" href="#indir">Kurgu'yu indir</a>
+  </section>
+
+  <footer>Kurgu bağımsız bir uygulamadır.</footer>
+</main>
+</body>
+</html>
