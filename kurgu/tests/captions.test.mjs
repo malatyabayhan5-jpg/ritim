@@ -79,3 +79,36 @@ test('altyazı çıkarılabilecek klipler: sesli video, sessize alınmamış', (
   p = TL.updateMain(p, p.main[3].id, { muted: true });
   assert.deepEqual(captionableClips(p).map((c) => c.mediaId), ['a']);
 });
+
+test('altyazı toplu düzenleme: seçilenleri sil, bul-değiştir, stili eşitle; altyazı olmayan metne dokunmaz', async () => {
+  const { deleteCaptions, replaceInCaptions, matchCaptionStyle } = await import('../src/model/captions');
+  let p = projectWith([video('a', 9000)]);
+  p = addClipCaptions(p, p.main[0].id, [
+    { t0: 0, t1: 1500, text: 'merhaba dunya' },
+    { t0: 2000, t1: 3500, text: 'Dunya güzel (mi?)' },
+    { t0: 4000, t1: 5500, text: 'son satır' },
+  ]).project;
+  p = TL.addText(p, 6000, 'dunya başlık').project;
+  const caps = p.texts.filter((t) => t.caption).sort((a, b) => a.start - b.start);
+  assert.equal(caps.length, 3);
+  const title = p.texts.find((t) => !t.caption);
+  // Bul-değiştir: büyük/küçük harf duyarsız, özel karakterler düz metin
+  const r = replaceInCaptions(p, [...caps.map((c) => c.id), title.id], 'dunya', 'dünya');
+  assert.equal(r.changed, 2);
+  assert.equal(r.project.texts.find((t) => t.id === caps[0].id).text, 'merhaba dünya');
+  assert.equal(r.project.texts.find((t) => t.id === caps[1].id).text, 'dünya güzel (mi?)');
+  assert.equal(r.project.texts.find((t) => t.id === title.id).text, 'dunya başlık');
+  assert.equal(replaceInCaptions(p, caps.map((c) => c.id), '(mi?)', '!').project.texts.find((t) => t.id === caps[1].id).text, 'Dunya güzel !');
+  assert.equal(replaceInCaptions(p, caps.map((c) => c.id), '', 'x').changed, 0);
+  // Stil eşitleme
+  let q = TL.updateText(p, caps[0].id, { y: 0.2, style: { ...caps[0].style, color: '#FFCC00FF', size: 0.07 } });
+  q = matchCaptionStyle(q, caps[0].id, caps.map((c) => c.id));
+  for (const c of q.texts.filter((t) => t.caption)) {
+    assert.equal(c.style.color, '#FFCC00FF');
+    assert.equal(c.y, 0.2);
+  }
+  // Silme: yalnızca seçili altyazılar
+  const d = deleteCaptions(p, [caps[0].id, caps[2].id, title.id]);
+  assert.deepEqual(d.texts.filter((t) => t.caption).map((t) => t.id), [caps[1].id]);
+  assert.ok(d.texts.some((t) => t.id === title.id));
+});

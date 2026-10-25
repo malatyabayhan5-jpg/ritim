@@ -91,6 +91,23 @@ appId: app.kurgu.editor
     id: "caption-delete-0"
 - waitForAnimationToEnd:
     timeout: 3000
+# Toplu düzenleme (silmeden sonra satır kaldıysa): seç kipi, tümünü seç, sayaç görünür, kipten çık
+- runFlow:
+    when:
+      visible:
+        text: "(Seç|Select)"
+    commands:
+      - tapOn:
+          text: "(Seç|Select)"
+      - tapOn:
+          text: "(Tümünü seç|Select all)"
+      - extendedWaitUntil:
+          visible:
+            text: "(Seçili|Selected): [1-9].*"
+          timeout: 10000
+      - tapOn:
+          text: "(Bitti|Done)"
+          optional: true
 - takeScreenshot:
     path: 44_altyazi_satir_silindi
     optional: true

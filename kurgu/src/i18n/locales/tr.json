@@ -139,6 +139,7 @@
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
+    "speedFastNote": "10x üzerinde önizleme kare atlayabilir; dışa aktarılan video akıcıdır.",
     "volume": "Ses düzeyi",
     "fadeIn": "Yavaşça açıl",
     "fadeOut": "Yavaşça kapan",
@@ -802,7 +803,18 @@
     "translateEn": "İngilizceye çevir (cihaz içi)",
     "translateNote": "Konuşma whisper modeliyle doğrudan İngilizce yazıya çevrilir. Yalnızca İngilizceye çeviri yapılabilir; \"small\" modeli daha doğru sonuç verir. Başka dillere çeviri dış servis gerektirir.",
     "edit": "Altyazıları düzenle",
-    "listEmpty": "Altyazı yok."
+    "listEmpty": "Altyazı yok.",
+    "select": "Seç",
+    "selectAll": "Tümünü seç",
+    "selectedCount": "Seçili: {n}",
+    "deleteSelected": "Seçilenleri sil",
+    "find": "Bul",
+    "replaceWith": "Şununla değiştir",
+    "replaceApply": "Değiştir",
+    "matchStyle": "İlk seçilenin stilini uygula",
+    "selectDone": "Bitti",
+    "replaced_one": "{n} satır değişti",
+    "replaced_other": "{n} satır değişti"
   },
   "layer": {
     "title": "Katman",

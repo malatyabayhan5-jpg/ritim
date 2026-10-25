@@ -93,3 +93,14 @@ test('ters oynatma: ters medyaya bağlanır, eğri aynalanır, geri dönüş öz
   assert.equal(back.main[0].reversed, null);
   near(curveAt(back.main[0].speedCurve.points, 0), 0.5, 1e-6, 'çift ayna = özgün');
 });
+
+test('sabit hız 100x\'e kadar: süre 1/100, sınırın üstü kırpılır', async () => {
+  const TL = await import('../src/model/timeline');
+  const { projectWith, video } = await import('./helpers.mjs');
+  let p = projectWith([video('a', 10000)]);
+  p = TL.setSpeed(p, p.main[0].id, 100);
+  assert.equal(p.main[0].speed, 100);
+  assert.equal(Math.round(TL.clipDuration(p.main[0])), 100);
+  p = TL.setSpeed(p, p.main[0].id, 250);
+  assert.equal(p.main[0].speed, 100);
+});

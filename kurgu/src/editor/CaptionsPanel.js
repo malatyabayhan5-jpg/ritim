@@ -1,6 +1,7 @@
 // Otomatik altyazı paneli: dil ve model seçimi, model indirme onayı, ilerleme,
 // iptal ve oluşturulan altyazıları kaldırma. İşin kendisi EditorScreen'de.
 
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useI18n } from '../i18n';
 import { Button, Chip, Icon, Panel, Row, Txt } from '../ui';
@@ -75,18 +76,81 @@ export default function CaptionsPanel({ info, lang, onLang, translate, onTransla
 
 /**
  * Altyazı listesi: her satırın metni yerinde düzenlenir, zamana dokununca oynatma kafası
- * oraya gider, satır silinebilir. `onChange(id, text, key)`, `onDelete(id)`, `onSeek(ms)`.
+ * oraya gider, satır silinebilir. "Seç" kipinde birden çok satır seçilip birlikte silinir,
+ * içlerinde bul-değiştir yapılır ya da ilk seçilenin stili diğerlerine uygulanır.
+ * `onChange(id, text, key)`, `onDelete(id)`, `onSeek(ms)`, `onDeleteMany(ids)`,
+ * `onReplace(ids, find, replace)`, `onMatchStyle(sourceId, ids)`.
  */
-export function CaptionListPanel({ captions, position, onChange, onDelete, onSeek, onClose }) {
+export function CaptionListPanel({ captions, position, onChange, onDelete, onSeek, onDeleteMany, onReplace, onMatchStyle, onClose }) {
   const { t, textAlign, row } = useI18n();
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [find, setFind] = useState('');
+  const [rep, setRep] = useState('');
+  // Silinen satırlar seçimden düşer
+  const ids = captions.map((c) => c.id);
+  const sel = ids.filter((id) => selected.has(id));
+  const toggle = (id) =>
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const stopSelecting = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
   return (
     <Panel title={t('captions.edit')} onClose={onClose} testID="panel-caption-list">
+      {captions.length && onDeleteMany ? (
+        <Row style={styles.toolbar}>
+          {selecting ? (
+            <>
+              <Txt dim style={styles.small} testID="caption-selected-count">
+                {t('captions.selectedCount', { n: sel.length })}
+              </Txt>
+              <Chip label={t('captions.selectAll')} onPress={() => setSelected(new Set(ids))} testID="caption-select-all" />
+              <Chip label={t('captions.selectDone')} onPress={stopSelecting} testID="caption-select-done" />
+            </>
+          ) : (
+            <Chip icon="checkbox-outline" label={t('captions.select')} onPress={() => setSelecting(true)} testID="caption-select" />
+          )}
+        </Row>
+      ) : null}
+      {selecting && sel.length ? (
+        <View style={styles.batch}>
+          <Row style={{ gap: space.sm }}>
+            <TextInput value={find} onChangeText={setFind} placeholder={t('captions.find')} placeholderTextColor={colors.textFaint} style={[styles.input, { textAlign }]} testID="caption-find" />
+            <TextInput value={rep} onChangeText={setRep} placeholder={t('captions.replaceWith')} placeholderTextColor={colors.textFaint} style={[styles.input, { textAlign }]} testID="caption-replace" />
+          </Row>
+          <Row style={{ gap: space.sm, flexWrap: 'wrap' }}>
+            <Chip icon="swap-horizontal-outline" label={t('captions.replaceApply')} onPress={() => find && onReplace(sel, find, rep)} testID="caption-replace-apply" />
+            {sel.length > 1 ? <Chip icon="color-palette-outline" label={t('captions.matchStyle')} onPress={() => onMatchStyle(sel[0], sel)} testID="caption-match-style" /> : null}
+            <Chip
+              icon="trash-outline"
+              label={t('captions.deleteSelected')}
+              onPress={() => {
+                onDeleteMany(sel);
+                setSelected(new Set());
+              }}
+              testID="caption-delete-selected"
+            />
+          </Row>
+        </View>
+      ) : null}
       <ScrollView style={{ maxHeight: 300 }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         {captions.length ? null : <Txt dim style={styles.small}>{t('captions.listEmpty')}</Txt>}
         {captions.map((c, i) => {
           const active = position >= c.start && position < c.start + c.duration;
+          const checked = selected.has(c.id);
           return (
             <View key={c.id} style={[styles.item, { flexDirection: row }, active && styles.itemActive]}>
+              {selecting ? (
+                <Pressable onPress={() => toggle(c.id)} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked }} testID={`caption-check-${i}`}>
+                  <Icon name={checked ? 'checkbox' : 'square-outline'} size={20} color={checked ? colors.accent : colors.textDim} />
+                </Pressable>
+              ) : null}
               <Pressable onPress={() => onSeek(c.start + 1)} hitSlop={6} testID={`caption-time-${i}`}>
                 <Txt style={styles.time}>{ltr(formatTimecode(c.start, { tenths: true }))}</Txt>
               </Pressable>
@@ -98,9 +162,11 @@ export function CaptionListPanel({ captions, position, onChange, onDelete, onSee
                 style={[styles.input, { textAlign }]}
                 placeholderTextColor={colors.textFaint}
               />
-              <Pressable onPress={() => onDelete(c.id)} hitSlop={8} accessibilityLabel={t('common.delete')} testID={`caption-delete-${i}`}>
-                <Icon name="trash-outline" size={18} color={colors.textDim} />
-              </Pressable>
+              {selecting ? null : (
+                <Pressable onPress={() => onDelete(c.id)} hitSlop={8} accessibilityLabel={t('common.delete')} testID={`caption-delete-${i}`}>
+                  <Icon name="trash-outline" size={18} color={colors.textDim} />
+                </Pressable>
+              )}
             </View>
           );
         })}
@@ -110,6 +176,8 @@ export function CaptionListPanel({ captions, position, onChange, onDelete, onSee
 }
 
 const styles = StyleSheet.create({
+  toolbar: { paddingHorizontal: space.lg, gap: space.sm, alignItems: 'center', flexWrap: 'wrap' },
+  batch: { paddingHorizontal: space.lg, paddingBottom: space.sm, gap: space.sm },
   item: { alignItems: 'center', gap: space.sm, paddingVertical: 4, paddingHorizontal: 6, borderRadius: radius.md },
   itemActive: { backgroundColor: colors.accentSoft },
   time: { fontSize: 12, color: colors.accent2, fontVariant: ['tabular-nums'], minWidth: 56 },

@@ -11,7 +11,7 @@ import { createEffectInstance, createEffectLayer } from './effects';
 export const MIN_CLIP_MS = 100;
 export const MAX_IMAGE_MS = 60 * 60 * 1000;
 export const SPEED_MIN = 0.1;
-export const SPEED_MAX = 10;
+export const SPEED_MAX = 100;
 
 export const clipDuration = speedDuration;
 

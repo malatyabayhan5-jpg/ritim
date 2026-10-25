@@ -85,6 +85,46 @@ export function removeCaptions(project) {
 
 export const hasCaptions = (project) => project.texts.some((t) => t.caption);
 
+// --- Toplu düzenleme (altyazı listesinde çoklu seçim) ---
+
+const isCap = (ids) => (t) => t.caption && ids.has(t.id);
+
+/** Seçili altyazıları siler. */
+export function deleteCaptions(project, ids) {
+  const set = new Set(ids);
+  const texts = project.texts.filter((t) => !isCap(set)(t));
+  return texts.length === project.texts.length ? project : { ...project, texts, updatedAt: Date.now() };
+}
+
+/**
+ * Seçili altyazılarda bul ve değiştir (büyük/küçük harf duyarsız, Türkçe kurallarıyla
+ * değil düz eşleme; aranan metin düzenli ifade olarak yorumlanmaz). Değişen satır sayısını döner.
+ */
+export function replaceInCaptions(project, ids, find, replace) {
+  if (!find) return { project, changed: 0 };
+  const set = new Set(ids);
+  const re = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  let changed = 0;
+  const texts = project.texts.map((t) => {
+    if (!isCap(set)(t)) return t;
+    const next = t.text.replace(re, replace);
+    if (next === t.text) return t;
+    changed++;
+    return { ...t, text: next };
+  });
+  return changed ? { project: { ...project, texts, updatedAt: Date.now() }, changed } : { project, changed: 0 };
+}
+
+/** Kaynak altyazının stilini (ve konumunu) seçili altyazılara uygular. */
+export function matchCaptionStyle(project, sourceId, ids) {
+  const src = project.texts.find((t) => t.id === sourceId);
+  if (!src) return project;
+  const set = new Set(ids);
+  set.delete(sourceId);
+  const texts = project.texts.map((t) => (isCap(set)(t) ? { ...t, style: { ...src.style }, x: src.x, y: src.y, scale: src.scale, animIn: src.animIn, animOut: src.animOut } : t));
+  return { ...project, texts, updatedAt: Date.now() };
+}
+
 /** Altyazı çıkarılabilecek klipler: sesi olan video klipler. */
 export function captionableClips(project) {
   return project.main.filter((c) => c.kind === 'video' && !c.muted && project.media[c.mediaId]?.hasAudio !== false);

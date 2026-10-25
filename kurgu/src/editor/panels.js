@@ -25,7 +25,7 @@ import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey, toggleV
 import { keyAt } from '../model/keyframes';
 import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
-const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
+const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 20, 50, 100];
 
 export function Hscroll({ children }) {
   return (
@@ -53,9 +53,12 @@ export function Labeled({ label, children }) {
 export function SpeedPanel({ clip, onChange, onCurve, onClose }) {
   const { t, fmt } = useI18n();
   const [mode, setMode] = useState(clip.speedCurve ? 'curve' : 'normal');
-  // Logaritmik kaydırıcı: 0.1x..10x
+  // Logaritmik kaydırıcı: 0.1x..100x (10x üstü tam sayıya yuvarlanır)
   const toSlider = (s) => Math.log10(s);
-  const fromSlider = (v) => Math.round(Math.pow(10, v) * 100) / 100;
+  const fromSlider = (v) => {
+    const s = Math.pow(10, v);
+    return s >= 10 ? Math.round(s) : Math.round(s * 100) / 100;
+  };
   const curve = clip.speedCurve;
   const handles = CURVE_HANDLES.map((x) => (curve ? curveAt(curve.points, x) : clip.speed || 1));
   const setHandle = (i, v) =>
@@ -88,6 +91,11 @@ export function SpeedPanel({ clip, onChange, onCurve, onClose }) {
             <Txt faint style={styles.hint}>
               {t('panels.speedHint')}
             </Txt>
+            {!curve && clip.speed > 10 ? (
+              <Txt faint style={styles.hint} testID="speed-fast-note">
+                {t('panels.speedFastNote')}
+              </Txt>
+            ) : null}
           </>
         ) : (
           <>

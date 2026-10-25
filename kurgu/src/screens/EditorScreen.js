@@ -33,7 +33,7 @@ import { autoAdjust } from '../model/enhance';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel, { CaptionListPanel } from '../editor/CaptionsPanel';
-import { addClipCaptions, addSrtCaptions, captionableClips, hasCaptions, parseSrt, removeCaptions, toSrt } from '../model/captions';
+import { addClipCaptions, addSrtCaptions, captionableClips, deleteCaptions, hasCaptions, matchCaptionStyle, parseSrt, removeCaptions, replaceInCaptions, toSrt } from '../model/captions';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
@@ -1237,6 +1237,13 @@ export default function EditorScreen({ params, focused }) {
             position={position}
             onChange={(id, text, key) => apply((p) => TL.updateText(p, id, { text }), key)}
             onDelete={(id) => apply((p) => TL.deleteText(p, id))}
+            onDeleteMany={(ids) => apply((p) => deleteCaptions(p, ids))}
+            onReplace={(ids, find, rep) => {
+              const r = replaceInCaptions(project, ids, find, rep);
+              if (r.changed) apply(r.project);
+              toast(t('captions.replaced', { count: r.changed }));
+            }}
+            onMatchStyle={(src, ids) => apply((p) => matchCaptionStyle(p, src, ids))}
             onSeek={(ms) => seek(ms)}
             onClose={close}
           />

@@ -139,6 +139,7 @@
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
+    "speedFastNote": "Above 10x the preview may skip frames; the exported video plays smoothly.",
     "volume": "Volume",
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
@@ -802,7 +803,18 @@
     "translateEn": "Translate to English (on device)",
     "translateNote": "Speech is transcribed directly into English by the whisper model. Only translation into English is possible; the \"small\" model is more accurate. Translating into other languages needs an external service.",
     "edit": "Edit captions",
-    "listEmpty": "No captions."
+    "listEmpty": "No captions.",
+    "select": "Select",
+    "selectAll": "Select all",
+    "selectedCount": "Selected: {n}",
+    "deleteSelected": "Delete selected",
+    "find": "Find",
+    "replaceWith": "Replace with",
+    "replaceApply": "Replace",
+    "matchStyle": "Apply the first one's style",
+    "selectDone": "Done",
+    "replaced_one": "{n} line changed",
+    "replaced_other": "{n} lines changed"
   },
   "layer": {
     "title": "Overlay",

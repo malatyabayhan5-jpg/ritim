@@ -6,7 +6,8 @@
 // zaman çizelgesi ile çıktı birebir tutar.
 
 export const SPEED_MIN = 0.1;
-export const SPEED_MAX = 10;
+// Sabit hız 100x'e kadar (hiperlaps); eğri noktaları 10x ile sınırlı kalır
+export const SPEED_MAX = 100;
 export const CURVE_SPEED_MIN = 0.1;
 export const CURVE_SPEED_MAX = 10;
 export const SEGMENTS = 32;
