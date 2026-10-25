@@ -24,9 +24,9 @@ appId: app.kurgu.editor
     id: "tool-back"
     optional: true
 - tapOn:
-    id: "tool-ai"
+    id: "tool-captions"
 - tapOn:
-    id: "ai-run-autoCaptions"
+    id: "tool-autoCaptions"
 - extendedWaitUntil:
     visible:
       id: "caption-start"
@@ -73,9 +73,9 @@ appId: app.kurgu.editor
           id: "tool-back"
           optional: true
       - tapOn:
-          id: "tool-ai"
+          id: "tool-captions"
       - tapOn:
-          id: "ai-run-autoCaptions"
+          id: "tool-autoCaptions"
 - tapOn:
     id: "caption-edit"
 - extendedWaitUntil:

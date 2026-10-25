@@ -109,6 +109,8 @@ export default function Timeline({
   onZoom,
   onTransitionPress,
   onAddMedia,
+  onAddAudio,
+  onAddText,
   labels,
 }) {
   const { width: screenW } = useWindowDimensions();
@@ -198,8 +200,12 @@ export default function Timeline({
   const ovLaneCount = overlays.length ? Math.max(...overlays.map((o) => o.lane)) + 1 : 0;
   const ovH = ovLaneCount * (OVERLAY_H + 4);
   const mainTop = RULER_H + 4 + ovH;
-  const textTop = mainTop + MAIN_H + 8 + audioLanes.length * (AUDIO_H + 4);
-  const fxTop = textTop + textLanes.count * (TEXT_H + 4);
+  // Boş ses / metin izi yerine tek bir "+ Ses ekle" / "+ Metin ekle" satırı durur
+  const audioRows = Math.max(1, audioLanes.length);
+  const textRows = Math.max(1, textLanes.count);
+  const textTop = mainTop + MAIN_H + 8 + audioRows * (AUDIO_H + 4);
+  const fxTop = textTop + textRows * (TEXT_H + 4);
+  const addRowW = Math.max(total * pxPerMs, half * 0.8);
   const tracksH = fxTop + fxLanes.count * (TEXT_H + 4) + 8;
 
   return (
@@ -296,6 +302,9 @@ export default function Timeline({
           </View>
 
           {/* Ses şeritleri */}
+          {!audioLanes.length && onAddAudio ? (
+            <AddRow testID="timeline-add-audio" label={labels.addAudio} top={mainTop + MAIN_H + 8} height={AUDIO_H} left={half} width={addRowW} onPress={onAddAudio} />
+          ) : null}
           {audioLanes.map((lane, li) =>
             lane.map((a) => (
               <FreeItem
@@ -322,6 +331,9 @@ export default function Timeline({
           )}
 
           {/* Metin şeritleri */}
+          {!project.texts.length && onAddText ? (
+            <AddRow testID="timeline-add-text" label={labels.addText} top={textTop} height={TEXT_H} left={half} width={addRowW} onPress={onAddText} />
+          ) : null}
           {project.texts.map((tx) => (
             <FreeItem
               key={tx.id}
@@ -378,6 +390,17 @@ export default function Timeline({
         <Ionicons name="add" size={26} color={colors.bg} />
       </Pressable>
     </View>
+  );
+}
+
+function AddRow({ label, top, height, left, width, onPress, testID }) {
+  return (
+    <Pressable testID={testID} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={[styles.addRow, { top, height, left, width }]}>
+      <Ionicons name="add" size={14} color={colors.textDim} />
+      <Text numberOfLines={1} style={styles.addRowText}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -630,5 +653,7 @@ const styles = StyleSheet.create({
   freeLabel: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 5 },
   freeText: { color: colors.text, fontSize: 10, fontWeight: '600', flexShrink: 1 },
   playhead: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: colors.playhead, borderRadius: 1 },
+  addRow: { position: 'absolute', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, borderRadius: 5, backgroundColor: colors.surface },
+  addRowText: { color: colors.textDim, fontSize: 11 },
   addBtn: { position: 'absolute', right: 10, width: 40, height: 40, borderRadius: 8, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },
 });

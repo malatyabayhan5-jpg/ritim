@@ -69,6 +69,7 @@ export default function EditorScreen({ params, focused }) {
   const [panel, setPanel] = useState(null);
   const [sub, setSub] = useState(null); // alt araç çubuğu: 'audio' | 'text'
   const [playing, setPlaying] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   // Oynatma kafası: depo (bkz. editor/playhead.js). Ekran konumu yalnızca duraklatılmışken ve
   // kaydırma bitince izler; oynatma/kaydırma sırasında yalnızca küçük aboneler çizilir.
   const [playhead] = useState(() => createPlayhead());
@@ -262,6 +263,10 @@ export default function EditorScreen({ params, focused }) {
 
   useBackHandler(() => {
     if (!focused) return false;
+    if (fullscreen) {
+      setFullscreen(false);
+      return true;
+    }
     if (panel) {
       setPanel(null);
       return true;
@@ -275,7 +280,7 @@ export default function EditorScreen({ params, focused }) {
       return true;
     }
     return false;
-  }, [focused, panel, sub, selection]);
+  }, [focused, fullscreen, panel, sub, selection]);
 
   // --- İşlemler ---
   const split = () => {
@@ -866,6 +871,7 @@ export default function EditorScreen({ params, focused }) {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {/* Üst çubuk */}
+      {fullscreen ? null : (
       <Row style={styles.topBar}>
         <IconButton icon="close" label={t('common.close')} onPress={() => { saveNow(project); nav.pop(); }} testID="editor-close" />
         <Pressable style={styles.titleWrap} onPress={() => setRenaming(true)}>
@@ -881,6 +887,7 @@ export default function EditorScreen({ params, focused }) {
           <Text style={styles.exportText}>{t('editor.export')}</Text>
         </Pressable>
       </Row>
+      )}
 
       {/* Önizleme */}
       <View style={styles.previewArea} onLayout={(e) => setPreviewBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
@@ -978,17 +985,28 @@ export default function EditorScreen({ params, focused }) {
       </View>
 
       {/* Oynatma denetimleri */}
+      {/* Oynatma denetimleri: CapCut kaydındaki gibi tam ekran solda, oynat ortada, geri al / yinele sağda */}
       <Row style={styles.controls}>
-        <PlayheadValue store={playhead} stepMs={100}>
-          {(ms) => <Text style={styles.time}>{`${ltr(formatTimecode(ms))} / ${ltr(formatTimecode(total))}`}</Text>}
-        </PlayheadValue>
+        <Row gap={0} style={styles.controlsSide}>
+          <IconButton icon={fullscreen ? 'contract-outline' : 'expand-outline'} size={20} label={t(fullscreen ? 'editor.exitFullscreen' : 'editor.fullscreen')} onPress={() => setFullscreen((f) => !f)} testID="fullscreen-toggle" />
+          <PlayheadValue store={playhead} stepMs={100}>
+            {(ms) => <Text style={styles.time}>{`${ltr(formatTimecode(ms))} / ${ltr(formatTimecode(total))}`}</Text>}
+          </PlayheadValue>
+        </Row>
         <IconButton icon={playing ? 'pause' : 'play'} size={28} label={t(playing ? 'editor.pause' : 'editor.play')} onPress={togglePlay} testID="play-toggle" />
-        <Row gap={0}>
-          <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, playhead.get()))} />
-          <IconButton icon="arrow-undo" directional size={20} label={t('editor.undo')} disabled={!canUndo(hist)} onPress={() => setHist(undo)} testID="undo" />
-          <IconButton icon="arrow-redo" directional size={20} label={t('editor.redo')} disabled={!canRedo(hist)} onPress={() => setHist(redo)} testID="redo" />
+        <Row gap={0} style={[styles.controlsSide, { justifyContent: 'flex-end' }]}>
+          {fullscreen ? null : (
+            <>
+              <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, playhead.get()))} />
+              <IconButton icon="arrow-undo" directional size={20} label={t('editor.undo')} disabled={!canUndo(hist)} onPress={() => setHist(undo)} testID="undo" />
+              <IconButton icon="arrow-redo" directional size={20} label={t('editor.redo')} disabled={!canRedo(hist)} onPress={() => setHist(redo)} testID="redo" />
+            </>
+          )}
         </Row>
       </Row>
+      {fullscreen ? <View style={{ height: insets.bottom }} /> : null}
+      {/* Tam ekranda gizlenir ama bağlı kalır (zaman çizelgesi kaydırma durumu korunur) */}
+      <View style={fullscreen ? styles.hidden : null}>
 
       {/* Zaman çizelgesi */}
       <View style={styles.timeline}>
@@ -1024,7 +1042,17 @@ export default function EditorScreen({ params, focused }) {
             openPanel('transition');
           }}
           onAddMedia={() => addMedia('gallery')}
-          labels={{ addMedia: t('editor.addMedia'), missing: t('editor.missingShort') }}
+          onAddAudio={() => {
+            setSelection(null);
+            setPanel(null);
+            setSub('audio');
+          }}
+          onAddText={() => {
+            setSelection(null);
+            setPanel(null);
+            setSub('text');
+          }}
+          labels={{ addMedia: t('editor.addMedia'), addAudio: t('editor.addAudio'), addText: t('editor.addText'), missing: t('editor.missingShort') }}
         />
       </View>
 
@@ -1037,11 +1065,12 @@ export default function EditorScreen({ params, focused }) {
             {selection || sub ? (
               <IconButton icon="chevron-back" directional label={t('common.back')} onPress={() => (sub ? setSub(null) : setSelection(null))} style={styles.toolBack} testID="tool-back" />
             ) : null}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolScroll}>
+            <ScrollView key={`${selection?.type || ''}-${sub || ''}`} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolScroll} testID="toolbar-scroll">
               {renderTools()}
             </ScrollView>
           </View>
         )}
+      </View>
       </View>
 
       <PromptModal
@@ -1066,7 +1095,7 @@ export default function EditorScreen({ params, focused }) {
   function renderTools() {
     const T = (key, icon, onPress, extra = {}) => <ToolButton key={key} testID={`tool-${key}`} icon={icon} label={t(`tools.${key}`)} onPress={onPress} {...extra} />;
     if (sub === 'audio') {
-      return [T('music', 'musical-notes-outline', addAudio), T('record', 'mic-outline', () => openPanel('record')), T('soundFromVideo', 'film-outline', () => {
+      return [T('soundFromVideo', 'film-outline', () => {
         const c = ensureClipSelected();
         if (c) {
           const r = TL.extractAudio(project, c.id);
@@ -1076,41 +1105,47 @@ export default function EditorScreen({ params, focused }) {
             setSub(null);
           } else toast(t('editor.noAudio'));
         }
-      })];
+      }), T('music', 'musical-notes-outline', addAudio), T('record', 'mic-outline', () => openPanel('record'))];
+    }
+    if (sub === 'captions') {
+      return [
+        T('autoCaptions', 'logo-closed-captioning', openCaptions),
+        hasCaptions(project) ? T('captionList', 'list-outline', () => openPanel('captionList')) : null,
+      ].filter(Boolean);
     }
     if (sub === 'text') {
       // Araç çubuğunda temel düzenler; tüm şablonlar metin panelinin Şablonlar sekmesinde
-      return [T('addText', 'add-circle-outline', () => addText(null)), T('sticker', 'happy-outline', () => openPanel('sticker')), T('shape', 'shapes-outline', () => openPanel('shapePick')), ...TEXT_LAYOUTS_BASE.map((l) => (
+      return [T('addText', 'add-circle-outline', () => addText(null)), T('autoCaptions', 'logo-closed-captioning', openCaptions), T('sticker', 'happy-outline', () => openPanel('sticker')), T('shape', 'shapes-outline', () => openPanel('shapePick')), ...TEXT_LAYOUTS_BASE.map((l) => (
         <ToolButton key={l.id} testID={`tool-layout-${l.id}`} icon="albums-outline" label={t(`text.layout.${l.id}`)} onPress={() => addText(l.id)} />
       ))];
     }
     if (selectedMain) {
       const isImage = selectedMain.kind === 'image';
       const index = project.main.findIndex((c) => c.id === selectedMain.id);
+      // Sıra kullanıcının CapCut kaydındaki klip araç çubuğunu izler (replica/recon.md)
       return [
         T('split', 'cut-outline', split),
-        isImage ? T('duration', 'time-outline', () => openPanel('duration')) : T('speed', 'speedometer-outline', () => openPanel('speed')),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
-        T('filters', 'color-filter-outline', () => openPanel('filters')),
-        T('adjust', 'options-outline', () => openPanel('adjust')),
         T('effects', 'sparkles-outline', () => {
           setFxSel(selectedMain.effects?.[selectedMain.effects.length - 1]?.id || null);
           openPanel('fxClip');
         }, { badge: !!selectedMain.effects?.length }),
+        T('delete', 'trash-outline', remove),
+        isImage ? T('duration', 'time-outline', () => openPanel('duration')) : T('speed', 'speedometer-outline', () => openPanel('speed')),
         T('transform', 'crop-outline', () => openPanel('transform')),
+        T('duplicate', 'copy-outline', duplicate),
+        T('replace', 'swap-horizontal-outline', replace),
+        T('filters', 'color-filter-outline', () => openPanel('filters')),
+        T('adjust', 'options-outline', () => openPanel('adjust')),
         index > 0 ? T('transition', 'git-compare-outline', () => openPanel('transition')) : null,
-        !isImage ? T('reverse', 'play-back-outline', reverse, { active: !!selectedMain.reversed }) : null,
-        !isImage ? T('freeze', 'snow-outline', freeze) : null,
         !isImage ? T('extractAudio', 'musical-note-outline', () => {
           const r = TL.extractAudio(project, selectedMain.id);
           if (r.newId) apply(r.project);
           else toast(t('editor.noAudio'));
         }) : null,
-        // Sona yakın: e2e akışları önceki düğmelerin ekranda kalmasına güvenir
         !isImage ? T('audioFx', 'pulse-outline', () => openPanel('audioFx'), { badge: isAudioFxActive(selectedMain.audioFx) }) : null,
-        T('replace', 'swap-horizontal-outline', replace),
-        T('duplicate', 'copy-outline', duplicate),
-        T('delete', 'trash-outline', remove),
+        !isImage ? T('freeze', 'snow-outline', freeze) : null,
+        !isImage ? T('reverse', 'play-back-outline', reverse, { active: !!selectedMain.reversed }) : null,
       ].filter(Boolean);
     }
     if (selectedAudio) {
@@ -1159,19 +1194,23 @@ export default function EditorScreen({ params, focused }) {
         T('delete', 'trash-outline', remove),
       ];
     }
+    // Sıra kullanıcının CapCut kaydındaki ana araç çubuğuyla aynı (replica/recon.md); AI en sonda
     return [
       T('edit', 'cut-outline', () => ensureClipSelected()),
-      T('ai', 'sparkles', () => openPanel('ai')),
       T('audio', 'musical-notes-outline', () => setSub('audio')),
       T('text', 'text-outline', () => setSub('text')),
-      T('overlay', 'layers-outline', addOverlay),
       T('effects', 'sparkles-outline', () => {
         setSelection(null);
         openPanel('fxLayer');
       }),
+      T('overlay', 'layers-outline', addOverlay),
+      T('captions', 'logo-closed-captioning', () => setSub('captions')),
       T('filters', 'color-filter-outline', () => ensureClipSelected() && openPanel('filters')),
       T('adjust', 'options-outline', () => ensureClipSelected() && openPanel('adjust')),
+      T('sticker', 'happy-outline', () => openPanel('sticker')),
       T('ratio', 'tablet-portrait-outline', () => openPanel('ratio')),
+      T('background', 'color-fill-outline', () => openPanel('background')),
+      T('ai', 'sparkles', () => openPanel('ai')),
     ];
   }
 
@@ -1357,9 +1396,11 @@ export default function EditorScreen({ params, focused }) {
         return <TransitionPanel clip={selectedMain} maxMs={maxMs} onChange={updMain} onApplyAll={(patch) => { apply((p) => ({ ...TL.updateAllMain(p, patch) })); toast(t('panels.appliedToAll')); }} onClose={close} />;
       }
       case 'ratio':
+      case 'background':
         return (
           <RatioPanel
             project={project}
+            mode={panel}
             onChange={({ ratio, fit, background }, key) =>
               apply(
                 (p) => ({
@@ -1434,7 +1475,9 @@ const styles = StyleSheet.create({
   bannerText: { color: colors.bg, fontWeight: '700', fontSize: 12, flex: 1 },
   previewError: { position: 'absolute', bottom: 8, left: 10, right: 10, backgroundColor: colors.danger, borderRadius: radius.md, padding: space.sm },
   previewErrorText: { color: colors.text, fontSize: 12, textAlign: 'center' },
-  controls: { height: 46, paddingHorizontal: space.md, justifyContent: 'space-between' },
+  controls: { height: 46, paddingHorizontal: space.xs, justifyContent: 'space-between' },
+  controlsSide: { flex: 1, alignItems: 'center' },
+  hidden: { display: 'none' },
   time: { color: colors.textDim, fontSize: 12, fontVariant: ['tabular-nums'], minWidth: 110 },
   timeline: { height: 210, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   toolbar: { minHeight: 72, alignItems: 'center', backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },

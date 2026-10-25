@@ -100,7 +100,11 @@
     "noAudio": "This clip has no audio",
     "previewError": "Preview error ({code}). Tap to dismiss.",
     "recovered": "The project was recovered from the last good save",
-    "working": "Processing…"
+    "working": "Processing…",
+    "addAudio": "Add audio",
+    "addText": "Add text",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen"
   },
   "tools": {
     "edit": "Edit",
@@ -135,7 +139,11 @@
     "record": "Voiceover",
     "audioFx": "Audio FX",
     "sticker": "Sticker",
-    "shape": "Shape"
+    "shape": "Shape",
+    "captions": "Captions",
+    "autoCaptions": "Auto captions",
+    "captionList": "Edit captions",
+    "background": "Background"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",

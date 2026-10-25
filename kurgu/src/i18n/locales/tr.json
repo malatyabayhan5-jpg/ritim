@@ -100,7 +100,11 @@
     "noAudio": "Bu klipte ses yok",
     "previewError": "Önizleme hatası ({code}). Dokunarak kapatın.",
     "recovered": "Proje son sağlam kayıttan kurtarıldı",
-    "working": "İşleniyor…"
+    "working": "İşleniyor…",
+    "addAudio": "Ses ekle",
+    "addText": "Metin ekle",
+    "fullscreen": "Tam ekran",
+    "exitFullscreen": "Tam ekrandan çık"
   },
   "tools": {
     "edit": "Düzenle",
@@ -135,7 +139,11 @@
     "record": "Seslendir",
     "audioFx": "Ses efekti",
     "sticker": "Çıkartma",
-    "shape": "Şekil"
+    "shape": "Şekil",
+    "captions": "Altyazılar",
+    "autoCaptions": "Otomatik altyazı",
+    "captionList": "Altyazıları düzenle",
+    "background": "Arka plan"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",

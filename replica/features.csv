@@ -61,7 +61,7 @@ Export frame rate 24 to 60,export,must,yes,yes,
 Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
 Share sheet after export,export,should,yes,partial,
-Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"user's recording received (replica/screens); main toolbar, controls row and timeline rows differ — see recon.md Layout section"
+Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"main, clip, text and audio toolbars in the recording's order; captions and background on the main toolbar; + Add audio / + Add text rows; fullscreen. Missing: resolution dropdown next to Export, keyframe button in the controls row, one tabbed filters / adjust panel"
 Fullscreen preview,ux,could,yes,no,"seen in the recording (controls row, left)"
 Template store,templates,could,yes,skip,their creators and content
 Music and sound effect library,audio,could,yes,skip,licensed catalogue

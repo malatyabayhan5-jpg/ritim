@@ -26,6 +26,16 @@ appId: app.kurgu.editor
     id: "tool-back"
     optional: true
 # Sahne algılama
+- repeat:
+    while:
+      notVisible:
+        id: "tool-ai"
+    times: 6
+    commands:
+      - swipe:
+          from:
+            id: "toolbar-scroll"
+          direction: LEFT
 - tapOn:
     id: "tool-ai"
 - extendedWaitUntil:
@@ -51,6 +61,16 @@ appId: app.kurgu.editor
       id: "clip-1"
     timeout: 5000
 # Sessizlik kaldırma
+- repeat:
+    while:
+      notVisible:
+        id: "tool-ai"
+    times: 6
+    commands:
+      - swipe:
+          from:
+            id: "toolbar-scroll"
+          direction: LEFT
 - tapOn:
     id: "tool-ai"
 - tapOn:
@@ -143,6 +163,16 @@ appId: app.kurgu.editor
 - tapOn:
     id: "tool-back"
     optional: true
+- repeat:
+    while:
+      notVisible:
+        id: "tool-ai"
+    times: 6
+    commands:
+      - swipe:
+          from:
+            id: "toolbar-scroll"
+          direction: LEFT
 - tapOn:
     id: "tool-ai"
 - tapOn:
@@ -195,6 +225,17 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "clip-0"
+# Ters çevir klip araç çubuğunun sonunda (CapCut sırası): görünene kadar kaydır
+- repeat:
+    while:
+      notVisible:
+        id: "tool-reverse"
+    times: 8
+    commands:
+      - swipe:
+          from:
+            id: "toolbar-scroll"
+          direction: LEFT
 - tapOn:
     id: "tool-reverse"
 - extendedWaitUntil:
