@@ -103,6 +103,13 @@ appId: app.kurgu.editor
 - takeScreenshot:
     path: 08_filtre
     optional: true
+# Aynı panelde Ayarla sekmesi (CapCut'taki gibi Filtreler / Ayarla sekmeleri)
+- tapOn:
+    id: "color-tab-adjust"
+- extendedWaitUntil:
+    visible:
+      id: "panel-adjust"
+    timeout: 5000
 - tapOn:
     id: "panel-done"
 - tapOn:

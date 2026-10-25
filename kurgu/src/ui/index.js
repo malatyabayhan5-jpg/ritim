@@ -181,15 +181,32 @@ export function Slider({ value, min = 0, max = 1, step = 0, onChange, onComplete
 }
 
 /** Alt panel: başlık + kapat/onayla. Önizleme ve zaman çizelgesi görünür kalır. */
-export function Panel({ title, onClose, onDone, children, testID, right }) {
+/**
+ * Alt panel. `tabs` verilirse başlık yerine sekmeler çizilir (CapCut'taki Filtreler / Ayarla
+ * paneli gibi): [{ key, label, active, onPress, testID }].
+ */
+export function Panel({ title, onClose, onDone, children, testID, right, tabs }) {
   const { t, row } = useI18n();
   return (
     <View style={styles.panel} testID={testID}>
       <View style={[styles.panelHeader, { flexDirection: row }]}>
         <IconButton icon="close" onPress={onClose} label={t('common.close')} size={20} />
-        <Text style={styles.panelTitle} numberOfLines={1}>
-          {title}
-        </Text>
+        {tabs ? (
+          <View style={[styles.panelTabs, { flexDirection: row }]} accessibilityRole="tablist">
+            {tabs.map((tab) => (
+              <Pressable key={tab.key} onPress={tab.onPress} accessibilityRole="tab" accessibilityState={{ selected: !!tab.active }} testID={tab.testID} style={styles.panelTab}>
+                <Text numberOfLines={1} style={[styles.panelTabText, tab.active && styles.panelTabActive]}>
+                  {tab.label}
+                </Text>
+                <View style={[styles.panelTabBar, tab.active && { backgroundColor: colors.accent }]} />
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.panelTitle} numberOfLines={1}>
+            {title}
+          </Text>
+        )}
         {right || <IconButton icon="checkmark" onPress={onDone || onClose} label={t('common.done')} size={22} color={colors.accent} testID="panel-done" />}
       </View>
       {children}
@@ -330,6 +347,11 @@ const styles = StyleSheet.create({
   panel: { backgroundColor: colors.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, paddingBottom: space.sm },
   panelHeader: { alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xs, height: 48 },
   panelTitle: { color: colors.text, ...font.h2, flex: 1, textAlign: 'center' },
+  panelTabs: { flex: 1, justifyContent: 'center', gap: space.lg },
+  panelTab: { alignItems: 'center', justifyContent: 'center', minHeight: HIT, paddingHorizontal: space.xs },
+  panelTabText: { color: colors.textDim, fontSize: 15, fontWeight: '600' },
+  panelTabActive: { color: colors.text },
+  panelTabBar: { height: 2, width: 20, borderRadius: 1, marginTop: 4, backgroundColor: 'transparent' },
   modalBack: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: space.xl },
   modalCard: { backgroundColor: colors.surface2, borderRadius: radius.lg, padding: space.lg, gap: space.md },
   input: { backgroundColor: colors.bg, color: colors.text, borderRadius: radius.md, paddingHorizontal: space.md, height: 48, fontSize: 16 },

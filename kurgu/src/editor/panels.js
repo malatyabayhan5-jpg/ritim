@@ -201,13 +201,13 @@ function swatch(matrix) {
   return `rgb(${out.map((v) => Math.round(v * 255)).join(',')})`;
 }
 
-export function FilterPanel({ clip, luts = {}, onImportLut, onChange, onApplyAll, onClose }) {
+export function FilterPanel({ clip, luts = {}, onImportLut, onChange, onApplyAll, onClose, tabs }) {
   const { t, fmt } = useI18n();
   const [cat, setCat] = useState(clip.lut ? 'lut' : FILTERS.find((f) => f.id === clip.filter.id)?.category || 'basic');
   const lutList = Object.values(luts);
   const isLut = cat === 'lut';
   return (
-    <Panel title={t('tools.filters')} onClose={onClose} testID="panel-filters">
+    <Panel title={t('tools.filters')} onClose={onClose} testID="panel-filters" tabs={tabs}>
       <View style={styles.body}>
         <Hscroll>
           {[...FILTER_CATEGORIES, ...(onImportLut ? ['lut'] : [])].map((c) => (
@@ -251,14 +251,14 @@ export function FilterPanel({ clip, luts = {}, onImportLut, onChange, onApplyAll
 }
 
 /** `only`: gösterilecek ayar anahtarları (ör. katmanlarda yalnızca renk matrisi ayarları). */
-export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only, onAuto }) {
+export function AdjustPanel({ clip, onChange, onApplyAll, onClose, only, onAuto, tabs }) {
   const { t, fmt } = useI18n();
   const list = only ? ADJUSTMENTS.filter((a) => only.includes(a.key)) : ADJUSTMENTS;
   const [key, setKey] = useState(list[0].key);
   const def = ADJUSTMENTS.find((a) => a.key === key);
   const value = clip.adjust[key] || 0;
   return (
-    <Panel title={t('tools.adjust')} onClose={onClose} testID="panel-adjust">
+    <Panel title={t('tools.adjust')} onClose={onClose} testID="panel-adjust" tabs={tabs}>
       <View style={styles.body}>
         <Hscroll>
           {list.map((a) => (

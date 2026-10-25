@@ -1258,6 +1258,11 @@ export default function EditorScreen({ params, focused }) {
       toast(t('panels.appliedToAll'));
     };
     const target = selectedMain || clipAtPlayhead();
+    // Filtreler ve Ayarla tek panelde iki sekme (kullanıcının CapCut kaydı, S15)
+    const colorTabs = (filtersKey, adjustKey) => [
+      { key: 'filters', label: t('tools.filters'), active: panel === filtersKey, onPress: () => setPanel(filtersKey), testID: 'color-tab-filters' },
+      { key: 'adjust', label: t('tools.adjust'), active: panel === adjustKey, onPress: () => setPanel(adjustKey), testID: 'color-tab-adjust' },
+    ];
     switch (panel) {
       case 'speed':
         return selectedMain && <SpeedPanel clip={selectedMain} onChange={(patch, key) => apply((p) => TL.setSpeed(p, selectedMain.id, patch.speed), key)} onCurve={(curve, key) => apply((p) => TL.setSpeedCurve(p, selectedMain.id, curve), key)} onClose={close} />;
@@ -1268,9 +1273,9 @@ export default function EditorScreen({ params, focused }) {
       case 'duration':
         return selectedMain && <ImageDurationPanel clip={selectedMain} onChange={updMain} onClose={close} />;
       case 'filters':
-        return target && <FilterPanel clip={target} luts={project.luts} onImportLut={() => importLut(target.id)} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} />;
+        return target && <FilterPanel clip={target} luts={project.luts} onImportLut={() => importLut(target.id)} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onClose={close} tabs={colorTabs('filters', 'adjust')} />;
       case 'adjust':
-        return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onAuto={() => autoEnhanceClip(target)} onClose={close} />;
+        return target && <AdjustPanel clip={target} onChange={(patch, key) => apply((p) => TL.updateMain(p, target.id, patch), key)} onApplyAll={all} onAuto={() => autoEnhanceClip(target)} onClose={close} tabs={colorTabs('filters', 'adjust')} />;
       case 'fxClip': {
         if (!selectedMain) return null;
         const list = selectedMain.effects || [];
@@ -1420,9 +1425,9 @@ export default function EditorScreen({ params, focused }) {
       case 'ovSpeed':
         return selectedOverlay && <SpeedPanel clip={selectedOverlay} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, { speed: Math.max(TL.SPEED_MIN, Math.min(TL.SPEED_MAX, patch.speed)) }), key)} onClose={close} />;
       case 'ovFilters':
-        return selectedOverlay && <FilterPanel clip={selectedOverlay} luts={{}} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} />;
+        return selectedOverlay && <FilterPanel clip={selectedOverlay} luts={{}} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} tabs={colorTabs('ovFilters', 'ovAdjust')} />;
       case 'ovAdjust':
-        return selectedOverlay && <AdjustPanel clip={selectedOverlay} only={['brightness', 'contrast', 'saturation', 'exposure', 'temperature', 'tint']} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} />;
+        return selectedOverlay && <AdjustPanel clip={selectedOverlay} only={['brightness', 'contrast', 'saturation', 'exposure', 'temperature', 'tint']} onChange={(patch, key) => apply((p) => TL.updateOverlay(p, selectedOverlay.id, patch), key)} onApplyAll={null} onClose={close} tabs={colorTabs('ovFilters', 'ovAdjust')} />;
       case 'transform':
         return selectedMain && <TransformPanel clip={selectedMain} canvasFit={project.canvas.fit} localMs={Math.max(0, position - TL.clipStart(project, selectedMain.id))} onChange={updMain} onClose={close} />;
       case 'transition': {
