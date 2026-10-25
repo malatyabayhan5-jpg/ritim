@@ -167,6 +167,12 @@ if ran 3_ai_araclari; then
     echo "Ritim testi: GEÇTİ ($bl)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
+for flow in 1_kabul_akisi 6_katmanlar; do
+  ran "$flow" || continue
+  fl=$(grep -E "\[$flow\].*\[KurguExport\] failed" "$OUT/kurgu_gunluk.txt" | head -1 | sed 's/.*\[KurguExport\] //')
+  [ -n "$fl" ] && echo "UYARI: $flow dışa aktarma ilk denemede başarısız ($fl); Tekrar dene ile sürdü" >> "$OUT/sonuclar.txt"
+done
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')
@@ -250,8 +256,13 @@ REF="$REPO_ROOT/replica/screens/phone"
 if [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
   for pair in S01_home:01_ana_ekran S03_editor:04_editor S04_clip_b:06_bolme S15_adjust_custom:08_filtre; do
     ref=${pair%%:*}; shot=${pair##*:}
-    [ -f "$REF/$ref.png" ] && [ -f "$OUT/$shot.png" ] || continue
-    if python3 "$IMGDIFF" "$REF/$ref.png" "$OUT/$shot.png" --out "$OUT/fark_$ref.png" --json > "$OUT/fark_$ref.json" 2> "$OUT/fark_$ref.err"; then
+    # Maestro ekran görüntüsünü sürüme göre çalışma dizinine ya da akış dosyasının yanına yazar
+    img=$(find "$OUT" "$(dirname "$0")" -maxdepth 3 -name "$shot.png" 2>/dev/null | head -1)
+    if [ ! -f "$REF/$ref.png" ] || [ -z "$img" ]; then
+      echo "Düzen farkı $ref: ekran görüntüsü yok ($shot.png)" >> "$OUT/sonuclar.txt"
+      continue
+    fi
+    if python3 "$IMGDIFF" "$REF/$ref.png" "$img" --out "$OUT/fark_$ref.png" --json > "$OUT/fark_$ref.json" 2> "$OUT/fark_$ref.err"; then
       python3 - "$OUT/fark_$ref.json" "$ref" "$shot" >> "$OUT/sonuclar.txt" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))

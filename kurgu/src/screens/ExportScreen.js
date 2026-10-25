@@ -297,14 +297,14 @@ export default function ExportScreen({ params }) {
       ) : null}
 
       {phase === 'error' ? (
-        <View style={[styles.body, styles.center]}>
+        <View style={[styles.body, styles.center]} testID="export-failed">
           <Icon name="close-circle" size={56} color={colors.danger} />
           <Txt style={font.h2} center>{t('export.failed')}</Txt>
           <Txt dim center>{t(`errors.export.${knownExportError(err?.code)}`)}</Txt>
           <Txt faint center selectable style={styles.note}>{`${err?.code || ''} ${err?.message || ''}`.trim()}</Txt>
           <Row style={{ justifyContent: 'center', marginTop: space.lg }}>
             <Button kind="secondary" title={t('common.back')} onPress={nav.pop} />
-            <Button title={t('export.retry')} onPress={() => setPhase('setup')} />
+            <Button title={t('export.retry')} onPress={() => setPhase('setup')} testID="export-retry" />
           </Row>
         </View>
       ) : null}

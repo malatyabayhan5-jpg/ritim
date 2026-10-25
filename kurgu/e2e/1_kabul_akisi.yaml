@@ -283,8 +283,27 @@ appId: app.kurgu.editor
 # ekran yakalama zaman aşımına uğrayabiliyor).
 - extendedWaitUntil:
     visible:
-      id: "export-done"
+      id: "export-(done|failed)"
     timeout: 900000
+# Emülatörün yazılımsal GL'inde dışa aktarma ara sıra takılıyor (MultipleInputVideoGraph,
+# glGenTextures; CI #106/#107 MUXING_TIMEOUT). Tek bir "Tekrar dene" hakkı; run.sh ilk
+# denemenin başarısız olduğunu sonuçlara UYARI olarak yazar.
+- runFlow:
+    when:
+      visible:
+        id: "export-failed"
+    commands:
+      - takeScreenshot:
+          path: 15_disa_aktarma_hatasi
+          optional: true
+      - tapOn:
+          id: "export-retry"
+      - tapOn:
+          id: "export-start"
+      - extendedWaitUntil:
+          visible:
+            id: "export-done"
+          timeout: 900000
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot:

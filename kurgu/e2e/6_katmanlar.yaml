@@ -133,8 +133,31 @@ appId: app.kurgu.editor
     optional: true
 - extendedWaitUntil:
     visible:
-      id: "export-done"
+      id: "export-(done|failed)"
     timeout: 900000
+# Emülatörün yazılımsal GL'inde dışa aktarma ara sıra takılıyor (MultipleInputVideoGraph,
+# glGenTextures; CI #106/#107 MUXING_TIMEOUT). Tek bir "Tekrar dene" hakkı; run.sh ilk
+# denemenin başarısız olduğunu sonuçlara UYARI olarak yazar.
+- runFlow:
+    when:
+      visible:
+        id: "export-failed"
+    commands:
+      - takeScreenshot:
+          path: 61_disa_aktarma_hatasi
+          optional: true
+      - tapOn:
+          id: "export-retry"
+      - scrollUntilVisible:
+          element:
+            text: "(Videoyu dışa aktar|Export video)"
+          timeout: 20000
+      - tapOn:
+          text: "(Videoyu dışa aktar|Export video)"
+      - extendedWaitUntil:
+          visible:
+            id: "export-done"
+          timeout: 900000
 - waitForAnimationToEnd:
     timeout: 5000
 - assertVisible:

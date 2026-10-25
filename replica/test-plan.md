@@ -65,6 +65,11 @@ Emulator numbers are never presented as phone measurements.
 
 ## To check (not reproduced, not filed as bugs)
 
+- Export stalls on the CI emulator: CI #106 and #107 (same APK) both stopped at 75 % for 5 minutes and
+  failed with MUXING_TIMEOUT; the Media3 multi-input video graph thread sat inside `glGenTextures`
+  (SwiftShader). #100, #102 and #103 exported the same flow fine. The flows now allow one "Try again"
+  and the results say so in a UYARI line. Needs a long export on the user's phone.
+
 - Export stalled at ~70 % once on the emulator (software GL; stacks dumped by the watchdog). Not seen
   on a device; needs a long export on the user's phone.
 - Emulator frame stats: 43 % janky frames, p50 32 ms in flow 5. The emulator's software GPU dominates
