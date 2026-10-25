@@ -80,9 +80,18 @@ appId: app.kurgu.editor
 - tapOn:
     id: "tool-back"
     optional: true
-# Dışa aktar (720p)
+# Dışa aktar (720p). Katman ekranında Maestro kimlikleri tutarsız bulduğundan metin yedeği (CI #80)
 - tapOn:
     id: "export-open"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "export-start"
+    commands:
+      - tapOn:
+          text: "(Dışa aktar|Export)"
+          index: 0
 - extendedWaitUntil:
     visible:
       id: "export-start"
