@@ -21,9 +21,9 @@ is blurred in the reference), so the preview area always counts as different.
 | screen | reference | clone screenshot | score |
 | --- | --- | --- | --- |
 | S01 home | S01_home | 01_ana_ekran | 3.8 / 100, different (CI #123) |
-| S03 editor | S03_editor | 04_editor | 25.1 / 100, preview left out 19.2 (CI #127, timeline at 32 %; was 13.1 / 18.2) |
-| S04 clip toolbar | S04_clip_b | 06_bolme | not measured: flow 1 stopped before this screenshot (CI #123) |
-| S15 filters / adjust | S15_adjust_custom | 08_filtre | not measured: same |
+| S03 editor | S03_editor | 04_editor | 25.2 / 100, preview left out 19.4 (CI #128) |
+| S04 clip toolbar | S04_clip_b | 06_bolme | 30.8 / 100, preview left out 24.7 (CI #128) |
+| S15 filters / adjust | S15_adjust_custom | 08a_ayarla | CI #128 compared it with the Filters tab (9.4), the wrong tab; now the Adjust tab is captured |
 
 CI #123 (c30200d) produced the first scores (0 = nothing alike, 100 = same edges). For scale: two
 different screens of the reference app score 75 against each other. CI #126 printed both editor
@@ -31,7 +31,13 @@ screens as ASCII in the job log, which showed the main cause: on the emulator (a
 Kurgu's fixed 210 dp timeline took ~18 % of the height and the preview ~70 %, while in the recording
 the timeline (ruler to toolbar, ~283 of ~876 dp) takes ~32 %. The timeline height is now 32 % of the
 screen (210–320 dp). Leaving the preview out only lifts the editor from 13.1 to 18.2, so the rest of
-the gap is the proportions, not the footage.
+the gap is the proportions, not the footage. With the 32 % timeline (CI #128) the editor scores 25.2
+and the clip toolbar 30.8. Reading the ASCII screens: preview, clip strip at the playhead and the
+audio / text rows now sit at the same heights as in the recording; what still differs is the top
+(the recording crop includes the status bar, the emulator screenshot does not, about 2 % of the
+height), the controls row (a little lower in Kurgu), Kurgu's brighter and larger toolbar icons, and
+the clip audio / cover column on the left. The reference home screen is light-themed and a template
+feed, so its 3.8 stays expected.
 
 The home screen is expected to score low: Kurgu's home is a drafts list plus New project, without
 CapCut's promo banner, tool grid or template tabs. Those are out of scope.

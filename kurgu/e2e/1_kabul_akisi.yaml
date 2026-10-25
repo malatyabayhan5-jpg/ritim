@@ -124,6 +124,9 @@ appId: app.kurgu.editor
     visible:
       id: "panel-adjust"
     timeout: 5000
+- takeScreenshot:
+    path: 08a_ayarla
+    optional: true
 - tapOn:
     id: "panel-done"
 - tapOn:
@@ -187,7 +190,12 @@ appId: app.kurgu.editor
     id: "panel-done"
 - tapOn:
     id: "tool-back"
-# Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle
+# Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle.
+# Geçişten sonra önizleme yeniden kurulurken emülatörde ana araç çubuğu geç gelebilir (CI #128).
+- extendedWaitUntil:
+    visible:
+      id: "tool-audio"
+    timeout: 15000
 - tapOn:
     id: "tool-audio"
 - tapOn:

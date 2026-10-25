@@ -287,7 +287,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IMGDIFF="$REPO_ROOT/.claude/skills/replica-diff/imgdiff.py"
 REF="$REPO_ROOT/replica/screens/phone"
 if ran 1_kabul_akisi && [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
-  for pair in S01_home:01_ana_ekran S03_editor:04_editor S04_clip_b:06_bolme S15_adjust_custom:08_filtre; do
+  for pair in S01_home:01_ana_ekran S03_editor:04_editor S04_clip_b:06_bolme S15_adjust_custom:08a_ayarla; do
     ref=${pair%%:*}; shot=${pair##*:}
     # Maestro ekran görüntüsünü sürüme göre çalışma dizinine, akış dosyasının yanına ya da
     # ~/.maestro/tests/<zaman> altına yazar; bulunan kopya yapıta girsin diye $OUT'a alınır

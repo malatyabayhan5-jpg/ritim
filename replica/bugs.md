@@ -113,8 +113,8 @@ Cause: `pause()` reports the player's position through an async event; JS had al
 playhead to the key, and the late event overwrote it. A paused seek reported no position of its own.
 Status: first fix (d7a65f7) reported `player.currentPosition` after a paused seek, but
 CompositionPlayer handles seeks asynchronously, so that still returned the old position and CI #127
-saw the playhead jump back to the end (17.55 s) after the key was added at 5.0 s. Fixed again (pending
-CI): a paused seek reports its target; `pause()` reports a position only when it was playing;
+saw the playhead jump back to the end (17.55 s) after the key was added at 5.0 s. Fixed again in 343e046 (CI #128: keyframe add and remove both logged at 5.0 s, the Curve tool showed):
+a paused seek reports its target; `pause()` reports a position only when it was playing;
 selecting an item and the keyframe diamond pause unconditionally (`playing` can lag after the player
 is rebuilt at the end of the timeline).
 
