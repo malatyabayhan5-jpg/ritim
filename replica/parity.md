@@ -44,7 +44,7 @@ CapCut's promo banner, tool grid or template tabs. Those are out of scope.
 
 | flow | CapCut does | Kurgu does | fix or keep |
 | --- | --- | --- | --- |
-| F01 export | Export starts at once, using the resolution dropdown | Export opens a settings screen first (one extra tap); the screen starts from the dropdown's choice | fix: start right away from the editor, keep the screen for details |
+| F01 export | Export starts at once, using the resolution dropdown | Same since 2026-10-25: Export starts at once with the picker's resolution / fps; codec and quality are under "More settings" in the picker | fixed (pending CI) |
 | F01 export | Upsell for higher resolution (Pro) | Every resolution the encoder supports is free; unsupported modes are locked with a reason | keep (better) |
 | F04 captions | Captions run on CapCut's servers | whisper.cpp on the phone, no upload; a model download is asked for first | keep (privacy), slower on old phones |
 | F05 audio | Sounds and SFX libraries | No licensed library; your own files, extract from video, record | keep (licensing) |
@@ -55,7 +55,7 @@ CapCut's promo banner, tool grid or template tabs. Those are out of scope.
 ## Top five next
 
 1. The user's phone test of the latest APK, freezes first (closes 4 must-haves or shows what is left).
-2. Direct export from the editor's Export button (CapCut's one-tap export).
+2. ~~Direct export from the editor's Export button~~ (done, pending CI).
 3. Clip in / out animations (reuse the text animation engine for main-track clips).
 4. Caption style presets.
 5. Video background removal (on-device segmentation per frame; heavy, so measure on the phone).

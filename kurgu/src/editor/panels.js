@@ -438,7 +438,7 @@ function easePath(id) {
 }
 
 /** Editörde Dışa Aktar'ın yanındaki çözünürlük seçicisi: çözünürlük ve kare hızı projeye yazılır. */
-export function ExportPrefsPanel({ value, onChange, onClose }) {
+export function ExportPrefsPanel({ value, onChange, onMore, onClose }) {
   const { t, fmt } = useI18n();
   return (
     <Panel title={t('editor.exportSettings')} onClose={onClose} testID="panel-exportPrefs">
@@ -460,6 +460,7 @@ export function ExportPrefsPanel({ value, onChange, onClose }) {
         <Txt faint style={styles.hint}>
           {t('editor.exportPrefsHint')}
         </Txt>
+        {onMore ? <Button title={t('editor.exportMore')} kind="secondary" icon="options-outline" onPress={onMore} testID="export-more" /> : null}
       </View>
     </Panel>
   );

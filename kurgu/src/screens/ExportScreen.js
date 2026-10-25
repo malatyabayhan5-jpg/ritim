@@ -89,6 +89,18 @@ export default function ExportScreen({ params }) {
     return false;
   }, [phase]);
 
+  // Editördeki Dışa Aktar düğmesi (CapCut'taki gibi tek dokunuş): proje ve kodlayıcı bilgisi gelince,
+  // seçilen mod destekleniyorsa bir kez başlar; desteklenmiyorsa ayar ekranında kalınır.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!params.autoStart || autoStarted.current || phase !== 'setup' || !project || !caps || free == null) return;
+    if (!supported(res, fps, codec)) return;
+    autoStarted.current = true;
+    console.log(`[KurguUI] export auto ${res}p${fps} ${codec}`);
+    start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.autoStart, phase, project, caps, free, res, fps, codec]);
+
   const start = async () => {
     if (lowSpace) {
       Alert.alert(t('export.lowSpaceTitle'), t('export.lowSpace', { need: fmt.bytes(estimate), free: fmt.bytes(free) }));

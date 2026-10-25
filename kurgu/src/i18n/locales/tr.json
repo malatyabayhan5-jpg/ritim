@@ -110,7 +110,8 @@
     "keyAdd": "Anahtar kare ekle",
     "keyRemove": "Anahtar kareyi kaldır",
     "mainAudio": "Klip sesi",
-    "mainAudioOff": "Ses kapalı"
+    "mainAudioOff": "Ses kapalı",
+    "exportMore": "Diğer ayarlar (kodek, kalite)"
   },
   "tools": {
     "edit": "Düzenle",

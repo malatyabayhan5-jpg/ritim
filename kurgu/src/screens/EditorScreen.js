@@ -856,12 +856,13 @@ export default function EditorScreen({ params, focused }) {
 
   const zoom = (next) => setPxPerMs(Math.max(MIN_PX_PER_MS, Math.min(MAX_PX_PER_MS, next)));
 
-  const exportProject = async () => {
+  // Dışa Aktar doğrudan başlar (çözünürlük üst çubuktaki seçiciden); "Diğer ayarlar" ayar ekranını açar
+  const exportProject = async (autoStart = true) => {
     if (!project.main.length) return toast(t('editor.emptyExport'));
     if (missing.size) return toast(t('editor.missingExport'), 'error');
     previewRef.current?.pause?.();
     await saveNow(project);
-    nav.push('export', { projectId: project.id });
+    nav.push('export', { projectId: project.id, autoStart });
   };
 
   // --- Görünüm ---
@@ -899,7 +900,7 @@ export default function EditorScreen({ params, focused }) {
           <Text style={styles.prefText}>{`${exportPrefs(project).res}p`}</Text>
           <Icon name="chevron-down" size={14} color={colors.textDim} />
         </Pressable>
-        <Pressable testID="export-open" onPress={exportProject} style={({ pressed }) => [styles.exportBtn, pressed && { opacity: 0.8 }]}>
+        <Pressable testID="export-open" onPress={() => exportProject(true)} style={({ pressed }) => [styles.exportBtn, pressed && { opacity: 0.8 }]}>
           <Icon name="arrow-up" size={16} color={colors.onAccent} />
           <Text style={styles.exportText}>{t('editor.export')}</Text>
         </Pressable>
@@ -1456,7 +1457,17 @@ export default function EditorScreen({ params, focused }) {
           />
         ) : null;
       case 'exportPrefs':
-        return <ExportPrefsPanel value={exportPrefs(project)} onChange={(patch) => apply((p) => setExportPrefs(p, patch))} onClose={close} />;
+        return (
+          <ExportPrefsPanel
+            value={exportPrefs(project)}
+            onChange={(patch) => apply((p) => setExportPrefs(p, patch))}
+            onMore={() => {
+              close();
+              exportProject(false);
+            }}
+            onClose={close}
+          />
+        );
       case 'ratio':
       case 'background':
         return (

@@ -88,15 +88,22 @@ appId: app.kurgu.editor
 - tapOn:
     id: "tool-back"
     optional: true
-# Dışa aktar (720p). Katman ekranında Maestro kimlikleri tutarsız bulduğundan metin yedeği (CI #80)
+# Dışa aktar (720p), ayar ekranı yolu: çözünürlük seçicisi → "Diğer ayarlar". Katman ekranında
+# Maestro kimlikleri tutarsız bulduğundan metin yedekleri var (CI #80).
 - tapOn:
-    id: "export-open"
+    id: "export-prefs"
     optional: true
-# Ekranın açılması animasyonludur: önce kısa süre beklenir, açılmadıysa metin yedeği
-- extendedWaitUntil:
-    visible:
-      text: "(Çözünürlük|Resolution)"
-    timeout: 8000
+- runFlow:
+    when:
+      notVisible:
+        id: "export-more"
+    commands:
+      - tapOn:
+          text: "\\d+p"
+          index: 0
+          optional: true
+- tapOn:
+    id: "export-more"
     optional: true
 - runFlow:
     when:
@@ -104,8 +111,7 @@ appId: app.kurgu.editor
         text: "(Çözünürlük|Resolution)"
     commands:
       - tapOn:
-          text: "(Dışa aktar|Export)"
-          index: 0
+          text: "(Diğer ayarlar|More settings).*"
           optional: true
 # Dışa aktarma ekranı açıldı mı: başlık metninden. Başlat düğmesi katmanlı projede (uyarılar,
 # kodek satırı) ekranın altında kalabilir (CI #84) → kaydırılarak aranır.

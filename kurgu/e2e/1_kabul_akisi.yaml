@@ -250,29 +250,20 @@ appId: app.kurgu.editor
 # Efekt katmanının kaydedilip geri yüklendiği, yeniden açılıştan sonra yapılan dışa
 # aktarmada efektin videoda görünmesiyle (run.sh -> fx_check.py) doğrulanır. Şerit
 # oynatma kafasından uzakta olabileceği için burada ekranda aranmaz.
-# Dışa Aktar'ın yanındaki çözünürlük seçicisi (varsayılan 1080p korunur)
+# Dışa Aktar'ın yanındaki çözünürlük seçicisi. Emülatörün GPU'su yazılımsaldır (SwiftShader):
+# GPU efektli dışa aktarma 720p ile sınanır.
 - tapOn:
     id: "export-prefs"
 - tapOn:
-    id: "pref-res-1080"
-- tapOn:
-    id: "panel-done"
-# Dışa aktarma
-- tapOn:
-    id: "export-open"
-- extendedWaitUntil:
-    visible:
-      id: "export-start"
-    timeout: 20000
-# Emülatörün GPU'su yazılımsaldır (SwiftShader): GPU efektli dışa aktarma 720p ile sınanır
-- tapOn:
-    id: "res-720"
-    optional: true
+    id: "pref-res-720"
 - takeScreenshot:
     path: 14_disa_aktarma_ayarlari
     optional: true
 - tapOn:
-    id: "export-start"
+    id: "panel-done"
+# Dışa aktarma: CapCut'taki gibi tek dokunuşla başlar (ayar ekranı atlanır)
+- tapOn:
+    id: "export-open"
 # Android 13+: dışa aktarma bildirimi için sistem izin penceresi (veriler sıfırlandığı için yeniden sorulur)
 - tapOn:
     text: "(Allow|ALLOW|İzin ver|İZİN VER)"

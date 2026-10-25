@@ -110,7 +110,8 @@
     "keyAdd": "Add keyframe",
     "keyRemove": "Remove keyframe",
     "mainAudio": "Clip audio",
-    "mainAudioOff": "Audio off"
+    "mainAudioOff": "Audio off",
+    "exportMore": "More settings (codec, quality)"
   },
   "tools": {
     "edit": "Edit",
