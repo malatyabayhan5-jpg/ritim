@@ -118,15 +118,12 @@ appId: app.kurgu.editor
     commands:
       - tapOn:
           text: "(Karışım|Blend)"
-# Karışım sekmesinde olunduğu açıklama metninden anlaşılır; mod seçimi (iki yoldan biri) eşgüçlüdür
+# Karışım sekmesinde olunduğu mod çiplerinden anlaşılır (açıklama metni dar ekranda çiplerin
+# altında kalır, CI #83). "Ekran" modu seçilir; önizleme bu modla yeniden kurulmalı.
 - assertVisible:
-    text: "(Karışım modları görsel|Blend modes apply).*"
-- tapOn:
-    id: "layer-blend-screen"
-    optional: true
+    text: "(Çarp|Multiply)"
 - tapOn:
     text: "(Ekran|Screen)"
-    optional: true
 - waitForAnimationToEnd:
     timeout: 5000
 - assertNotVisible:

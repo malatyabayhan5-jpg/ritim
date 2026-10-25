@@ -143,6 +143,12 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #83** (500f88f): **8 akıştan 7'si GEÇTİ** (1, 2, 4, 5, 6, 7, 8); katman testi, **takip testi** (46 nokta, 26 kare,
+kayıp 0) ve fotoğraf çıktısı GEÇTİ. **Dışa aktarma bu kez takılmadan bitti** (17,5 sn, 1280×720, hatasız çözüldü,
+duotone 14,5–17,25 sn); bekçi tetiklenmedi, yani iş parçacığı yığını alınamadı — kök neden hâlâ açık (aralıklı).
+3: karışım sekmesi açıldı, mod çipleri ekranda, önizleme hatası yok; yalnızca açıklama metni dar ekranda çiplerin
+altında kaldığı için denetim düştü → denetim çip metnine alındı, "Ekran" modu zorunlu seçiliyor.
+
 **CI #80–#82** (08d8cad…e0e99ca): 1, 2, 4, 5, 7, 8 GEÇTİ; **katman testi GEÇTİ** (konum, maske, zaman aralığı);
 hareket takibi 46 nokta / 26 kare / kayıp 0. 6 yalnızca son "Takip" görünürlük denetiminde düştü (düğme ekrandayken
 Maestro bulamadı) → takip artık günlükten doğrulanıyor (run.sh "Takip testi"), akış yalnızca önizleme hatası
