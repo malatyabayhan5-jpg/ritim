@@ -63,3 +63,4 @@ Status: fixed in 2fad693 (dark label, `onAccent`).
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.
 - text_check at 160x90 lost thin letters — fixed in c46a929.
 - Flow 6 redo tap missed after undo — retried by label in f904ac9.
+- text_check failed when the picker returned different clips (CI #100): the frame before the text was a bright scene, and the effect layer that starts with the text darkens everything after, so the before-frame baseline could not be beaten. Now frames with the same background (mid-animation, after / exit) count as the baseline; validated on synthetic bright-then-dark videos with and without text.

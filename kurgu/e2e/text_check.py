@@ -13,6 +13,8 @@ pikseller (R, G, B ≥ 225) "metin" sayılır, sayıları ve dikey ağırlık me
            sürüyorsa bunun yerine "çıkışta" (çıkış animasyonunun %60'ı): yine hareket ya
            da saydamlık izi aranır
 
+Görünürlük: yerleşik karede açık piksel tabanın iki katından fazla; taban karenin arka planı
+farklıysa (efekt katmanı metinle aynı anda başlar) ortadaki ve sonraki karelerin %15'inden azı.
 Animasyon kanıtı: ortadaki karede açık piksel sayısı yerleşik karenin %85'inden az
 (silinme/belirme) ya da ağırlık merkezi en az 4 satır farklı (kayma). Bağımlılık: ffmpeg.
 
@@ -74,7 +76,11 @@ def main():
     base = st['önce'][0]
     full, cy = st['yerleşik']
     mid, my = st['ortada']
-    visible = full >= max(30, base * 2 + 20)
+    # Taban kare metin başlamadan önceki an; efekt katmanı metinle aynı anda başlarsa o karenin
+    # arka planı farklıdır (CI #100: parlak sahne 3621 px, efektli karelerde 0 px). Bu durumda
+    # aynı arka plandaki metinsiz kareler (animasyon ortası ve sonrası / çıkış) taban sayılır.
+    same_bg = [st[k][0] for k in ('ortada', 'sonra', 'çıkışta') if k in st]
+    visible = full >= 30 and (full >= base * 2 + 20 or max(same_bg) <= full * 0.15)
     animated = visible and (mid < full * 0.85 or (my >= 0 and abs(my - cy) >= SHIFT))
     if tail:
         gone = st['sonra'][0] <= max(base * 2 + 20, full * 0.5)
