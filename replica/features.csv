@@ -61,7 +61,7 @@ Export frame rate 24 to 60,export,must,yes,yes,
 Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
 Share sheet after export,export,should,yes,partial,
-Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"toolbars in the recording's order, captions / stickers / background on the main toolbar, + Add audio / + Add text rows, fullscreen, keyframe button, resolution picker next to Export, two-line tool labels. Filters / Adjust share one tabbed panel. Missing: timeline left column; not yet seen on the phone"
+Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"toolbars in the recording's order, captions / stickers / background on the main toolbar, + Add audio / + Add text rows, fullscreen, keyframe button, resolution picker next to Export, two-line tool labels. Filters / Adjust share one tabbed panel; Clip audio tile left of the main track. Cover tile not built (Kurgu's cover is automatic); not yet seen on the phone"
 Fullscreen preview,ux,could,yes,no,"seen in the recording (controls row, left)"
 Template store,templates,could,yes,skip,their creators and content
 Music and sound effect library,audio,could,yes,skip,licensed catalogue

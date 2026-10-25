@@ -108,7 +108,9 @@
     "exportSettings": "Dışa aktarma ayarı",
     "exportPrefsHint": "Telefon seçilen modu desteklemiyorsa dışa aktarmada en yakın desteklenen moda inilir.",
     "keyAdd": "Anahtar kare ekle",
-    "keyRemove": "Anahtar kareyi kaldır"
+    "keyRemove": "Anahtar kareyi kaldır",
+    "mainAudio": "Klip sesi",
+    "mainAudioOff": "Ses kapalı"
   },
   "tools": {
     "edit": "Düzenle",

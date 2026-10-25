@@ -1088,7 +1088,11 @@ export default function EditorScreen({ params, focused }) {
             setPanel(null);
             setSub('text');
           }}
-          labels={{ addMedia: t('editor.addMedia'), addAudio: t('editor.addAudio'), addText: t('editor.addText'), missing: t('editor.missingShort') }}
+          onToggleMainAudio={() => {
+            console.log(`[KurguUI] mainAudio ${project.mainMuted ? 'on' : 'off'}`);
+            apply((p) => ({ ...p, updatedAt: Date.now(), mainMuted: !p.mainMuted }));
+          }}
+          labels={{ addMedia: t('editor.addMedia'), addAudio: t('editor.addAudio'), addText: t('editor.addText'), mainAudio: t('editor.mainAudio'), mainAudioOff: t('editor.mainAudioOff'), missing: t('editor.missingShort') }}
         />
       </View>
 

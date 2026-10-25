@@ -20,6 +20,8 @@ export const MAIN_H = 54;
 export const AUDIO_H = 30;
 export const TEXT_H = 26;
 export const OVERLAY_H = 30;
+const SIDE_TILE_W = 56;
+const SIDE_TILE_H = 46;
 const HANDLE_W = 16;
 const LONG_PRESS_MS = 380;
 const TAP_SLOP = 8;
@@ -111,6 +113,7 @@ export default function Timeline({
   onAddMedia,
   onAddAudio,
   onAddText,
+  onToggleMainAudio,
   labels,
 }) {
   const { width: screenW } = useWindowDimensions();
@@ -264,6 +267,22 @@ export default function Timeline({
             />
           ))}
 
+          {/* Ana izin solunda, izle birlikte kayan "Klip sesi" düğmesi (CapCut kaydındaki sol sütun) */}
+          {onToggleMainAudio ? (
+            <Pressable
+              testID="main-audio-toggle"
+              onPress={onToggleMainAudio}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: !project.mainMuted }}
+              accessibilityLabel={labels.mainAudio}
+              style={[styles.sideTile, { left: half - SIDE_TILE_W - 10, top: mainTop + (MAIN_H - SIDE_TILE_H) / 2 }]}
+            >
+              <Ionicons name={project.mainMuted ? 'volume-mute' : 'volume-high-outline'} size={18} color={project.mainMuted ? colors.warning : colors.text} />
+              <Text numberOfLines={2} style={styles.sideTileText}>
+                {project.mainMuted ? labels.mainAudioOff : labels.mainAudio}
+              </Text>
+            </Pressable>
+          ) : null}
           <View style={[styles.mainTrack, { left: half, top: mainTop }]}>
             {layout.map(({ clip, index, start }) => (
               <MainClip
@@ -653,6 +672,8 @@ const styles = StyleSheet.create({
   freeLabel: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 5 },
   freeText: { color: colors.text, fontSize: 10, fontWeight: '600', flexShrink: 1 },
   playhead: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: colors.playhead, borderRadius: 1 },
+  sideTile: { position: 'absolute', width: SIDE_TILE_W, height: SIDE_TILE_H, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 6 },
+  sideTileText: { color: colors.textDim, fontSize: 9, textAlign: 'center', lineHeight: 11 },
   addRow: { position: 'absolute', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, borderRadius: 5, backgroundColor: colors.surface },
   addRowText: { color: colors.textDim, fontSize: 11 },
   addBtn: { position: 'absolute', right: 10, width: 40, height: 40, borderRadius: 8, backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' },

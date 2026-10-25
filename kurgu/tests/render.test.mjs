@@ -29,6 +29,15 @@ test('sessize alınan klip ve sessiz kaynak 0 ses düzeyiyle gider', () => {
   assert.equal(s.main[1].volume, 0);
 });
 
+test('Klip sesi düğmesi (mainMuted) tüm ana izi susturur, kliplerin ayarı korunur', () => {
+  let p = projectWith([video('a', 4000), video('b', 4000)]);
+  p = TL.updateMain(p, p.main[1].id, { volume: 0.6 });
+  const s = buildRenderSpec({ ...p, mainMuted: true }, uri);
+  assert.deepEqual(s.main.map((m) => m.volume), [0, 0]);
+  assert.equal(s.main[0].volumeKf, null);
+  assert.equal(buildRenderSpec({ ...p, mainMuted: false }, uri).main[1].volume, 0.6);
+});
+
 test('ses şeritleri: video sonrasındaki klipler atılır, çakışanlar ayrı şeride', () => {
   let p = projectWith([video('v', 10000)]);
   p = TL.addAudio(p, audio('m1', 6000), 0).project;

@@ -108,7 +108,9 @@
     "exportSettings": "Export settings",
     "exportPrefsHint": "If the phone cannot encode this mode, export drops to the nearest supported one.",
     "keyAdd": "Add keyframe",
-    "keyRemove": "Remove keyframe"
+    "keyRemove": "Remove keyframe",
+    "mainAudio": "Clip audio",
+    "mainAudioOff": "Audio off"
   },
   "tools": {
     "edit": "Edit",
