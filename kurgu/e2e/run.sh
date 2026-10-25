@@ -140,6 +140,14 @@ if ran 3_ai_araclari; then
     echo "Karışım testi: BAŞARISIZ (günlükte karışım seçimi yok)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Anahtar kare düğmesi: akış 1 ana klipte ekler ve aynı anda kaldırır (günlükten)
+if ran 1_kabul_akisi; then
+  if grep -q "\[1_kabul_akisi\].*\[KurguUI\] keyframe main .* add" "$OUT/kurgu_gunluk.txt" && grep -q "\[1_kabul_akisi\].*\[KurguUI\] keyframe main .* remove" "$OUT/kurgu_gunluk.txt"; then
+    echo "Anahtar kare testi: GEÇTİ (ekle ve kaldır günlükte)" >> "$OUT/sonuclar.txt"
+  else
+    echo "Anahtar kare testi: BAŞARISIZ (günlükte ekle/kaldır yok)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')

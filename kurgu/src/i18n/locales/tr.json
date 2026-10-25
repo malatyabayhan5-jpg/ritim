@@ -104,7 +104,11 @@
     "addAudio": "Ses ekle",
     "addText": "Metin ekle",
     "fullscreen": "Tam ekran",
-    "exitFullscreen": "Tam ekrandan çık"
+    "exitFullscreen": "Tam ekrandan çık",
+    "exportSettings": "Dışa aktarma ayarı",
+    "exportPrefsHint": "Telefon seçilen modu desteklemiyorsa dışa aktarmada en yakın desteklenen moda inilir.",
+    "keyAdd": "Anahtar kare ekle",
+    "keyRemove": "Anahtar kareyi kaldır"
   },
   "tools": {
     "edit": "Düzenle",

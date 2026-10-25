@@ -385,7 +385,37 @@ export function TransitionPanel({ clip, maxMs, onChange, onApplyAll, onClose }) 
 }
 
 // Kanvas arka planı için hazır renkler (ilki varsayılan siyah)
+import { FPS as EXPORT_FPS, RESOLUTIONS as EXPORT_RESOLUTIONS } from '../model/exportPrefs';
+
 const CANVAS_BG_COLORS = ['#000000FF', '#FFFFFFFF', '#1F2937FF', '#F5E6CCFF', '#E11D48FF', '#2563EBFF', '#16A34AFF', '#F59E0BFF'];
+
+/** Editörde Dışa Aktar'ın yanındaki çözünürlük seçicisi: çözünürlük ve kare hızı projeye yazılır. */
+export function ExportPrefsPanel({ value, onChange, onClose }) {
+  const { t, fmt } = useI18n();
+  return (
+    <Panel title={t('editor.exportSettings')} onClose={onClose} testID="panel-exportPrefs">
+      <View style={styles.body}>
+        <Labeled label={t('export.resolution')}>
+          <Row>
+            {EXPORT_RESOLUTIONS.map((r) => (
+              <Chip key={r} label={`${r}p`} active={value.res === r} onPress={() => onChange({ res: r })} testID={`pref-res-${r}`} />
+            ))}
+          </Row>
+        </Labeled>
+        <Labeled label={t('export.frameRate')}>
+          <Hscroll>
+            {EXPORT_FPS.map((f) => (
+              <Chip key={f} label={fmt.number(f)} active={value.fps === f} onPress={() => onChange({ fps: f })} testID={`pref-fps-${f}`} />
+            ))}
+          </Hscroll>
+        </Labeled>
+        <Txt faint style={styles.hint}>
+          {t('editor.exportPrefsHint')}
+        </Txt>
+      </View>
+    </Panel>
+  );
+}
 
 /** Kanvas: en/boy oranı ve sığdırma; `mode="background"` yalnızca arka planı gösterir (ana araç çubuğu Arka plan). */
 export function RatioPanel({ project, onChange, onClose, mode = 'ratio' }) {

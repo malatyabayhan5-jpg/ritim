@@ -61,6 +61,11 @@ appId: app.kurgu.editor
 # Bölme: ilk klibin ortasına git ve böl
 - tapOn:
     id: "clip-0"
+# Anahtar kare düğmesi (kontrol satırı): ekle ve aynı anda kaldır (günlükte [KurguUI] keyframe main)
+- tapOn:
+    id: "key-toggle"
+- tapOn:
+    id: "key-toggle"
 - tapOn:
     id: "tool-split"
 - takeScreenshot:
@@ -231,6 +236,13 @@ appId: app.kurgu.editor
 # Efekt katmanının kaydedilip geri yüklendiği, yeniden açılıştan sonra yapılan dışa
 # aktarmada efektin videoda görünmesiyle (run.sh -> fx_check.py) doğrulanır. Şerit
 # oynatma kafasından uzakta olabileceği için burada ekranda aranmaz.
+# Dışa Aktar'ın yanındaki çözünürlük seçicisi (varsayılan 1080p korunur)
+- tapOn:
+    id: "export-prefs"
+- tapOn:
+    id: "pref-res-1080"
+- tapOn:
+    id: "panel-done"
 # Dışa aktarma
 - tapOn:
     id: "export-open"

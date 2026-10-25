@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, font, HIT, radius, space } from '../theme';
+import { colors, font, HIT, layout, radius, space } from '../theme';
 import { useI18n } from '../i18n';
 
 export function Icon({ name, size = 22, color = colors.text, directional = false, style }) {
@@ -75,7 +75,7 @@ export function ToolButton({ icon, label, onPress, active, disabled, badge, test
         <Icon name={icon} size={23} color={active ? colors.accent : colors.text} />
         {badge ? <View style={styles.badge} /> : null}
       </View>
-      <Text numberOfLines={1} style={[styles.toolLabel, active && { color: colors.accent }]}>
+      <Text numberOfLines={2} style={[styles.toolLabel, active && { color: colors.accent }]}>
         {label}
       </Text>
     </Pressable>
@@ -313,8 +313,8 @@ const styles = StyleSheet.create({
   txt: { color: colors.text, ...font.body },
   iconBtn: { minWidth: HIT, minHeight: HIT, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
   iconBtnActive: { backgroundColor: colors.accentSoft },
-  tool: { width: 68, minHeight: 56, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, gap: 4 },
-  toolLabel: { color: colors.textDim, fontSize: 11, textAlign: 'center' },
+  tool: { width: layout.toolW, minHeight: 56, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, gap: 4 },
+  toolLabel: { color: colors.textDim, fontSize: 11, lineHeight: 13, textAlign: 'center' },
   badge: { position: 'absolute', top: -2, right: -4, width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent2 },
   btn: { minHeight: HIT, paddingHorizontal: space.lg, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', gap: space.sm },
   btnText: { color: colors.text, fontWeight: '700', fontSize: 15 },

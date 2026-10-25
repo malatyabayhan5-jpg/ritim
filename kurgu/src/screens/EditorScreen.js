@@ -14,6 +14,7 @@ import {
   FilterPanel,
   ImageDurationPanel,
   RatioPanel,
+  ExportPrefsPanel,
   SpeedPanel,
   TextPanel,
   TransformPanel,
@@ -52,6 +53,7 @@ import { TEXT_LAYOUTS, TEXT_LAYOUTS_BASE } from '../model/catalog';
 import * as TL from '../model/timeline';
 import { sourceAt } from '../model/speed';
 import { importErrorText } from './HomeScreen';
+import { exportPrefs, setExportPrefs } from '../model/exportPrefs';
 
 const SPEC_DEBOUNCE_MS = 180;
 const SAVE_DEBOUNCE_MS = 700;
@@ -238,6 +240,14 @@ export default function EditorScreen({ params, focused }) {
   const selectedText = selection?.type === 'text' ? project?.texts.find((x) => x.id === selection.id) : null;
   const selectedEffect = selection?.type === 'effect' ? (project?.effectLayers || []).find((x) => x.id === selection.id) : null;
   const selectedOverlay = selection?.type === 'overlay' ? (project?.overlays || []).find((x) => x.id === selection.id) : null;
+  // Kontrol satırındaki anahtar kare düğmesinin hedefi; kare zamanları öğenin kendi başlangıcına göre
+  const keyTarget = selectedMain
+    ? { type: 'main', id: selectedMain.id, start: TL.clipStart(project, selectedMain.id) }
+    : selectedOverlay
+      ? { type: 'overlay', id: selectedOverlay.id, start: selectedOverlay.start }
+      : selectedText
+        ? { type: 'text', id: selectedText.id, start: selectedText.start }
+        : null;
 
   useEffect(() => {
     // Silinen öğe seçili kalmasın
@@ -882,8 +892,12 @@ export default function EditorScreen({ params, focused }) {
             {t(`editor.save.${saveState}`)}
           </Txt>
         </Pressable>
+        <Pressable testID="export-prefs" onPress={() => openPanel('exportPrefs')} accessibilityRole="button" accessibilityLabel={t('editor.exportSettings')} style={({ pressed }) => [styles.prefBtn, pressed && { opacity: 0.8 }]}>
+          <Text style={styles.prefText}>{`${exportPrefs(project).res}p`}</Text>
+          <Icon name="chevron-down" size={14} color={colors.textDim} />
+        </Pressable>
         <Pressable testID="export-open" onPress={exportProject} style={({ pressed }) => [styles.exportBtn, pressed && { opacity: 0.8 }]}>
-          <Icon name="arrow-up" size={16} />
+          <Icon name="arrow-up" size={16} color={colors.onAccent} />
           <Text style={styles.exportText}>{t('editor.export')}</Text>
         </Pressable>
       </Row>
@@ -997,7 +1011,29 @@ export default function EditorScreen({ params, focused }) {
         <Row gap={0} style={[styles.controlsSide, { justifyContent: 'flex-end' }]}>
           {fullscreen ? null : (
             <>
-              <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, playhead.get()))} />
+              {keyTarget ? (
+                <PlayheadValue store={playhead} stepMs={100}>
+                  {(ms) => {
+                    const on = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, Math.round(ms - keyTarget.start));
+                    return (
+                      <IconButton
+                        icon={on ? 'diamond' : 'diamond-outline'}
+                        size={20}
+                        color={on ? colors.accent : colors.text}
+                        label={t(on ? 'editor.keyRemove' : 'editor.keyAdd')}
+                        onPress={() => {
+                          const local = Math.round(playhead.get() - keyTarget.start);
+                          console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${on ? 'remove' : 'add'}`);
+                          apply((p) => TL.toggleAllKeys(p, keyTarget.type, keyTarget.id, local));
+                        }}
+                        testID="key-toggle"
+                      />
+                    );
+                  }}
+                </PlayheadValue>
+              ) : (
+                <IconButton icon="bookmark-outline" size={20} label={t('editor.marker')} onPress={() => apply((p) => TL.toggleMarker(p, playhead.get()))} />
+              )}
               <IconButton icon="arrow-undo" directional size={20} label={t('editor.undo')} disabled={!canUndo(hist)} onPress={() => setHist(undo)} testID="undo" />
               <IconButton icon="arrow-redo" directional size={20} label={t('editor.redo')} disabled={!canRedo(hist)} onPress={() => setHist(redo)} testID="redo" />
             </>
@@ -1395,6 +1431,8 @@ export default function EditorScreen({ params, focused }) {
         const maxMs = i > 0 ? Math.min(TL.clipDuration(project.main[i - 1]), TL.clipDuration(selectedMain)) : 0;
         return <TransitionPanel clip={selectedMain} maxMs={maxMs} onChange={updMain} onApplyAll={(patch) => { apply((p) => ({ ...TL.updateAllMain(p, patch) })); toast(t('panels.appliedToAll')); }} onClose={close} />;
       }
+      case 'exportPrefs':
+        return <ExportPrefsPanel value={exportPrefs(project)} onChange={(patch) => apply((p) => setExportPrefs(p, patch))} onClose={close} />;
       case 'ratio':
       case 'background':
         return (
@@ -1467,8 +1505,10 @@ const styles = StyleSheet.create({
   titleWrap: { flex: 1, alignItems: 'center', paddingHorizontal: space.sm },
   title: { fontWeight: '700', fontSize: 15 },
   saveState: { fontSize: 10 },
-  exportBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accent, paddingHorizontal: 14, height: 34, borderRadius: radius.pill, marginHorizontal: space.sm },
-  exportText: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  exportBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accent, paddingHorizontal: 14, height: 34, borderRadius: radius.pill, marginStart: space.xs, marginEnd: space.sm },
+  exportText: { color: colors.onAccent, fontWeight: '800', fontSize: 14 },
+  prefBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: colors.surface2, paddingHorizontal: 10, height: 34, borderRadius: radius.pill },
+  prefText: { color: colors.text, fontWeight: '700', fontSize: 13, fontVariant: ['tabular-nums'] },
   previewArea: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000' },
   previewBox: { backgroundColor: '#000', overflow: 'hidden' },
   banner: { position: 'absolute', top: 6, left: 10, right: 10, zIndex: 20, backgroundColor: colors.warning, borderRadius: radius.md, padding: space.sm, flexDirection: 'row', alignItems: 'center', gap: 6 },

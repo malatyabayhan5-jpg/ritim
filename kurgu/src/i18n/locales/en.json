@@ -104,7 +104,11 @@
     "addAudio": "Add audio",
     "addText": "Add text",
     "fullscreen": "Full screen",
-    "exitFullscreen": "Exit full screen"
+    "exitFullscreen": "Exit full screen",
+    "exportSettings": "Export settings",
+    "exportPrefsHint": "If the phone cannot encode this mode, export drops to the nearest supported one.",
+    "keyAdd": "Add keyframe",
+    "keyRemove": "Remove keyframe"
   },
   "tools": {
     "edit": "Edit",

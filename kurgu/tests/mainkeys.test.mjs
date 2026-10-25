@@ -81,3 +81,32 @@ test('ses düzeyi anahtar kareleri: ekle, değerle, render tanımı, ses öğesi
   assert.equal(tr[0].t, 0, 'ikinci parçada iz kesim noktasından başlar');
   assert.equal(tr[tr.length - 1].t, 3000);
 });
+
+test('anahtar kare düğmesi: tüm özelliklere kare ekler, aynı anda yeniden basınca hepsini kaldırır', () => {
+  let p = projectWith([video('a', 6000)]);
+  const id = p.main[0].id;
+  p = TL.updateMain(p, id, { transform: { scale: 1.4 } });
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 1000), false);
+  p = TL.toggleAllKeys(p, 'main', id, 1000);
+  for (const k of TL.MAIN_KEY_PROPS) assert.equal(p.main[0].keyframes[k].length, 1, k);
+  assert.equal(p.main[0].keyframes.scale[0].v, 1.4);
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 1005), true, 'tolerans içinde');
+  // Yalnızca bir özelliğin karesi olsa bile düğme "açık"tır ve kaldırır
+  p = TL.toggleAllKeys(p, 'main', id, 1000);
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 1000), false);
+  assert.equal(p.main[0].transform.scale, 1.4, 'iz silinince değer korunur');
+  p = TL.updateMain(p, id, TL.toggleMainKey(p.main[0], 'x', 2000));
+  p = TL.toggleAllKeys(p, 'main', id, 2000);
+  assert.equal(p.main[0].keyframes.x, undefined);
+  assert.equal(TL.toggleAllKeys(p, 'main', 'yok', 0), p);
+});
+
+test('anahtar kare düğmesi metin ve katmanda da çalışır', () => {
+  let p = projectWith([video('a', 6000)]);
+  const r = TL.addText(p, 500, 'Merhaba');
+  p = TL.toggleAllKeys(r.project, 'text', r.newId, 200);
+  const x = p.texts.find((t) => t.id === r.newId);
+  assert.deepEqual(Object.keys(x.keyframes).sort(), ['opacity', 'rotation', 'scale', 'x', 'y']);
+  p = TL.toggleAllKeys(p, 'text', r.newId, 200);
+  assert.equal(TL.hasAnyKeyAt(p, 'text', r.newId, 200), false);
+});

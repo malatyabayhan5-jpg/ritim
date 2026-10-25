@@ -21,7 +21,7 @@ Reverse clip,clip,should,yes,yes,on-device re-encode; e2e 3
 Freeze frame,clip,should,yes,yes,
 Replace clip media,clip,should,yes,yes,"clip toolbar Replace: keeps timeline length, effects, volume; clears reverse link (bug fixed 2026-10-25); unit test"
 Duplicate clip,clip,could,yes,yes,seen in the recording (clip toolbar); Kurgu has Duplicate
-Keyframes position scale rotation opacity,keyframes,must,yes,yes,main track and overlays; text keyframes partial
+Keyframes position scale rotation opacity,keyframes,must,yes,yes,"main track, overlays and text; one diamond button under the preview adds or removes keys for all properties at the playhead (unit tests, e2e 1)"
 Keyframe easing (linear ease in ease out),keyframes,should,yes,partial,check easing set against keyframes.js
 Clip animations in out combo,clip,should,yes,no,Kurgu has text animations only
 Crop rotate flip clip,clip,must,yes,yes,
@@ -61,7 +61,7 @@ Export frame rate 24 to 60,export,must,yes,yes,
 Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
 Share sheet after export,export,should,yes,partial,
-Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"main, clip, text and audio toolbars in the recording's order; captions and background on the main toolbar; + Add audio / + Add text rows; fullscreen. Missing: resolution dropdown next to Export, keyframe button in the controls row, one tabbed filters / adjust panel"
+Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"toolbars in the recording's order, captions / stickers / background on the main toolbar, + Add audio / + Add text rows, fullscreen, keyframe button, resolution picker next to Export, two-line tool labels. Missing: one tabbed filters / adjust panel, timeline left column; not yet seen on the phone"
 Fullscreen preview,ux,could,yes,no,"seen in the recording (controls row, left)"
 Template store,templates,could,yes,skip,their creators and content
 Music and sound effect library,audio,could,yes,skip,licensed catalogue

@@ -11,9 +11,8 @@ import { EXPORTS_DIR, ensureDirs, freeDisk, loadProject, mediaUri, pruneExports,
 import { buildRenderSpec, estimateSize, exportSize, suggestBitrate } from '../engine/renderSpec';
 import { cancelExport, deviceStatus, encoderCapabilities, exportVideo, saveToGallery } from '../engine/engine';
 import { totalDuration } from '../model/timeline';
+import { FPS, RESOLUTIONS, exportPrefs } from '../model/exportPrefs';
 
-const RESOLUTIONS = [720, 1080, 1440, 2160];
-const FPS = [24, 25, 30, 50, 60];
 const QUALITIES = ['low', 'recommended', 'high'];
 const AUDIO_BITRATE = 192000;
 
@@ -41,7 +40,9 @@ export default function ExportScreen({ params }) {
     (async () => {
       const p = await loadProject(params.projectId);
       setProject(p);
-      setFps(p.canvas.fps || 30);
+      const pref = exportPrefs(p);
+      setRes(pref.res);
+      setFps(pref.fps);
       setCaps(await encoderCapabilities());
       setStatus(await deviceStatus());
       setFree(await freeDisk());

@@ -823,3 +823,38 @@ export function toggleVolumeKey(item, localMs) {
   else delete keyframes.volume;
   return next.length ? { keyframes } : { keyframes, volume: v };
 }
+
+// --- Önizleme altındaki anahtar kare düğmesi (tüm özellikler birlikte) ---
+
+const KEY_TARGETS = {
+  main: { props: MAIN_KEY_PROPS, toggle: toggleMainKey, get: (p, id) => p.main.find((c) => c.id === id), update: updateMain },
+  overlay: { props: Object.keys(OVERLAY_BASE), toggle: toggleOverlayKey, get: (p, id) => (p.overlays || []).find((o) => o.id === id), update: updateOverlay },
+  text: { props: Object.keys(TEXT_BASE), toggle: toggleTextKey, get: (p, id) => p.texts.find((x) => x.id === id), update: updateText },
+};
+
+const keyOn = (item, prop, localMs) => (item.keyframes?.[prop] || []).some((k) => Math.abs(k.t - localMs) <= 15);
+
+/** Seçili öğenin (`main`, `overlay`, `text`) herhangi bir özelliğinde `localMs` anında kare var mı. */
+export function hasAnyKeyAt(project, type, id, localMs) {
+  const tg = KEY_TARGETS[type];
+  const item = tg && tg.get(project, id);
+  return !!item && tg.props.some((k) => keyOn(item, k, localMs));
+}
+
+/**
+ * Kare yoksa tüm özelliklere o anki değerleriyle kare ekler; varsa o andaki kareleri kaldırır.
+ * İzi boşalan özellik son değerinde sabit kalır (toggle*Key ile aynı).
+ */
+export function toggleAllKeys(project, type, id, localMs) {
+  const tg = KEY_TARGETS[type];
+  let item = tg && tg.get(project, id);
+  if (!item) return project;
+  const remove = tg.props.some((k) => keyOn(item, k, localMs));
+  let next = project;
+  for (const k of tg.props) {
+    if (keyOn(item, k, localMs) !== remove) continue;
+    next = tg.update(next, id, tg.toggle(item, k, localMs));
+    item = tg.get(next, id);
+  }
+  return next;
+}
