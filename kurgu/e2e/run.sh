@@ -128,6 +128,18 @@ elif [ -n "$LAYERFILE" ]; then
 else
   echo "Katman testi: dışa aktarılmış video bulunamadı" >> "$OUT/sonuclar.txt"
 fi
+# Karışım modu: akış 3 "Ekran" modunu seçer; seçim ve önizlemede hata olmaması günlükten
+if ran 3_ai_araclari; then
+  if grep -q "\[3_ai_araclari\].*\[KurguUI\] blend screen" "$OUT/kurgu_gunluk.txt"; then
+    if grep -q "\[3_ai_araclari\].*previewError" "$OUT/kurgu_gunluk.txt"; then
+      echo "Karışım testi: BAŞARISIZ (Ekran modu seçildi ama önizleme hatası var)" >> "$OUT/sonuclar.txt"
+    else
+      echo "Karışım testi: GEÇTİ (Ekran modu seçildi, önizleme hatası yok)" >> "$OUT/sonuclar.txt"
+    fi
+  else
+    echo "Karışım testi: BAŞARISIZ (günlükte karışım seçimi yok)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')

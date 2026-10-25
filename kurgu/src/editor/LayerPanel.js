@@ -171,7 +171,12 @@ export default function LayerPanel({ item, localMs, onChange, onLane, onDetectKe
           <>
             <Hscroll>
               {BLEND_MODES.map((m) => (
-                <Chip key={m} testID={`layer-blend-${m}`} label={t(`photo.blend.${m}`)} active={(item.blend || 'normal') === m} onPress={() => onChange({ blend: m })} />
+                <Chip key={m} testID={`layer-blend-${m}`} label={t(`photo.blend.${m}`)} active={(item.blend || 'normal') === m} onPress={() => {
+                    // e2e: karışım modu seçimi günlükten doğrulanır (run.sh "Karışım testi")
+                    console.log(`[KurguUI] blend ${m}`);
+                    onChange({ blend: m });
+                  }}
+                />
               ))}
             </Hscroll>
             <Txt faint style={styles.hint}>

@@ -120,12 +120,16 @@ appId: app.kurgu.editor
           text: "(Karışım|Blend)"
 # Karışım sekmesinde olunduğu mod çiplerinden anlaşılır (açıklama metni dar ekranda çiplerin
 # altında kalır, CI #83). "Ekran" modu seçilir; önizleme bu modla yeniden kurulmalı.
+# Maestro bu ekranda görünen öğeleri zaman zaman bulamıyor (CI #87, #90: çipler dökümde
+# var). Seçimin gerçekten yapıldığı günlükten doğrulanır (run.sh "Karışım testi").
 - extendedWaitUntil:
     visible:
       text: "(Çarp|Multiply)"
     timeout: 15000
+    optional: true
 - tapOn:
     text: "(Ekran|Screen)"
+    retryTapIfNoChange: true
 - waitForAnimationToEnd:
     timeout: 5000
 - assertNotVisible:
