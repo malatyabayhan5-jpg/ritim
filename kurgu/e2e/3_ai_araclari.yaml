@@ -211,6 +211,13 @@ appId: app.kurgu.editor
           id: "kf-volume"
       - tapOn:
           id: "panel-done"
+      # Ritim: ses klibinin vuruşları işaret olarak eklenir (günlükte [KurguUI] beats audio)
+      - tapOn:
+          id: "tool-beats"
+      - extendedWaitUntil:
+          notVisible:
+            id: "busy"
+          timeout: 60000
       - tapOn:
           id: "play-toggle"
       - waitForAnimationToEnd:

@@ -901,3 +901,18 @@ export function setClipAnim(project, clipId, patch) {
   const none = anim.in === 'none' && anim.out === 'none' && anim.combo === 'none';
   return updateMain(project, clipId, { anim: none ? null : anim });
 }
+
+/**
+ * Otomatik ritim işaretleri: verilen zaman çizelgesi anlarını `auto` işaret olarak ekler.
+ * [from, to] aralığında zaten otomatik işaret varsa bunun yerine onları kaldırır (aç / kapat).
+ */
+export function toggleBeatMarkers(project, times, from, to) {
+  const markers = project.markers || [];
+  const inRange = (m) => m.auto && m.time >= from - 1 && m.time <= to + 1;
+  if (markers.some(inRange)) return { project: touch({ ...project, markers: markers.filter((m) => !inRange(m)) }), added: 0, removed: markers.filter(inRange).length };
+  const fresh = times
+    .map((t) => Math.round(t))
+    .filter((t) => t >= from && t <= to && !markers.some((m) => Math.abs(m.time - t) < 120))
+    .map((t) => ({ id: newId('mk'), time: t, auto: true }));
+  return { project: touch({ ...project, markers: [...markers, ...fresh].sort((a, b) => a.time - b.time) }), added: fresh.length, removed: 0 };
+}

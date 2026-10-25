@@ -57,6 +57,8 @@ import { sourceAt } from '../model/speed';
 import { importErrorText } from './HomeScreen';
 import { exportPrefs, setExportPrefs } from '../model/exportPrefs';
 import { hasAnim } from '../model/clipAnim';
+import { detectBeats } from '../model/beats';
+import { localAt } from '../model/speed';
 
 const SPEC_DEBOUNCE_MS = 180;
 const SAVE_DEBOUNCE_MS = 700;
@@ -735,6 +737,29 @@ export default function EditorScreen({ params, focused }) {
     cancelAi().catch(() => {});
   };
 
+  // Ritim: klibin sesindeki vuruşlar zaman çizelgesine otomatik işaret olarak eklenir (yeniden basınca kalkar)
+  const markBeats = async (kind, item) => {
+    const media = project.media[item.mediaId];
+    if (!media || media.hasAudio === false) return toast(t('editor.noAudio'));
+    setBusy(t('ai.analyzing'));
+    try {
+      const peaks = await speechPeaks(media);
+      const src = detectBeats(peaks, 50, { fromMs: item.srcIn, toMs: item.srcOut });
+      const start = kind === 'main' ? TL.clipStart(project, item.id) : item.start;
+      const toTimeline = (ms) => start + localAt(item, ms);
+      const end = start + (kind === 'main' ? TL.clipDuration(item) : TL.audioDuration(item));
+      const r = TL.toggleBeatMarkers(project, src.map(toTimeline), start, end);
+      console.log(`[KurguUI] beats ${kind} found=${src.length} added=${r.added} removed=${r.removed}`);
+      apply(r.project);
+      toast(r.removed ? t('editor.beatsRemoved', { count: r.removed }) : t('editor.beatsAdded', { count: r.added }));
+    } catch (e) {
+      console.log(`[KurguUI] beats failed ${e?.code || ''} ${e?.message || ''}`);
+      toast(t('errors.generic'), 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const runAi = async (key) => {
     if (key === 'autoCaptions') return openCaptions();
     const clip = selectedMain || clipAtPlayhead();
@@ -1181,6 +1206,7 @@ export default function EditorScreen({ params, focused }) {
         }, { badge: !!selectedMain.effects?.length }),
         T('delete', 'trash-outline', remove),
         isImage ? T('duration', 'time-outline', () => openPanel('duration')) : T('speed', 'speedometer-outline', () => openPanel('speed')),
+        !isImage ? T('beats', 'pulse-outline', () => markBeats('main', selectedMain)) : null,
         T('transform', 'crop-outline', () => openPanel('transform')),
         T('duplicate', 'copy-outline', duplicate),
         T('replace', 'swap-horizontal-outline', replace),
@@ -1203,6 +1229,7 @@ export default function EditorScreen({ params, focused }) {
         T('volume', 'volume-high-outline', () => openPanel('audioVolume')),
         T('audioFx', 'pulse-outline', () => openPanel('audioFxAudio'), { badge: isAudioFxActive(selectedAudio.audioFx) }),
         T('speed', 'speedometer-outline', () => openPanel('audioSpeed')),
+        T('beats', 'pulse-outline', () => markBeats('audio', selectedAudio)),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),
       ];

@@ -156,6 +156,17 @@ if ran 4_otomatik_altyazi; then
     echo "Altyazı stili testi: BAŞARISIZ (günlükte stil seçimi yok)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Ritim: akış 3 ses klibinde vuruş işaretlerini çalıştırır
+if ran 3_ai_araclari; then
+  bl=$(grep -E "\[3_ai_araclari\].*\[KurguUI\] beats " "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguUI\] //')
+  if [ -z "$bl" ]; then
+    echo "Ritim testi: BAŞARISIZ (günlükte ritim satırı yok)" >> "$OUT/sonuclar.txt"
+  elif echo "$bl" | grep -q "failed"; then
+    echo "Ritim testi: BAŞARISIZ ($bl)" >> "$OUT/sonuclar.txt"
+  else
+    echo "Ritim testi: GEÇTİ ($bl)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')

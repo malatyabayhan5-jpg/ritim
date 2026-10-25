@@ -119,7 +119,19 @@
     "keyRemove": "إزالة الإطار الرئيسي",
     "mainAudio": "صوت المقاطع",
     "mainAudioOff": "الصوت مغلق",
-    "exportMore": "إعدادات أخرى (الترميز، الجودة)"
+    "exportMore": "إعدادات أخرى (الترميز، الجودة)",
+    "beatsAdded_zero": "لم تُضف أي علامة إيقاع.",
+    "beatsAdded_one": "أُضيفت علامة إيقاع واحدة.",
+    "beatsAdded_two": "أُضيفت علامتا إيقاع.",
+    "beatsAdded_few": "أُضيفت {n} علامات إيقاع.",
+    "beatsAdded_many": "أُضيفت {n} علامة إيقاع.",
+    "beatsAdded_other": "أُضيفت {n} علامة إيقاع.",
+    "beatsRemoved_zero": "لم تُزل أي علامة إيقاع.",
+    "beatsRemoved_one": "أُزيلت علامة إيقاع واحدة.",
+    "beatsRemoved_two": "أُزيلت علامتا إيقاع.",
+    "beatsRemoved_few": "أُزيلت {n} علامات إيقاع.",
+    "beatsRemoved_many": "أُزيلت {n} علامة إيقاع.",
+    "beatsRemoved_other": "أُزيلت {n} علامة إيقاع."
   },
   "tools": {
     "edit": "تحرير",
@@ -160,7 +172,8 @@
     "captionList": "تحرير الترجمات",
     "background": "الخلفية",
     "keyEase": "المنحنى",
-    "clipAnim": "الحركات"
+    "clipAnim": "الحركات",
+    "beats": "الإيقاع"
   },
   "panels": {
     "speedHint": "تُحفظ طبقة الصوت عند تغيير السرعة. أعلى من 1x يسرّع، وأقل منها يبطّئ.",

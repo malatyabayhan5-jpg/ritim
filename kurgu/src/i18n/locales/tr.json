@@ -111,7 +111,11 @@
     "keyRemove": "Anahtar kareyi kaldır",
     "mainAudio": "Klip sesi",
     "mainAudioOff": "Ses kapalı",
-    "exportMore": "Diğer ayarlar (kodek, kalite)"
+    "exportMore": "Diğer ayarlar (kodek, kalite)",
+    "beatsAdded_one": "{n} ritim işareti eklendi.",
+    "beatsAdded_other": "{n} ritim işareti eklendi.",
+    "beatsRemoved_one": "{n} ritim işareti kaldırıldı.",
+    "beatsRemoved_other": "{n} ritim işareti kaldırıldı."
   },
   "tools": {
     "edit": "Düzenle",
@@ -152,7 +156,8 @@
     "captionList": "Altyazıları düzenle",
     "background": "Arka plan",
     "keyEase": "Eğri",
-    "clipAnim": "Animasyonlar"
+    "clipAnim": "Animasyonlar",
+    "beats": "Ritim"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",

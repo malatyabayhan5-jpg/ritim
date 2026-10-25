@@ -44,7 +44,7 @@ Extract audio from a video,audio,must,yes,yes,soundFromVideo in e2e 1
 Voiceover recording at playhead,audio,must,yes,yes,e2e 7
 Voice effects and noise reduction,audio,should,yes,yes,14 effects 54 presets denoise
 Audio waveform on timeline,audio,must,yes,yes,
-Beat marks (manual and auto),audio,could,low,no,weak sources only
+Beat marks (manual and auto),audio,could,yes,yes,"Beats in the clip and audio toolbars (seen in the recording's clip toolbar): onsets of the audio envelope become auto markers (tap again to remove), clips snap to them; manual markers from the controls row. 3 unit tests + check on synthetic 120 BPM audio (19/20 beats, 500 ms apart); e2e 3"
 Video effects library,effects,must,yes,yes,122 own effects (12 categories)
 Effect track with start duration intensity,effects,must,yes,yes,effect layers; e2e 1 duotone check
 Filters with intensity,color,must,yes,yes,116 own filters

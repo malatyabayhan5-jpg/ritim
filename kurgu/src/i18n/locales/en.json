@@ -111,7 +111,11 @@
     "keyRemove": "Remove keyframe",
     "mainAudio": "Clip audio",
     "mainAudioOff": "Audio off",
-    "exportMore": "More settings (codec, quality)"
+    "exportMore": "More settings (codec, quality)",
+    "beatsAdded_one": "{n} beat mark added.",
+    "beatsAdded_other": "{n} beat marks added.",
+    "beatsRemoved_one": "{n} beat mark removed.",
+    "beatsRemoved_other": "{n} beat marks removed."
   },
   "tools": {
     "edit": "Edit",
@@ -152,7 +156,8 @@
     "captionList": "Edit captions",
     "background": "Background",
     "keyEase": "Curve",
-    "clipAnim": "Animations"
+    "clipAnim": "Animations",
+    "beats": "Beats"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
