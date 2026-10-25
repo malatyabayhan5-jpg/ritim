@@ -74,14 +74,15 @@ internal class CanvasBgProgram(
 
   /** Resim (BlendPixels: satırlar alttan üste, video kareleriyle aynı yön) ilk karede dokuya yüklenir. */
   private fun ensureImage() {
-    if (imageTex >= 0 || imageUri == null) return
+    val uri = imageUri ?: return
+    if (imageTex >= 0) return
     val longSide = CanvasBgFx.imageLongSide(canvasW, canvasH)
     val px = try {
-      BlendPixels.get(context, imageUri, longSide).get(20, TimeUnit.SECONDS)
+      BlendPixels.get(context, uri, longSide).get(20, TimeUnit.SECONDS)
     } catch (e: Exception) {
       null
     } ?: run {
-      BlendPixels.forget(imageUri, longSide)
+      BlendPixels.forget(uri, longSide)
       throw VideoFrameProcessingException("CANVAS_BG_IMAGE_DECODE")
     }
     val ids = IntArray(1)
