@@ -120,8 +120,10 @@ appId: app.kurgu.editor
           text: "(Karışım|Blend)"
 # Karışım sekmesinde olunduğu mod çiplerinden anlaşılır (açıklama metni dar ekranda çiplerin
 # altında kalır, CI #83). "Ekran" modu seçilir; önizleme bu modla yeniden kurulmalı.
-- assertVisible:
-    text: "(Çarp|Multiply)"
+- extendedWaitUntil:
+    visible:
+      text: "(Çarp|Multiply)"
+    timeout: 15000
 - tapOn:
     text: "(Ekran|Screen)"
 - waitForAnimationToEnd:
