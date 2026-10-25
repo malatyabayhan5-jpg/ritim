@@ -247,14 +247,15 @@ export default function EditorScreen({ params, focused }) {
   const selectedOverlay = selection?.type === 'overlay' ? (project?.overlays || []).find((x) => x.id === selection.id) : null;
   // Kontrol satırındaki anahtar kare düğmesinin hedefi; kare zamanları öğenin kendi başlangıcına göre
   const keyTarget = selectedMain
-    ? { type: 'main', id: selectedMain.id, start: TL.clipStart(project, selectedMain.id) }
+    ? { type: 'main', id: selectedMain.id, start: TL.clipStart(project, selectedMain.id), dur: TL.clipDuration(selectedMain) }
     : selectedOverlay
-      ? { type: 'overlay', id: selectedOverlay.id, start: selectedOverlay.start }
+      ? { type: 'overlay', id: selectedOverlay.id, start: selectedOverlay.start, dur: TL.overlayDuration(selectedOverlay) }
       : selectedText
-        ? { type: 'text', id: selectedText.id, start: selectedText.start }
+        ? { type: 'text', id: selectedText.id, start: selectedText.start, dur: selectedText.duration }
         : null;
+  const KT = TL.KEY_UI_TOLERANCE_MS;
   // Oynatma kafası seçili öğenin bir karesindeyse o karenin eğrisi (araç çubuğunda "Eğri")
-  const keyEase = keyTarget && project ? TL.keyEasingAt(project, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start)) : null;
+  const keyEase = keyTarget && project ? TL.keyEasingAt(project, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start), KT) : null;
 
   useEffect(() => {
     // Silinen öğe seçili kalmasın
@@ -900,6 +901,28 @@ export default function EditorScreen({ params, focused }) {
     }
   };
 
+  /** Seçilen öğe oynatma kafasının dışındaysa gidilecek an: ana klipte ortası, metin ve katmanda başı. */
+  const itemSeekTarget = (sel) => {
+    let start = 0;
+    let dur = 0;
+    let to = 0;
+    if (sel.type === 'main') {
+      const c = project.main.find((x) => x.id === sel.id);
+      if (!c) return null;
+      start = TL.clipStart(project, c.id);
+      dur = TL.clipDuration(c);
+      to = start + dur / 2;
+    } else if (sel.type === 'text' || sel.type === 'overlay') {
+      const x = sel.type === 'text' ? project.texts.find((y) => y.id === sel.id) : (project.overlays || []).find((y) => y.id === sel.id);
+      if (!x) return null;
+      start = x.start;
+      dur = sel.type === 'text' ? x.duration : TL.overlayDuration(x);
+      to = start + 1;
+    } else return null;
+    const now = playhead.get();
+    return now < start || now > start + dur ? Math.round(to) : null;
+  };
+
   const zoom = (next) => setPxPerMs(Math.max(MIN_PX_PER_MS, Math.min(MAX_PX_PER_MS, next)));
 
   // Dışa Aktar doğrudan başlar (çözünürlük üst çubuktaki seçiciden); "Diğer ayarlar" ayar ekranını açar
@@ -1064,17 +1087,21 @@ export default function EditorScreen({ params, focused }) {
               {keyTarget ? (
                 <PlayheadValue store={playhead} stepMs={100}>
                   {(ms) => {
-                    const on = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, Math.round(ms - keyTarget.start));
+                    const on = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, Math.round(ms - keyTarget.start), KT);
+                    // Oynatma kafası seçili öğenin dışındaysa kare eklenemez (öğenin süresi dışına düşerdi)
+                    const inside = ms >= keyTarget.start - 1 && ms <= keyTarget.start + keyTarget.dur + 1;
                     return (
                       <IconButton
                         icon={on ? 'diamond' : 'diamond-outline'}
                         size={20}
                         color={on ? colors.accent : colors.text}
+                        disabled={!inside}
                         label={t(on ? 'editor.keyRemove' : 'editor.keyAdd')}
                         onPress={() => {
-                          const local = Math.round(playhead.get() - keyTarget.start);
-                          console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${on ? 'remove' : 'add'}`);
-                          apply((p) => TL.toggleAllKeys(p, keyTarget.type, keyTarget.id, local));
+                          const local = Math.round(Math.max(0, Math.min(keyTarget.dur, playhead.get() - keyTarget.start)));
+                          const removing = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, local, KT);
+                          console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${removing ? 'remove' : 'add'}`);
+                          apply((p) => TL.toggleAllKeys(p, keyTarget.type, keyTarget.id, local, KT));
                         }}
                         testID="key-toggle"
                       />
@@ -1107,10 +1134,9 @@ export default function EditorScreen({ params, focused }) {
             setSelection(sel);
             setSub(null);
             setPanel(null);
-            if (sel.type === 'text') {
-              const tx = project.texts.find((x) => x.id === sel.id);
-              if (tx && (playhead.get() < tx.start || playhead.get() > tx.start + tx.duration)) seek(tx.start + 1, false);
-            }
+            // Oynatma kafası seçilen öğenin dışındaysa öğeye gelir (önizlemede görünsün, anahtar kare düğmesi çalışsın)
+            const target = itemSeekTarget(sel);
+            if (target != null) seek(target, false);
           }}
           onTrim={onTrim}
           onMoveMain={(from, to) => {
@@ -1518,7 +1544,7 @@ export default function EditorScreen({ params, focused }) {
         return keyTarget && keyEase ? (
           <KeyEasePanel
             value={keyEase}
-            onChange={(e) => apply((p) => TL.setKeysEasing(p, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start), e))}
+            onChange={(e) => apply((p) => TL.setKeysEasing(p, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start), e, KT))}
             onClose={close}
           />
         ) : null;

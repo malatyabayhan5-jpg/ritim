@@ -64,3 +64,22 @@ Status: fixed in 2fad693 (dark label, `onAccent`).
 - text_check at 160x90 lost thin letters — fixed in c46a929.
 - Flow 6 redo tap missed after undo — retried by label in f904ac9.
 - text_check failed when the picker returned different clips (CI #100): the frame before the text was a bright scene, and the effect layer that starts with the text darkens everything after, so the before-frame baseline could not be beaten. Now frames with the same background (mid-animation, after / exit) count as the baseline; validated on synthetic bright-then-dark videos with and without text.
+
+### BUG-005: Keyframe button added keys outside the selected clip; Curve tool did not appear
+
+- Severity: S3
+- Flow / case: F08 / F08-H1
+- Screen: S03
+- Build: 4abe90c  Device: CI emulator #108 (e2e 1)
+
+Steps
+1. Play to the end of the timeline, then tap the first clip (playhead outside it).
+2. Tap the keyframe diamond.
+
+Expected: no key outside the clip; when a key is added, the Curve tool appears.
+Actual: a key was added at 17.5 s on a 10 s clip; the Curve tool never showed, because the screen's
+playhead value lagged the stored one by 17 ms and keys were matched within 15 ms.
+Evidence: CI #108 flow 1 log `[KurguUI] keyframe main t=17526 add`, then `tool-keyEase` not found.
+Status: fixed (pending CI): selecting an item outside the playhead moves the playhead into it (main
+clip: its middle; text / layer: its start); the diamond is disabled outside the item and clamps to it;
+key matching in the UI uses a 50 ms tolerance and removal uses the key's exact time. Unit test.

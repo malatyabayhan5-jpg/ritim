@@ -128,3 +128,16 @@ test('eğri: oynatma kafasındaki karelerin yumuşatması değişir, ara değer 
   assert.equal(TL.keyEasingAt(p, 'main', id, 1000), null, 'kare olmayan anda null');
   assert.equal(TL.setKeysEasing(p, 'main', id, 1000, 'out'), p);
 });
+
+test('anahtar kare toleransı: arayüz gecikmesiyle kayan anda kare bulunur ve tam zamanından kaldırılır', () => {
+  let p = projectWith([video('a', 6000)]);
+  const id = p.main[0].id;
+  p = TL.toggleAllKeys(p, 'main', id, 2000, TL.KEY_UI_TOLERANCE_MS);
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 2017), false, 'model varsayılanı 15 ms');
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 2017, TL.KEY_UI_TOLERANCE_MS), true);
+  assert.equal(TL.keyEasingAt(p, 'main', id, 2017, TL.KEY_UI_TOLERANCE_MS), 'inOut');
+  p = TL.setKeysEasing(p, 'main', id, 2017, 'out', TL.KEY_UI_TOLERANCE_MS);
+  assert.equal(p.main[0].keyframes.x[0].e, 'out');
+  p = TL.toggleAllKeys(p, 'main', id, 2017, TL.KEY_UI_TOLERANCE_MS);
+  assert.equal(TL.hasAnyKeyAt(p, 'main', id, 2000, 100), false, '17 ms kaymada yeni kare eklenmez, var olan kaldırılır');
+});

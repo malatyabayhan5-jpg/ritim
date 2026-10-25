@@ -837,47 +837,50 @@ const KEY_TARGETS = {
   text: { props: Object.keys(TEXT_BASE), toggle: toggleTextKey, get: (p, id) => p.texts.find((x) => x.id === id), update: updateText },
 };
 
-const keyOn = (item, prop, localMs) => (item.keyframes?.[prop] || []).some((k) => Math.abs(k.t - localMs) <= 15);
+// Arayüzdeki oynatma kafası değeri birkaç on ms gecikebilir: kare eşleştirmesi bu toleransla yapılır
+export const KEY_UI_TOLERANCE_MS = 50;
+const keyNear = (item, prop, localMs, tol) => (item.keyframes?.[prop] || []).find((k) => Math.abs(k.t - localMs) <= tol);
 
 /** Seçili öğenin (`main`, `overlay`, `text`) herhangi bir özelliğinde `localMs` anında kare var mı. */
-export function hasAnyKeyAt(project, type, id, localMs) {
+export function hasAnyKeyAt(project, type, id, localMs, tol = 15) {
   const tg = KEY_TARGETS[type];
   const item = tg && tg.get(project, id);
-  return !!item && tg.props.some((k) => keyOn(item, k, localMs));
+  return !!item && tg.props.some((k) => keyNear(item, k, localMs, tol));
 }
 
 /**
- * Kare yoksa tüm özelliklere o anki değerleriyle kare ekler; varsa o andaki kareleri kaldırır.
- * İzi boşalan özellik son değerinde sabit kalır (toggle*Key ile aynı).
+ * Kare yoksa tüm özelliklere o anki değerleriyle kare ekler; varsa o andaki kareleri (tam
+ * zamanlarından) kaldırır. İzi boşalan özellik son değerinde sabit kalır (toggle*Key ile aynı).
  */
-export function toggleAllKeys(project, type, id, localMs) {
+export function toggleAllKeys(project, type, id, localMs, tol = 15) {
   const tg = KEY_TARGETS[type];
   let item = tg && tg.get(project, id);
   if (!item) return project;
-  const remove = tg.props.some((k) => keyOn(item, k, localMs));
+  const remove = tg.props.some((k) => keyNear(item, k, localMs, tol));
   let next = project;
   for (const k of tg.props) {
-    if (keyOn(item, k, localMs) !== remove) continue;
-    next = tg.update(next, id, tg.toggle(item, k, localMs));
+    const near = keyNear(item, k, localMs, tol);
+    if (remove ? !near : near) continue;
+    next = tg.update(next, id, tg.toggle(item, k, remove ? near.t : localMs));
     item = tg.get(next, id);
   }
   return next;
 }
 
 /** Oynatma kafasındaki karelerin yumuşatması (kareden sonraki geçişin eğrisi); kare yoksa null. */
-export function keyEasingAt(project, type, id, localMs) {
+export function keyEasingAt(project, type, id, localMs, tol = 15) {
   const tg = KEY_TARGETS[type];
   const item = tg && tg.get(project, id);
   if (!item) return null;
   for (const k of tg.props) {
-    const f = (item.keyframes?.[k] || []).find((x) => Math.abs(x.t - localMs) <= 15);
+    const f = keyNear(item, k, localMs, tol);
     if (f) return f.e || 'linear';
   }
   return null;
 }
 
 /** Oynatma kafasındaki tüm özellik karelerinin yumuşatmasını `e` yapar. */
-export function setKeysEasing(project, type, id, localMs, e) {
+export function setKeysEasing(project, type, id, localMs, e, tol = 15) {
   const tg = KEY_TARGETS[type];
   const item = tg && tg.get(project, id);
   if (!item) return project;
@@ -886,7 +889,7 @@ export function setKeysEasing(project, type, id, localMs, e) {
   for (const k of tg.props) {
     const track = keyframes[k];
     if (!track) continue;
-    const i = track.findIndex((x) => Math.abs(x.t - localMs) <= 15);
+    const i = track.findIndex((x) => Math.abs(x.t - localMs) <= tol);
     if (i < 0) continue;
     keyframes[k] = track.map((x, j) => (j === i ? { ...x, e } : x));
     changed = true;
