@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Dışa aktarılan videoda metin katmanının ve giriş animasyonunun izini arar.
 
-Metin varsayılan stilde beyaz ve kalındır. Seçilen anlarda kare küçültülür; çok açık
+Metin varsayılan stilde beyaz ve kalındır, kanvasın ortasında durur. Seçilen anlarda kare
+640x360'a küçültülür (daha küçükte harf çizgileri arka planla karışıp beyazlığını yitirir,
+CI #95) ve yalnızca orta bant (yükseklik %30–70, genişlik %15–85) incelenir; çok açık
 pikseller (R, G, B ≥ 225) "metin" sayılır, sayıları ve dikey ağırlık merkezleri alınır:
 
   önce     başlangıçtan 300 ms önce: taban (videonun kendi açık pikselleri)
@@ -12,14 +14,17 @@ pikseller (R, G, B ≥ 225) "metin" sayılır, sayıları ve dikey ağırlık me
            da saydamlık izi aranır
 
 Animasyon kanıtı: ortadaki karede açık piksel sayısı yerleşik karenin %85'inden az
-(silinme/belirme) ya da ağırlık merkezi en az 1,5 satır farklı (kayma). Bağımlılık: ffmpeg.
+(silinme/belirme) ya da ağırlık merkezi en az 4 satır farklı (kayma). Bağımlılık: ffmpeg.
 
   python3 text_check.py cikti.mp4 BAŞLANGIÇ_MS BİTİŞ_MS ANİM_MS   -> çıkış 0: geçti
 """
 import subprocess
 import sys
 
-W, H = 160, 90
+W, H = 640, 360
+Y0, Y1 = int(H * 0.3), int(H * 0.7)
+X0, X1 = int(W * 0.15), int(W * 0.85)
+SHIFT = 4.0
 LIGHT = 225
 
 
@@ -35,11 +40,13 @@ def frame_at(path, ms):
 def light_stats(buf):
     n = 0
     ys = 0.0
-    for i in range(W * H):
-        p = i * 3
-        if buf[p] >= LIGHT and buf[p + 1] >= LIGHT and buf[p + 2] >= LIGHT:
-            n += 1
-            ys += i // W
+    for y in range(Y0, Y1):
+        row = y * W * 3
+        for x in range(X0, X1):
+            p = row + x * 3
+            if buf[p] >= LIGHT and buf[p + 1] >= LIGHT and buf[p + 2] >= LIGHT:
+                n += 1
+                ys += y
     return n, (ys / n if n else -1.0)
 
 
@@ -67,15 +74,15 @@ def main():
     base = st['önce'][0]
     full, cy = st['yerleşik']
     mid, my = st['ortada']
-    visible = full >= max(15, base * 2 + 10)
-    animated = visible and (mid < full * 0.85 or (my >= 0 and abs(my - cy) >= 1.5))
+    visible = full >= max(30, base * 2 + 20)
+    animated = visible and (mid < full * 0.85 or (my >= 0 and abs(my - cy) >= SHIFT))
     if tail:
-        gone = st['sonra'][0] <= max(base * 2 + 10, full * 0.5)
+        gone = st['sonra'][0] <= max(base * 2 + 20, full * 0.5)
         last = ('bitişten sonra kaybolmuyor', gone)
         ok_text = 'bitişte kayboluyor'
     else:
         on, oy = st['çıkışta']
-        gone = on < full * 0.85 or (oy >= 0 and abs(oy - cy) >= 1.5)
+        gone = on < full * 0.85 or (oy >= 0 and abs(oy - cy) >= SHIFT)
         last = ('çıkış animasyonu izi yok', gone)
         ok_text = 'çıkış animasyonu var (metin videonun sonuna kadar)'
     if visible and animated and gone:
