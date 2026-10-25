@@ -143,6 +143,12 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #85** (1969ece): **8/8 akış GEÇTİ** (1 kabul + dışa aktarma, 2 dil/RTL, 3 AI araçları + karışım modu,
+4 otomatik altyazı, 5 performans p50 28 ms, 6 katmanlar, 7 seslendirme, 8 fotoğraf); katman testi, takip testi
+(46 nokta, 26 kare, kayıp 0), fotoğraf çıktısı (1080×1080) ve dışa aktarılan MP4 denetimi (17,5 sn, hatasız
+çözüldü, duotone 14,5–17,25 sn) GEÇTİ. Dışa aktarmada emülatöre özgü yavaşlama (%60–70 bekçi uyarısı) sürüyor
+ama işlem tamamlanıyor. APK: run 40156668853 → Artifacts → Kurgu-apk. Hepsi emülatörde; gerçek cihazda sınanmadı.
+
 **CI #84** (62430f8): 1, 2, **3 (karışım: "Ekran" modu seçildi, önizleme hatası yok)**, 4, 5, 7, 8 GEÇTİ. 6: dışa
 aktarma ekranı açıldı ama başlat düğmesi katmanlı projede ekranın altında kaldı → akış kaydırarak arıyor.
 **Dışa aktarma takılmasının yeri bulundu:** 1'de %70'te bekçi üç kez tetiklendi (dışa aktarma yine tamamlandı,
