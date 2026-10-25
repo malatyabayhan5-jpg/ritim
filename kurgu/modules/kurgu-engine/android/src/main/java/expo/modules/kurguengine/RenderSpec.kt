@@ -340,7 +340,7 @@ data class RenderSpec(
       outMs = o.optLong("outMs"),
     )
 
-    private fun parseText(o: JSONObject) = TextSpec(
+    internal fun parseText(o: JSONObject) = TextSpec(
       key = o.optString("key"),
       text = o.optString("text"),
       startMs = o.optLong("startMs"),

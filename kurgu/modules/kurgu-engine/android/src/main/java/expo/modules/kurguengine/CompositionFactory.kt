@@ -147,7 +147,7 @@ object CompositionFactory {
     }
     // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
     spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
-    val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it, live) }
+    val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { if (live && it.key.isNotEmpty()) LiveTextOverlay(it) else TextLayerOverlay(it) }
     if (overlays.isNotEmpty()) compositionEffects.add(OverlayEffect(overlays))
     if (forExport) compositionEffects.add(FrameDropEffect.createDefaultFrameDropEffect(spec.fps.toFloat()))
 

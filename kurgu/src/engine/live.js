@@ -13,6 +13,7 @@
 //   ly:<katman>    [x, y, ölçek, döndürme, opaklık, maske cx, cy, açı, yarı gen., yarı yük.,
 //                   yumuşaklık, köşe, chroma tolerans, kenar, taşma] (LayerFx.kt)
 //   tx:<metin>     [x, y, döndürme, opaklık] (TextLayer.kt)
+//   txt:<metin>    metin tanımı nesnesi (yazı, stil, ölçek, süre, animasyon; LiveTextOverlay)
 //   tf:<klip>      [ölçek, konum x, konum y, açı] (ana iz; Fx.kt KeyedPlacement)
 
 const LIVE = 'L';
@@ -81,13 +82,16 @@ export function splitLive(spec) {
     const cm = l.colorMatrix ? ((live[`cm:${l.key}`] = l.colorMatrix), LIVE) : null;
     return { ...l, colorMatrix: cm, xf: LIVE, opacity: LIVE, mask: [m[0], LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, m[8]], chroma: [c[0], c[1], c[2], c[3], LIVE, LIVE, LIVE] };
   });
-  // Metin konumu, döndürme ve opaklık canlıdır (önizlemede sürükleme kompozisyonu yeniden
-  // kurmaz). Ölçek satır kırma genişliğini değiştirdiğinden yapıdır; anahtar kare izi olan
-  // özellikler izde (yapı) taşınır.
+  // Metinler canlıdır: konum, döndürme ve opaklık her karede okunan sayılar (`tx:`);
+  // yazı, stil, ölçek, süre, animasyon ve anahtar kareler tanım nesnesi (`txt:`) olarak
+  // gider ve yerel katman yeniden rasterleştirilir. Yapıda yalnızca metnin varlığı ve sırası
+  // kalır (ekleme/silme yeniden kurulum yapar). Tanım nesnesinde sürüklenen sayılar sabit
+  // tutulur ki sürükleme metni yeniden rasterleştirmesin.
   const texts = (spec.texts || []).map((t) => {
     if (!t.key) return t;
     live[`tx:${t.key}`] = [t.x, t.y, t.rotation, t.opacity];
-    return { ...t, x: LIVE, y: LIVE, rotation: LIVE, opacity: LIVE };
+    live[`txt:${t.key}`] = { ...t, x: 0, y: 0, rotation: 0, opacity: 1 };
+    return { key: t.key, text: LIVE };
   });
   const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers, texts });
   return { structure, live };

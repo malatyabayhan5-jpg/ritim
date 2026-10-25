@@ -46,3 +46,32 @@ object LiveParams {
     }
   }
 }
+
+/**
+ * Önizlemede canlı metinler (src/engine/live.js `txt:<anahtar>`): metnin yazısı, stili,
+ * zamanlaması ve animasyonu değişince kompozisyon yeniden kurulmaz; LiveTextOverlay yeni
+ * tanımı görünce iç metin katmanını yeniler. Aynı JSON tekrar gelirse sürüm artmaz.
+ */
+object LiveTexts {
+  class Entry(val json: String, val spec: TextSpec, val version: Int)
+
+  private val entries = ConcurrentHashMap<String, Entry>()
+  private var counter = 0
+
+  fun get(key: String): Entry? = entries[key]
+
+  @Synchronized
+  fun update(key: String, o: org.json.JSONObject) {
+    val json = o.toString()
+    if (entries[key]?.json == json) return
+    val spec = try {
+      RenderSpec.parseText(o)
+    } catch (e: Exception) {
+      return
+    }
+    counter += 1
+    entries[key] = Entry(json, spec, counter)
+  }
+
+  fun clear() = entries.clear()
+}

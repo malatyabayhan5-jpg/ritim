@@ -30,6 +30,39 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
+ * Önizleme metni: canlı tanım (LiveTexts `txt:<anahtar>`) değişince iç katman yenilenir;
+ * yazı, stil, süre ve animasyon değişikliği önizlemeyi yeniden kurmaz (gerçek cihazda
+ * yazarken/stil seçerken önizleme donuyordu). Konum/döndürme/opaklık `tx:` ile ayrıca canlıdır.
+ */
+@OptIn(UnstableApi::class)
+class LiveTextOverlay(initial: TextSpec) : BitmapOverlay() {
+  private val liveKey = "txt:${initial.key}"
+  private var inner = TextLayerOverlay(initial, live = true)
+  private var version = 0
+  private var videoSize: Size? = null
+
+  private fun current(): TextLayerOverlay {
+    val e = LiveTexts.get(liveKey)
+    if (e != null && e.version != version) {
+      version = e.version
+      inner = TextLayerOverlay(e.spec.copy(key = e.spec.key.ifEmpty { liveKey.removePrefix("txt:") }), live = true)
+      videoSize?.let { inner.configure(it) }
+    }
+    return inner
+  }
+
+  override fun configure(videoSize: Size) {
+    super.configure(videoSize)
+    this.videoSize = videoSize
+    inner.configure(videoSize)
+  }
+
+  override fun getBitmap(presentationTimeUs: Long): Bitmap = current().getBitmap(presentationTimeUs)
+
+  override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings = current().getOverlaySettings(presentationTimeUs)
+}
+
+/**
  * Düzenlenebilir metin katmanının kareye çizilmiş hali. Metin Android'in metin
  * motoruyla çizilir; Arapça harf birleştirme ve sağdan sola yön burada doğal
  * olarak desteklenir. Boyutlar kare yüksekliğine göredir, bu yüzden önizleme ve

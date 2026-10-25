@@ -82,11 +82,22 @@ test('metni önizlemede sürüklemek, döndürmek ve opaklığı değiştirmek �
   const b = splitLive(buildRenderSpec(p, uri));
   assert.equal(a.structure, b.structure);
   assert.deepEqual(b.live[`tx:${id}`], [0.3, -0.2, 15, 0.5]);
-  // Metin içeriği ve ölçek (satır kırma) yapıdır
-  const c = splitLive(buildRenderSpec(TL.updateText(p, id, { text: 'Selam' }), uri));
-  const d = splitLive(buildRenderSpec(TL.updateText(p, id, { scale: 1.6 }), uri));
-  assert.notEqual(b.structure, c.structure);
-  assert.notEqual(b.structure, d.structure);
+  // Sürükleme metin tanımını değiştirmez (yeniden rasterleştirme yok)
+  assert.deepEqual(a.live[`txt:${id}`], b.live[`txt:${id}`]);
+});
+
+test('metnin yazısı, stili, ölçeği ve süresi canlıdır; metin ekleme/silme yapıdır', () => {
+  let p = TL.addText(fixture(), 500, 'Merhaba').project;
+  const id = p.texts[0].id;
+  const a = splitLive(buildRenderSpec(p, uri));
+  const changed = TL.updateText(p, id, { text: 'Selam', scale: 1.6, duration: 2500, style: { ...p.texts[0].style, color: '#FF0000FF' } });
+  const b = splitLive(buildRenderSpec(changed, uri));
+  assert.equal(a.structure, b.structure);
+  assert.equal(b.live[`txt:${id}`].text, 'Selam');
+  assert.equal(b.live[`txt:${id}`].scale, 1.6);
+  assert.notDeepEqual(a.live[`txt:${id}`], b.live[`txt:${id}`]);
+  const c = splitLive(buildRenderSpec(TL.addText(p, 1500, 'İkinci').project, uri));
+  assert.notEqual(a.structure, c.structure);
 });
 
 test('ana klibin ölçeği, konumu ve açısı önizlemede canlıdır (yeniden kurulum yok)', () => {

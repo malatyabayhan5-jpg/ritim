@@ -72,24 +72,40 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       null
     }
     spec?.let { LiveParams.seed(it) }
+    LiveTexts.clear()
+    // Yapı gecikmeli gelir (JS 180 ms): ondan sonra değişmemiş canlı değerler yeniden uygulanır,
+    // yoksa tohumlama daha yeni kaydırıcı/metin değerlerinin üzerine eski değeri yazardı.
+    lastLiveJson?.let { applyLive(it) }
     applyComposition()
   }
+
+  private var lastLiveJson: String? = null
 
   /** Kaydırıcı değerleri: kompozisyonu yeniden kurmadan günceller, duraklatılmışsa kareyi yeniler. */
   fun setLive(json: String?) {
     if (json == null) return
+    lastLiveJson = json
+    if (applyLive(json)) requestRedraw()
+  }
+
+  private fun applyLive(json: String): Boolean {
     try {
       val o = org.json.JSONObject(json)
       val keys = o.keys()
       while (keys.hasNext()) {
         val k = keys.next()
-        val arr = o.optJSONArray(k) ?: continue
-        LiveParams.put(k, FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() })
+        val arr = o.optJSONArray(k)
+        if (arr != null) {
+          LiveParams.put(k, FloatArray(arr.length()) { arr.optDouble(it, 0.0).toFloat() })
+          continue
+        }
+        // Canlı metin tanımı (yazı, stil, süre, animasyon): LiveTextOverlay
+        o.optJSONObject(k)?.let { LiveTexts.update(k, it) }
       }
     } catch (e: Exception) {
-      return
+      return false
     }
-    requestRedraw()
+    return true
   }
 
   private var lastRedraw = 0L
