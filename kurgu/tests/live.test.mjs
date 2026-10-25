@@ -72,3 +72,30 @@ test('büyük proje: 300 klip + 50 efekt için render tanımı ve ayrıştırma 
   console.log(`# render tanımı (300 klip): ${per.toFixed(1)} ms`);
   assert.ok(per < 25, `${per.toFixed(1)} ms`);
 });
+
+test('metni önizlemede sürüklemek, döndürmek ve opaklığı değiştirmek önizlemeyi yeniden kurmaz', () => {
+  let p = TL.addText(fixture(), 500, 'Merhaba').project;
+  const id = p.texts[0].id;
+  const a = splitLive(buildRenderSpec(p, uri));
+  assert.deepEqual(a.live[`tx:${id}`], [p.texts[0].x, p.texts[0].y, p.texts[0].rotation, p.texts[0].style.opacity ?? 1]);
+  p = TL.updateText(p, id, { x: 0.3, y: -0.2, rotation: 15, style: { ...p.texts[0].style, opacity: 0.5 } });
+  const b = splitLive(buildRenderSpec(p, uri));
+  assert.equal(a.structure, b.structure);
+  assert.deepEqual(b.live[`tx:${id}`], [0.3, -0.2, 15, 0.5]);
+  // Metin içeriği ve ölçek (satır kırma) yapıdır
+  const c = splitLive(buildRenderSpec(TL.updateText(p, id, { text: 'Selam' }), uri));
+  const d = splitLive(buildRenderSpec(TL.updateText(p, id, { scale: 1.6 }), uri));
+  assert.notEqual(b.structure, c.structure);
+  assert.notEqual(b.structure, d.structure);
+});
+
+test('ana klibin ölçeği, konumu ve açısı önizlemede canlıdır (yeniden kurulum yok)', () => {
+  let p = fixture();
+  const id = p.main[0].id;
+  const a = splitLive(buildRenderSpec(p, uri));
+  assert.deepEqual(a.live[`tf:${id}`], [1, 0, 0, 0]);
+  p = TL.updateMain(p, id, { transform: { ...p.main[0].transform, scale: 1.4, x: 0.2, y: -0.1, angle: 12 } });
+  const b = splitLive(buildRenderSpec(p, uri));
+  assert.equal(a.structure, b.structure);
+  assert.deepEqual(b.live[`tf:${id}`], [1.4, 0.2, -0.1, 12]);
+});

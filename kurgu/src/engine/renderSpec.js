@@ -111,6 +111,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
   const texts = project.texts
     .filter((t) => t.start < totalMs && t.text && t.text.trim())
     .map((t) => ({
+      key: t.id,
       text: t.text,
       startMs: Math.round(t.start),
       endMs: Math.round(Math.min(totalMs, t.start + t.duration)),

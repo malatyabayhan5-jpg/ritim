@@ -44,7 +44,10 @@ import kotlin.math.roundToInt
  * olduğundan katman merkezi (ve metnin yeri) değişmez.
  */
 @OptIn(UnstableApi::class)
-class TextLayerOverlay(private val spec: TextSpec) : BitmapOverlay() {
+class TextLayerOverlay(private val spec: TextSpec, live: Boolean = false) : BitmapOverlay() {
+  // Önizlemede konum, döndürme ve opaklık canlı okunur (sürükleme yeniden kurulum yapmaz)
+  private val liveKey = if (live && spec.key.isNotEmpty()) "tx:${spec.key}" else null
+
   private var frame = Size(1080, 1920)
   private var geo: Geo? = null
   private var full: Bitmap? = null
@@ -159,10 +162,15 @@ class TextLayerOverlay(private val spec: TextSpec) : BitmapOverlay() {
     // Anahtar kareler metnin başına göre; iz yoksa sabit değer
     val local = (tMs - spec.startMs).toDouble()
     val kf = spec.keyframes
-    val x = if (kf.isEmpty()) spec.x else Keyframes.valueAt(kf["x"], local, spec.x)
-    val y = if (kf.isEmpty()) spec.y else Keyframes.valueAt(kf["y"], local, spec.y)
-    val rotation = if (kf.isEmpty()) spec.rotation else Keyframes.valueAt(kf["rotation"], local, spec.rotation)
-    s.alpha = (if (kf.isEmpty()) spec.opacity else Keyframes.valueAt(kf["opacity"], local, spec.opacity)).coerceIn(0f, 1f)
+    val lv = LiveParams.get(liveKey)?.takeIf { it.size >= 4 }
+    val bx = lv?.get(0) ?: spec.x
+    val by = lv?.get(1) ?: spec.y
+    val brot = lv?.get(2) ?: spec.rotation
+    val bop = lv?.get(3) ?: spec.opacity
+    val x = if (kf.isEmpty()) bx else Keyframes.valueAt(kf["x"], local, bx)
+    val y = if (kf.isEmpty()) by else Keyframes.valueAt(kf["y"], local, by)
+    val rotation = if (kf.isEmpty()) brot else Keyframes.valueAt(kf["rotation"], local, brot)
+    s.alpha = (if (kf.isEmpty()) bop else Keyframes.valueAt(kf["opacity"], local, bop)).coerceIn(0f, 1f)
     s.scale = if (kf.isEmpty()) spec.scale else Keyframes.valueAt(kf["scale"], local, spec.scale)
     if (tMs < spec.startMs || tMs >= spec.endMs) {
       s.alpha = 0f

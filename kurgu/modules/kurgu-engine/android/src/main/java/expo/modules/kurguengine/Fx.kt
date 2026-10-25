@@ -64,6 +64,8 @@ class KeyedPlacement(
   private val angle: Float,
   private val kf: Map<String, FloatArray>,
   private val clipStartMs: Long,
+  // Önizlemede sabit değerler canlı okunur (LiveParams `tf:<klip>`: ölçek, x, y, açı)
+  private val liveKey: String? = null,
 ) : MatrixTransformation {
   private var aspect = 1f
   private val m = Matrix()
@@ -75,10 +77,11 @@ class KeyedPlacement(
 
   override fun getMatrix(presentationTimeUs: Long): Matrix {
     val t = presentationTimeUs / 1000.0 - clipStartMs
-    val s = Keyframes.valueAt(kf["scale"], t, scale)
-    val x = Keyframes.valueAt(kf["x"], t, offsetX)
-    val y = Keyframes.valueAt(kf["y"], t, offsetY)
-    val a = Keyframes.valueAt(kf["angle"], t, angle)
+    val lv = LiveParams.get(liveKey)?.takeIf { it.size >= 4 }
+    val s = Keyframes.valueAt(kf["scale"], t, lv?.get(0) ?: scale)
+    val x = Keyframes.valueAt(kf["x"], t, lv?.get(1) ?: offsetX)
+    val y = Keyframes.valueAt(kf["y"], t, lv?.get(2) ?: offsetY)
+    val a = Keyframes.valueAt(kf["angle"], t, lv?.get(3) ?: angle)
     m.reset()
     m.postScale(s, s)
     m.postScale(aspect, 1f)

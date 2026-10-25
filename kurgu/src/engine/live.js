@@ -12,6 +12,8 @@
 //   vol:<öğe>      [ses düzeyi, açılma ms, kapanma ms]
 //   ly:<katman>    [x, y, ölçek, döndürme, opaklık, maske cx, cy, açı, yarı gen., yarı yük.,
 //                   yumuşaklık, köşe, chroma tolerans, kenar, taşma] (LayerFx.kt)
+//   tx:<metin>     [x, y, döndürme, opaklık] (TextLayer.kt)
+//   tf:<klip>      [ölçek, konum x, konum y, açı] (ana iz; Fx.kt KeyedPlacement)
 
 const LIVE = 'L';
 
@@ -24,6 +26,12 @@ export function splitLive(spec) {
       out.colorMatrix = LIVE;
     }
     live[`vol:${m.key}`] = [m.volume, m.fadeInMs, m.fadeOutMs];
+    // Ana klip yerleşimi (ölçek, konum, açı): dönüştürme kaydırıcıları yeniden kurulum yapmaz
+    live[`tf:${m.key}`] = [m.scale, m.offsetX, m.offsetY, m.angle];
+    out.scale = LIVE;
+    out.offsetX = LIVE;
+    out.offsetY = LIVE;
+    out.angle = LIVE;
     out.volume = LIVE;
     out.fadeInMs = LIVE;
     out.fadeOutMs = LIVE;
@@ -73,7 +81,15 @@ export function splitLive(spec) {
     const cm = l.colorMatrix ? ((live[`cm:${l.key}`] = l.colorMatrix), LIVE) : null;
     return { ...l, colorMatrix: cm, xf: LIVE, opacity: LIVE, mask: [m[0], LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, LIVE, m[8]], chroma: [c[0], c[1], c[2], c[3], LIVE, LIVE, LIVE] };
   });
-  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers });
+  // Metin konumu, döndürme ve opaklık canlıdır (önizlemede sürükleme kompozisyonu yeniden
+  // kurmaz). Ölçek satır kırma genişliğini değiştirdiğinden yapıdır; anahtar kare izi olan
+  // özellikler izde (yapı) taşınır.
+  const texts = (spec.texts || []).map((t) => {
+    if (!t.key) return t;
+    live[`tx:${t.key}`] = [t.x, t.y, t.rotation, t.opacity];
+    return { ...t, x: LIVE, y: LIVE, rotation: LIVE, opacity: LIVE };
+  });
+  const structure = JSON.stringify({ ...spec, main, audioLanes, effectLayers, layers, blendLayers, texts });
   return { structure, live };
 }
 

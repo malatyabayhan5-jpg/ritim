@@ -147,7 +147,7 @@ object CompositionFactory {
     }
     // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
     spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
-    val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it) }
+    val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it, live) }
     if (overlays.isNotEmpty()) compositionEffects.add(OverlayEffect(overlays))
     if (forExport) compositionEffects.add(FrameDropEffect.createDefaultFrameDropEffect(spec.fps.toFloat()))
 
@@ -285,7 +285,10 @@ object CompositionFactory {
     video.add(Presentation.createForWidthAndHeight(w, h, layout))
     val kf = clip.keyframes
     val animated = kf.keys.any { it in setOf("x", "y", "scale", "angle") } || abs(clip.angle) > 0.01f
-    if (animated) {
+    if (live) {
+      // Önizleme: yerleşim her zaman canlı okunur, değeri değişince kompozisyon yeniden kurulmaz
+      video.add(KeyedPlacement(clip.scale, clip.offsetX, clip.offsetY, clip.angle, kf, clip.startMs, "tf:${clip.key}"))
+    } else if (animated) {
       video.add(KeyedPlacement(clip.scale, clip.offsetX, clip.offsetY, clip.angle, kf, clip.startMs))
     } else if (abs(clip.scale - 1f) > 0.001f || abs(clip.offsetX) > 0.0005f || abs(clip.offsetY) > 0.0005f) {
       video.add(ClipPlacement(clip.scale, clip.offsetX, clip.offsetY))

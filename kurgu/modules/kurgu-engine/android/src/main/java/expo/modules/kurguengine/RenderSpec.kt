@@ -119,6 +119,8 @@ data class TextSpec(
   val decoColor: Int = 0xFFFFFFFF.toInt(),
   // Anahtar kareler: x, y, scale, rotation, opacity (metin başına göre ms; Keyframes.java)
   val keyframes: Map<String, FloatArray> = emptyMap(),
+  // Canlı parametre anahtarı (önizlemede `tx:<key>`: x, y, döndürme, opaklık)
+  val key: String = "",
 )
 
 /**
@@ -339,6 +341,7 @@ data class RenderSpec(
     )
 
     private fun parseText(o: JSONObject) = TextSpec(
+      key = o.optString("key"),
       text = o.optString("text"),
       startMs = o.optLong("startMs"),
       endMs = o.optLong("endMs"),

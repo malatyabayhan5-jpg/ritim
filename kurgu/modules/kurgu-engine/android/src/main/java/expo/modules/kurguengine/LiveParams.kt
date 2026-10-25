@@ -23,6 +23,7 @@ object LiveParams {
     for (m in spec.main) {
       m.colorMatrix?.let { values["cm:${m.key}"] = it }
       values["vol:${m.key}"] = floatArrayOf(m.volume, m.fadeInMs.toFloat(), m.fadeOutMs.toFloat())
+      values["tf:${m.key}"] = floatArrayOf(m.scale, m.offsetX, m.offsetY, m.angle)
       m.lut?.let { values["lut:${m.key}"] = floatArrayOf(it.amount) }
       m.effects.forEach { values["fx:${it.key}"] = floatArrayOf(it.amount, *it.params) }
     }
@@ -30,6 +31,7 @@ object LiveParams {
       values["vol:${a.key}"] = floatArrayOf(a.volume, a.fadeInMs.toFloat(), a.fadeOutMs.toFloat())
     }
     spec.effectLayers.forEach { values["fx:${it.key}"] = floatArrayOf(it.amount, *it.params) }
+    for (t in spec.texts) if (t.key.isNotEmpty()) values["tx:${t.key}"] = floatArrayOf(t.x, t.y, t.rotation, t.opacity)
     for (lane in spec.layers) for (l in lane) {
       l.colorMatrix?.let { values["cm:${l.key}"] = it }
       l.lut?.let { values["lut:${l.key}"] = floatArrayOf(it.amount) }
