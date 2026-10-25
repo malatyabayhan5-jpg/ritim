@@ -46,7 +46,7 @@ CapCut's promo banner, tool grid or template tabs. Those are out of scope.
 | --- | --- | --- | --- |
 | F01 export | Export starts at once, using the resolution dropdown | Same since 2026-10-25: Export starts at once with the picker's resolution / fps; codec and quality are under "More settings" in the picker | fixed (pending CI) |
 | F01 export | Upsell for higher resolution (Pro) | Every resolution the encoder supports is free; unsupported modes are locked with a reason | keep (better) |
-| F04 captions | Captions run on CapCut's servers | whisper.cpp on the phone, no upload; a model download is asked for first | keep (privacy), slower on old phones |
+| F04 captions | Auto captions sheet: source, language, templates (where it runs was not checked) | whisper.cpp on the phone, no upload; a model download is asked for first | keep; slower on old phones |
 | F05 audio | Sounds and SFX libraries | No licensed library; your own files, extract from video, record | keep (licensing) |
 | F08 keyframes | Diamond adds keys; curves per key | Same; Curve tool while on a key | parity |
 | F10 background | Canvas colour / style / blur | Colour and blur; no image background | build image background later |
