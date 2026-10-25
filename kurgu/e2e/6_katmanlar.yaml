@@ -87,20 +87,26 @@ appId: app.kurgu.editor
 - runFlow:
     when:
       notVisible:
-        id: "export-start"
+        text: "(Çözünürlük|Resolution)"
     commands:
       - tapOn:
           text: "(Dışa aktar|Export)"
           index: 0
+# Dışa aktarma ekranı açıldı mı: başlık metninden. Başlat düğmesi katmanlı projede (uyarılar,
+# kodek satırı) ekranın altında kalabilir (CI #84) → kaydırılarak aranır.
 - extendedWaitUntil:
     visible:
-      id: "export-start"
+      text: "(Çözünürlük|Resolution)"
     timeout: 20000
 - tapOn:
     id: "res-720"
     optional: true
+- scrollUntilVisible:
+    element:
+      text: "(Videoyu dışa aktar|Export video)"
+    timeout: 20000
 - tapOn:
-    id: "export-start"
+    text: "(Videoyu dışa aktar|Export video)"
 - tapOn:
     text: "(Allow|ALLOW|İzin ver|İZİN VER)"
     optional: true

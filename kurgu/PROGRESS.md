@@ -143,6 +143,17 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #84** (62430f8): 1, 2, **3 (karışım: "Ekran" modu seçildi, önizleme hatası yok)**, 4, 5, 7, 8 GEÇTİ. 6: dışa
+aktarma ekranı açıldı ama başlat düğmesi katmanlı projede ekranın altında kaldı → akış kaydırarak arıyor.
+**Dışa aktarma takılmasının yeri bulundu:** 1'de %70'te bekçi üç kez tetiklendi (dışa aktarma yine tamamlandı,
+17,5 sn hatasız). Ortak GL iş parçacığının yığını üç dökümde de Media3'ün kendi GL çağrılarında:
+`GLES20.glGenTextures ← TexturePool.ensureConfigured ← BaseGlShaderProgram.queueInputFrame` (30 sn arayla iki
+dökümde aynı yer) ve `GLES30.glFenceSync ← TexIdTextureManager`; Transformer iç iş parçacığı ses kodlayıcısında.
+Uygulama kodunda kilit/bekleme yok; yavaşlık emülatörün GL emülasyonunda (her GL çağrısı ana makinedeki
+yazılımsal işleyicinin kuyruğu bitirmesini bekler). Bölge, çapraz geçişin iki katmanının (aynı videonun iki ek
+çözücüsü, 0,5× hız) devreye girdiği 9,77–10,27 sn; katman gölgelendiricisi tek doku örneği (ağır değil).
+Durum: emülatöre özgü yavaşlama olarak 🟡 — gerçek cihazda ölçülmedi.
+
 **CI #83** (500f88f): **8 akıştan 7'si GEÇTİ** (1, 2, 4, 5, 6, 7, 8); katman testi, **takip testi** (46 nokta, 26 kare,
 kayıp 0) ve fotoğraf çıktısı GEÇTİ. **Dışa aktarma bu kez takılmadan bitti** (17,5 sn, 1280×720, hatasız çözüldü,
 duotone 14,5–17,25 sn); bekçi tetiklenmedi, yani iş parçacığı yığını alınamadı — kök neden hâlâ açık (aralıklı).
