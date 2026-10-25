@@ -33,7 +33,7 @@ Blend modes for overlays,clip,could,yes,partial,images and stickers 11 modes; vi
 Picture in picture overlays,overlay,must,yes,yes,e2e 6
 Add text with font colour stroke background,text,must,yes,yes,
 Text style presets,text,should,yes,yes,97 own styles (not CapCut's)
-Text animations in out loop with speed,text,must,yes,partial,45 animations; on-device visuals not verified
+Text animations in out loop with speed,text,must,yes,yes,measured on the exported video in CI #96: slide-up in and fade out (text_check.py); 45 animations
 Arabic and RTL text,text,must,yes,yes,e2e 2
 Stickers and emoji,text,should,yes,partial,emoji + own images; no library (skip)
 Auto captions on device,captions,must,yes,yes,whisper.cpp; e2e 4

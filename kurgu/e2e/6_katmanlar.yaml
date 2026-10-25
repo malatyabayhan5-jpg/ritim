@@ -77,6 +77,14 @@ appId: app.kurgu.editor
 - tapOn:
     id: "redo"
     optional: true
+# Yinele kimlikle bulunamazsa maske geri alınmış kalır ve dışa aktarma maskesiz olur (CI #96).
+# Etiketle tekrar denenir; yinelenecek bir şey kalmadıysa düğme devre dışıdır, dokunuş zararsız.
+- tapOn:
+    text: "(Yinele|Redo)"
+    optional: true
+- tapOn:
+    id: "redo"
+    optional: true
 - tapOn:
     id: "tool-back"
     optional: true
