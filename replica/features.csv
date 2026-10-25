@@ -1,0 +1,74 @@
+feature,area,priority,original,clone,notes
+Smooth timeline scroll and pinch zoom on a mid-range phone,performance,must,yes,partial,user reported freezes on Xiaomi 2026-10-25; playhead moved out of editor render in 3c6df80; needs re-check on the phone
+Smooth preview playback with layers and effects,performance,must,yes,partial,same report; lower preview resolution for multi-lane projects; not measured on a real device
+No freeze when applying an edit (effect filter text),performance,must,yes,partial,structure changes rebuild the whole preview player (KurguPreviewView.applyComposition); next fix
+Frame-accurate scrubbing with live preview,performance,must,yes,partial,seeks throttled to 60 ms; multi-input graph seek is slow on emulator
+New project from phone videos and photos (multi-select),import,must,yes,yes,e2e 1
+Drafts list with autosave and reopen,projects,must,yes,yes,e2e 1 (reopen and export)
+Rename duplicate delete drafts,projects,should,yes,partial,workspace list; e2e 8 covers photo side
+Multi-track timeline (main overlay audio text effect caption),timeline,must,yes,yes,six overlay lanes; e2e 6
+Trim clip edges by dragging handles,timeline,must,yes,yes,
+Split at playhead,timeline,must,yes,yes,e2e 1
+Delete clip,timeline,must,yes,yes,
+Reorder clips by long-press drag,timeline,must,yes,yes,
+Undo and redo,timeline,must,yes,yes,
+Snap to playhead and clip edges,timeline,should,yes,yes,TL.snapTime
+Speed 0.1x to 100x,clip,must,yes,partial,Kurgu supports 0.1x to 10x
+Speed curve presets and custom curve,clip,must,yes,yes,8 presets + 5-point editor
+Volume per clip and mute,audio,must,yes,yes,
+Fade in and out,audio,should,yes,yes,
+Reverse clip,clip,should,yes,yes,on-device re-encode; e2e 3
+Freeze frame,clip,should,yes,yes,
+Replace clip media,clip,should,yes,no,
+Duplicate clip,clip,could,low,no,not confirmed in CapCut mobile either
+Keyframes position scale rotation opacity,keyframes,must,yes,yes,main track and overlays; text keyframes partial
+Keyframe easing (linear ease in ease out),keyframes,should,yes,partial,check easing set against keyframes.js
+Clip animations in out combo,clip,should,yes,no,Kurgu has text animations only
+Crop rotate flip clip,clip,must,yes,yes,
+Mask (shapes feather invert),clip,should,yes,yes,e2e 6 layer test
+Chroma key,clip,should,yes,partial,lab verified; no on-device visual check
+Remove background from video (person),ai,should,yes,no,photo only today (TFLite)
+Opacity,clip,must,yes,yes,
+Blend modes for overlays,clip,could,yes,partial,images and stickers 11 modes; video overlays normal only
+Picture in picture overlays,overlay,must,yes,yes,e2e 6
+Add text with font colour stroke background,text,must,yes,yes,
+Text style presets,text,should,yes,yes,97 own styles (not CapCut's)
+Text animations in out loop with speed,text,must,yes,partial,45 animations; on-device visuals not verified
+Arabic and RTL text,text,must,yes,yes,e2e 2
+Stickers and emoji,text,should,yes,partial,emoji + own images; no library (skip)
+Auto captions on device,captions,must,yes,yes,whisper.cpp; e2e 4
+Edit captions list with batch select,captions,must,yes,partial,list edit time delete; no multi-select batch yet
+Caption styles,captions,should,yes,partial,
+Text to speech,audio,should,yes,yes,
+Extract audio from a video,audio,must,yes,yes,soundFromVideo in e2e 1
+Voiceover recording at playhead,audio,must,yes,yes,e2e 7
+Voice effects and noise reduction,audio,should,yes,yes,14 effects 54 presets denoise
+Audio waveform on timeline,audio,must,yes,yes,
+Beat marks (manual and auto),audio,could,low,no,weak sources only
+Video effects library,effects,must,yes,yes,122 own effects (12 categories)
+Effect track with start duration intensity,effects,must,yes,yes,effect layers; e2e 1 duotone check
+Filters with intensity,color,must,yes,yes,116 own filters
+Adjust brightness contrast saturation etc,color,must,yes,yes,
+Transitions between clips with duration,transitions,must,yes,yes,93 own transitions; export slow on emulator
+Apply transition to all,transitions,should,yes,partial,check UI
+Aspect ratio presets,canvas,must,yes,yes,
+Canvas background colour or blur,canvas,should,yes,partial,
+Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
+Stabilization,ai,could,yes,no,
+Auto cut silence and scene detection,ai,could,yes,yes,
+Export resolution 480p to 4K,export,must,yes,yes,720p to 2160p offered
+Export frame rate 24 to 60,export,must,yes,yes,
+Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
+Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
+Share sheet after export,export,should,yes,partial,
+Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,needs the user's screenshots to compare (replica/screens empty)
+Fullscreen preview,ux,could,guess,no,needs screenshot
+Template store,templates,could,yes,skip,their creators and content
+Music and sound effect library,audio,could,yes,skip,licensed catalogue
+Sticker and effect asset packs,effects,could,yes,skip,their content; Kurgu ships its own
+Cloud space and accounts,projects,could,yes,skip,their service
+Post to TikTok and other networks,export,could,yes,skip,partner integrations; Android share sheet instead
+Pro paywalled tools,pro,could,yes,skip,not accessed
+Server-side AI (script to video avatars generative),ai,could,yes,skip,runs on their servers; only on-device or the user's own server
+CapCut logo icons copy and colours,brand,could,yes,skip,never copied
+Stock media library,import,could,yes,skip,licensed content
