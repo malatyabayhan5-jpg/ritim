@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, AppState, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as FS from 'expo-file-system/legacy';
@@ -70,6 +70,10 @@ export default function EditorScreen({ params, focused }) {
   const nav = useNav();
   const toast = useToast();
   const insets = useSafeAreaInsets();
+  // Zaman çizelgesi ekran yüksekliğinin ~%32'si (referans kayıtta ~283 / 876 dp); küçük ekranda
+  // en az 210, tablette en çok 320 dp. Kalan alan önizlemenindir.
+  const { height: winH } = useWindowDimensions();
+  const timelineH = Math.round(Math.min(320, Math.max(210, winH * 0.32)));
 
   const [hist, setHist] = useState(null);
   const [error, setError] = useState(null);
@@ -1214,7 +1218,7 @@ export default function EditorScreen({ params, focused }) {
       <View style={fullscreen ? styles.hidden : null}>
 
       {/* Zaman çizelgesi */}
-      <View style={styles.timeline}>
+      <View style={[styles.timeline, { height: timelineH }]}>
         <Timeline
           project={missing.size ? markMissing(project, missing) : project}
           playhead={playhead}
@@ -1223,6 +1227,8 @@ export default function EditorScreen({ params, focused }) {
           selection={selection}
           onSeek={seek}
           onSelect={(sel) => {
+            // Düzenlemek için öğe seçmek oynatmayı durdurur (oynatma kafası seçilen öğeden kaçmasın)
+            if (sel && playing) previewRef.current?.pause?.();
             setSelection(sel);
             setSub(null);
             setPanel(null);
@@ -1743,7 +1749,7 @@ const styles = StyleSheet.create({
   controlsSide: { flex: 1, alignItems: 'center' },
   hidden: { display: 'none' },
   time: { color: colors.textDim, fontSize: 12, fontVariant: ['tabular-nums'], minWidth: 110 },
-  timeline: { height: 210, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  timeline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   toolbar: { minHeight: 72, alignItems: 'center', backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   toolBack: { marginHorizontal: space.xs },
   toolScroll: { paddingHorizontal: space.xs, alignItems: 'center' },

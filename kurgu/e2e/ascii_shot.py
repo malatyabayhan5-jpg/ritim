@@ -3,7 +3,7 @@
 
 Yapıtlar bu ortamdan indirilemediği için klonun ekran görüntüsü günlükten incelenir.
 Birden çok PNG yan yana basılır (aynı satır sayısına ölçeklenir). Kenar haritası
-değil parlaklık: koyu = boşluk, açık = yoğun karakter.
+değil parlaklık (her görüntüde %2–%98 aralığına gerilir): koyu = boşluk, açık = yoğun.
 
     python3 ascii_shot.py ref.png clone.png --cols 38
 """
@@ -20,7 +20,7 @@ RAMP = " .:-=+*#%@"
 
 def to_ascii(path, cols, rows):
     w, h, px = imgdiff.read_png(path)
-    out = []
+    cells = []
     for r in range(rows):
         y0, y1 = r * h // rows, max(r * h // rows + 1, (r + 1) * h // rows)
         line = []
@@ -33,9 +33,14 @@ def to_ascii(path, cols, rows):
                     p = row[x]
                     s += (299 * p[0] + 587 * p[1] + 114 * p[2]) // 1000
                     n += 1
-            line.append(RAMP[min(len(RAMP) - 1, (s // max(1, n)) * len(RAMP) // 256)])
-        out.append("".join(line))
-    return out
+            line.append(s / max(1, n))
+        cells.append(line)
+    # Karanlık arayüzde koyu gri yüzeyler de görünsün: %2–%98 aralığı rampaya gerilir
+    flat = sorted(v for line in cells for v in line)
+    lo = flat[int(len(flat) * 0.02)]
+    hi = max(lo + 1, flat[int(len(flat) * 0.98) - 1])
+    k = len(RAMP) - 1
+    return ["".join(RAMP[max(0, min(k, int(round((v - lo) / (hi - lo) * k))))] for v in line) for line in cells]
 
 
 def main():

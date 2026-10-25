@@ -96,6 +96,24 @@ Evidence: CI #123 flow 1 ended at 12.5 / 12.5 with the clip toolbar and no keyfr
 Status: fixed (pending CI): the diamond is always active; pressing it pauses playback, moves the
 playhead to the nearest point inside the item and toggles the key there.
 
+### BUG-008: Playhead jumped back to the old position after pause + seek
+
+- Severity: S3
+- Flow / case: F02, F08 / e2e 1
+- Screen: S03
+- Build: 05636af  Device: CI emulator #126
+
+Steps
+1. Play; while playing, press the keyframe diamond with the playhead past the selected clip.
+
+Expected: playback stops, the playhead sits at the key (clip end).
+Actual: the key was added at 10.0 s (log `keyframe main t=10023 add paused`), but the playhead
+then showed 12.4 s, so the Curve tool (shown only on a key) never appeared.
+Cause: `pause()` reports the player's position through an async event; JS had already moved the
+playhead to the key, and the late event overwrote it. A paused seek reported no position of its own.
+Status: fixed (pending CI): a seek while paused reports its new position, which arrives after the
+pause event. Selecting a timeline item now also pauses playback, so the item stays under the playhead.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.

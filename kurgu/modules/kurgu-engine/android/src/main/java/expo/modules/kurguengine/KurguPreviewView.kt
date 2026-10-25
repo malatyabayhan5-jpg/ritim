@@ -321,6 +321,9 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       return
     }
     issueSeek(target)
+    // Duraklatılmışken konum olayı gelmez; pause() hemen öncesinde eski konumu bildirdiyse
+    // (duraklat + atla) JS'teki oynatma kafası o eski konumda kalırdı. Yeni konum bildirilir.
+    if (!scrubbing && player?.isPlaying != true) emitPosition(force = true)
   }
 
   // Kaydırma sırasında arama birleştirme: çok girişli grafikte her arama tüm boru hattını

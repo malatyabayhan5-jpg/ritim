@@ -21,18 +21,17 @@ is blurred in the reference), so the preview area always counts as different.
 | screen | reference | clone screenshot | score |
 | --- | --- | --- | --- |
 | S01 home | S01_home | 01_ana_ekran | 3.8 / 100, different (CI #123) |
-| S03 editor | S03_editor | 04_editor | 12.5 / 100, different (CI #123) |
+| S03 editor | S03_editor | 04_editor | 13.1 / 100, preview left out 18.2 (CI #126) |
 | S04 clip toolbar | S04_clip_b | 06_bolme | not measured: flow 1 stopped before this screenshot (CI #123) |
 | S15 filters / adjust | S15_adjust_custom | 08_filtre | not measured: same |
 
-CI #123 (c30200d) produced the first scores (0 = nothing alike, 100 = same edges). Both are far below
-the 75 "close" mark. What the report says: on the editor the most different regions are the middle
-(the preview, which shows different videos by design), the top bar and the bottom right; on home it
-is the whole middle (Kurgu's drafts list against the reference's banner and tool grid). The images
-could not be inspected from this session (artifact downloads are blocked), so it is not yet known
-how much of the editor's 12.5 is real layout difference and how much is the preview content and a
-2.8 % height difference between the recording crop and the 540x1170 emulator. Next step: a score
-with the preview area masked, and a look at the diff images by the user.
+CI #123 (c30200d) produced the first scores (0 = nothing alike, 100 = same edges). For scale: two
+different screens of the reference app score 75 against each other. CI #126 printed both editor
+screens as ASCII in the job log, which showed the main cause: on the emulator (about 540 × 1170 dp)
+Kurgu's fixed 210 dp timeline took ~18 % of the height and the preview ~70 %, while in the recording
+the timeline (ruler to toolbar, ~283 of ~876 dp) takes ~32 %. The timeline height is now 32 % of the
+screen (210–320 dp). Leaving the preview out only lifts the editor from 13.1 to 18.2, so the rest of
+the gap is the proportions, not the footage.
 
 The home screen is expected to score low: Kurgu's home is a drafts list plus New project, without
 CapCut's promo banner, tool grid or template tabs. Those are out of scope.
