@@ -206,7 +206,9 @@
       "combo": "Kombo",
       "duration": "Süre",
       "cycle": "Tur süresi"
-    }
+    },
+    "bgImage": "Resim",
+    "bgDim": "Karartma"
   },
   "adjust": {
     "brightness": "Parlaklık",

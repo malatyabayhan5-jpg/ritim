@@ -52,7 +52,7 @@ Adjust brightness contrast saturation etc,color,must,yes,yes,
 Transitions between clips with duration,transitions,must,yes,yes,93 own transitions; export slow on emulator
 Apply transition to all,transitions,should,yes,yes,transition panel Apply to all; per-pair duration clamped to the shorter clip in renderSpec
 Aspect ratio presets,canvas,must,yes,yes,
-Canvas background colour or blur,canvas,should,yes,partial,colour and blurred-video background for fit clips (Ratio panel); live in preview; lab-verified shader; no image background; not checked on a device
+Canvas background colour or blur,canvas,should,yes,yes,"colour, blurred clip or a gallery image (cover-cropped, dim slider) behind fit clips; Ratio panel and the main toolbar Background; live in preview except a new image (rebuild); shader lab-verified for all three modes; unit tests; not checked on a device"
 Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
 Stabilization,ai,could,yes,no,
 Auto cut silence and scene detection,ai,could,yes,yes,

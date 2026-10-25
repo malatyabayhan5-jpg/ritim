@@ -11,6 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BaseGlShaderProgram
 import androidx.media3.effect.GlEffect
 import androidx.media3.effect.GlShaderProgram
+import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 /**
@@ -26,11 +27,15 @@ class CanvasBgFx(
   private val canvasH: Int,
   private val background: FloatArray,
   private val liveKey: String? = null,
+  private val imageUri: String? = null,
 ) : GlEffect {
   override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
-    CanvasBgProgram(context, useHdr, canvasW, canvasH, background, liveKey)
+    CanvasBgProgram(context, useHdr, canvasW, canvasH, background, liveKey, imageUri)
 
   companion object {
+    /** Arka plan resminin çözüleceği uzun kenar (kanvas kadar, en çok 1920). */
+    fun imageLongSide(w: Int, h: Int): Int = max(w, h).coerceAtMost(1920)
+
     /** Arka plan siyah düz renk mi (bu durumda dışa aktarmada Presentation yeterli). */
     fun isBlack(bg: FloatArray): Boolean = bg.getOrElse(0) { 0f } < 0.5f && bg.getOrElse(3) { 0f } < 0.004f && bg.getOrElse(4) { 0f } < 0.004f && bg.getOrElse(5) { 0f } < 0.004f
   }
@@ -44,8 +49,11 @@ internal class CanvasBgProgram(
   private val canvasH: Int,
   private val background: FloatArray,
   private val liveKey: String?,
+  private val imageUri: String?,
 ) : BaseGlShaderProgram(useHdr, 1) {
+  private val context = context.applicationContext
   private val program: GlProgram
+  private var imageTex = -1
   private var srcAspect = 1f
   private val p0 = FloatArray(4)
   private val p1 = FloatArray(4)
@@ -64,6 +72,31 @@ internal class CanvasBgProgram(
     return Size(canvasW, canvasH)
   }
 
+  /** Resim (BlendPixels: satırlar alttan üste, video kareleriyle aynı yön) ilk karede dokuya yüklenir. */
+  private fun ensureImage() {
+    if (imageTex >= 0 || imageUri == null) return
+    val longSide = CanvasBgFx.imageLongSide(canvasW, canvasH)
+    val px = try {
+      BlendPixels.get(context, imageUri, longSide).get(20, TimeUnit.SECONDS)
+    } catch (e: Exception) {
+      null
+    } ?: run {
+      BlendPixels.forget(imageUri, longSide)
+      throw VideoFrameProcessingException("CANVAS_BG_IMAGE_DECODE")
+    }
+    val ids = IntArray(1)
+    GLES20.glGenTextures(1, ids, 0)
+    imageTex = ids[0]
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, imageTex)
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+    val data = px.data.duplicate().also { it.position(0) }
+    GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, px.w, px.h, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, data)
+    GlUtil.checkGlError()
+  }
+
   override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
     val bg = LiveParams.get(liveKey)?.takeIf { it.size >= 6 } ?: background
     p0[0] = srcAspect
@@ -75,8 +108,10 @@ internal class CanvasBgProgram(
     p1[2] = bg[5]
     p1[3] = 1f
     try {
+      if (bg[0] > 1.5f) ensureImage()
       program.use()
       program.setSamplerTexIdUniform("uTex", inputTexId, 0)
+      if (imageTex >= 0) program.setSamplerTexIdUniform("uBgImg", imageTex, 1)
       program.setFloatsUniformIfPresent("uRes", floatArrayOf(canvasW.toFloat(), canvasH.toFloat()))
       program.setFloatsUniformIfPresent("uAmount", floatArrayOf(1f))
       program.setFloatsUniformIfPresent("uP0", p0)
@@ -92,6 +127,7 @@ internal class CanvasBgProgram(
     super.release()
     try {
       program.delete()
+      if (imageTex >= 0) GlUtil.deleteTexture(imageTex)
     } catch (e: GlUtil.GlException) {
       throw VideoFrameProcessingException(e)
     }

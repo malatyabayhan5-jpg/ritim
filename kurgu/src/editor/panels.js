@@ -497,7 +497,7 @@ export function ExportPrefsPanel({ value, onChange, onMore, onClose }) {
 }
 
 /** Kanvas: en/boy oranı ve sığdırma; `mode="background"` yalnızca arka planı gösterir (ana araç çubuğu Arka plan). */
-export function RatioPanel({ project, onChange, onClose, mode = 'ratio' }) {
+export function RatioPanel({ project, onChange, onClose, onPickImage, mode = 'ratio' }) {
   const { t } = useI18n();
   const bg = project.canvas.background || {};
   const fit = project.canvas.fit || 'fit';
@@ -507,20 +507,24 @@ export function RatioPanel({ project, onChange, onClose, mode = 'ratio' }) {
     <Labeled label={t('panels.background')}>
       <Hscroll>
         <Chip label={t('panels.bgBlur')} icon="water-outline" active={bg.type === 'blur'} onPress={() => setBg({ ...bg, type: 'blur' })} testID="canvas-bg-blur" />
+        {onPickImage ? <Chip label={t('panels.bgImage')} icon="image-outline" active={bg.type === 'image'} onPress={onPickImage} testID="canvas-bg-image" /> : null}
         {CANVAS_BG_COLORS.map((c) => (
           <Pressable
             key={c}
             onPress={() => setBg({ ...bg, type: 'color', color: c })}
             accessibilityRole="button"
             accessibilityLabel={c === CANVAS_BG_COLORS[0] ? t('panels.bgBlack') : t('panels.bgColor')}
-            accessibilityState={{ selected: bg.type !== 'blur' && (bg.color || CANVAS_BG_COLORS[0]) === c }}
+            accessibilityState={{ selected: bg.type !== 'blur' && bg.type !== 'image' && (bg.color || CANVAS_BG_COLORS[0]) === c }}
             testID={`canvas-bg-${c.slice(1, 7)}`}
-            style={[styles.swatch, { backgroundColor: c }, bg.type !== 'blur' && (bg.color || CANVAS_BG_COLORS[0]) === c && styles.swatchActive]}
+            style={[styles.swatch, { backgroundColor: c }, bg.type !== 'blur' && bg.type !== 'image' && (bg.color || CANVAS_BG_COLORS[0]) === c && styles.swatchActive]}
           />
         ))}
       </Hscroll>
       {bg.type === 'blur' ? (
         <Slider value={bg.blur ?? 0.5} min={0} max={1} onChange={(v) => setBg({ ...bg, blur: v }, 'bgBlur')} formatValue={(v) => `${Math.round(v * 100)}%`} testID="canvas-bg-blur-amount" />
+      ) : null}
+      {bg.type === 'image' ? (
+        <Slider value={bg.dim ?? 0} min={0} max={1} onChange={(v) => setBg({ ...bg, dim: v }, 'bgDim')} formatValue={(v) => `${t('panels.bgDim')} ${Math.round(v * 100)}%`} testID="canvas-bg-dim" />
       ) : null}
     </Labeled>
   );

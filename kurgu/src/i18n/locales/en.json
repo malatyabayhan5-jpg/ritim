@@ -206,7 +206,9 @@
       "combo": "Combo",
       "duration": "Duration",
       "cycle": "Cycle"
-    }
+    },
+    "bgImage": "Image",
+    "bgDim": "Dim"
   },
   "adjust": {
     "brightness": "Brightness",

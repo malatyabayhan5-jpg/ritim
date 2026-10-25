@@ -197,7 +197,8 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
     effectLayers,
     layers,
     blendLayers,
-    background: canvasBackground(project.canvas),
+    background: canvasBackground(project.canvas, project.media),
+    backgroundImage: canvasBackgroundImage(project.canvas, project.media, resolveUri),
     globalFx: {},
   };
 }
@@ -206,10 +207,20 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
  * Kanvas arka planı (sığdırılan kliplerin boşlukları; CanvasBgFx.kt):
  * [kip (0 renk, 1 bulanık), bulanıklık 0..1, karartma 0..1, R, G, B]. Varsayılan siyah.
  */
-export function canvasBackground(canvas) {
+export function canvasBackground(canvas, media) {
   const bg = canvas?.background || {};
+  // Resim: kip 2; renk yuvasının ilki resmin en/boy oranı (kanvası dolduracak biçimde kırpılır)
+  const img = bg.type === 'image' && bg.mediaId ? media?.[bg.mediaId] : null;
+  if (img) return [2, bg.blur ?? 0, bg.dim ?? 0, Math.max(0.05, (img.width || 1) / Math.max(1, img.height || 1)), 0, 0];
   const [r, g, b] = hexRgb(bg.color || '#000000FF');
   return [bg.type === 'blur' ? 1 : 0, bg.blur ?? 0.5, bg.dim ?? 0.3, r, g, b];
+}
+
+/** Kanvas arka plan resminin adresi (yoksa null). */
+export function canvasBackgroundImage(canvas, media, resolveUri) {
+  const bg = canvas?.background || {};
+  const img = bg.type === 'image' && bg.mediaId ? media?.[bg.mediaId] : null;
+  return img ? resolveUri(img) : null;
 }
 
 const TR_N = Object.fromEntries(TRANSITIONS.map((x) => [x.id, x.n]));

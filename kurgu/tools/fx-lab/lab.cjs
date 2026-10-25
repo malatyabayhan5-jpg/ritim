@@ -102,6 +102,16 @@ window.renderFx = async (shaders, imgUrl, frames, lut, opts = {}) => {
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(u('uBase'), 3);
   }
+  if (opts.bgImg) {
+    // Kanvas arka plan resmi (_canvas_bg.glsl uBgImg): CanvasBgFx.kt'de satırlar alttan üste yüklenir
+    const gimg = new Image(); gimg.src = opts.bgImg; await gimg.decode();
+    const gt = gl.createTexture(); gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, gt);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, gimg);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(u('uBgImg'), 4);
+  }
   if (lut) {
     // LUT dokusu (_lut.glsl): ızgara düzeni Android'deki LutFx.kt ile aynı, Y çevrilmez
     const lt = gl.createTexture(); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, lt);
@@ -355,14 +365,18 @@ async function blend() {
  * --p ile (8 sayı: kaynak oranı, kip, bulanıklık, karartma, R, G, B, A). Kaynak oranı
  * verilmezse görselin kendi oranı kullanılır.
  *   node lab.cjs canvas --src portrait.png --size 640x360 --p '0,1,0.5,0.3,0,0,0,1' --out bg.png
+ *   node lab.cjs canvas --src portrait.png --size 640x360 --p '0,2,0,0' --img arka.png --out bg.png
  */
 async function canvas() {
   const file = arg('src');
   const [w, h] = arg('size').split('x').map(Number);
   const p = arg('p', '0,0,0,0,0,0,0,1').split(',').map(Number);
   if (!p[0]) { const [sw, sh] = imageSize(file); p[0] = sw / sh; }
+  // --img: resim kipi (kip 2); p[4] verilmezse resmin oranı
+  const bgImg = arg('img', '');
+  if (bgImg && !p[4]) { const [iw, ih] = imageSize(bgImg); p[4] = iw / ih; }
   await withPage(async (page) => {
-    const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [shaderPair('_canvas_bg'), dataUrl(file), [{ time: 0, dur: 1, amount: 1, p }], { size: [w, h] }]);
+    const urls = await page.evaluate(([f, img, fr, o]) => window.renderFx(f, img, fr, null, o), [shaderPair('_canvas_bg'), dataUrl(file), [{ time: 0, dur: 1, amount: 1, p }], { size: [w, h], bgImg: bgImg ? dataUrl(bgImg) : null }]);
     writePng(arg('out'), urls[0]);
   });
 }

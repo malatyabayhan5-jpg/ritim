@@ -222,7 +222,9 @@
       "combo": "مركّبة",
       "duration": "المدة",
       "cycle": "مدة الدورة"
-    }
+    },
+    "bgImage": "صورة",
+    "bgDim": "تعتيم"
   },
   "adjust": {
     "brightness": "السطوع",

@@ -391,6 +391,25 @@ export default function EditorScreen({ params, focused }) {
     }
   };
 
+  // Kanvas arka plan resmi: galeriden bir fotoğraf; boşluk olması için sığdır kipine geçilir
+  const pickCanvasImage = async () => {
+    try {
+      const media = await doImport(await pickFromGallery({ multiple: false, videos: false }));
+      const m = media.find((x) => x.kind === 'image');
+      if (!m) return;
+      console.log(`[KurguUI] canvasBg image ${m.width}x${m.height}`);
+      apply((p) => ({
+        ...p,
+        updatedAt: Date.now(),
+        media: { ...p.media, [m.id]: m },
+        canvas: { ...p.canvas, fit: 'fit', background: { ...(p.canvas.background || {}), type: 'image', mediaId: m.id, dim: p.canvas.background?.dim ?? 0 } },
+      }));
+    } catch {
+      setBusy(null);
+      toast(t('errors.generic'), 'error');
+    }
+  };
+
   // Şekil: fotoğraf çizicisiyle saydam PNG'ye çizilir ve üst katman olarak eklenir
   // (konum, anahtar kare, maske, opaklık gibi tüm katman araçları kullanılabilir).
   const addShapeLayer = async ({ shape, fill, stroke }) => {
@@ -1521,6 +1540,7 @@ export default function EditorScreen({ params, focused }) {
           <RatioPanel
             project={project}
             mode={panel}
+            onPickImage={pickCanvasImage}
             onChange={({ ratio, fit, background }, key) =>
               apply(
                 (p) => ({

@@ -52,3 +52,17 @@ test('F10-H1 9:16 ve 16:9 kanvas boyutları çift sayı ve doğru yönde', () =>
   const { width, height } = canvasSize('4:5', 1081);
   assert.equal(width % 2 + height % 2, 0);
 });
+
+test('F10-E2 kanvas arka plan resmi: kip 2, resmin oranı, adres render tanımında; renk kipine dönünce kalkar', async () => {
+  const { canvasBackground } = await import('../src/engine/renderSpec');
+  let p = projectWith([video('a', 4000)]);
+  const img = { id: 'bg', kind: 'image', path: 'media/bg.jpg', name: 'bg.jpg', width: 1200, height: 800 };
+  p = { ...p, media: { ...p.media, bg: img }, canvas: { ...p.canvas, fit: 'fit', background: { type: 'image', mediaId: 'bg', dim: 0.2 } } };
+  const s = buildRenderSpec(p, uri);
+  assert.deepEqual(s.background.slice(0, 4), [2, 0, 0.2, 1.5]);
+  assert.equal(s.backgroundImage, 'file:///lib/media/bg.jpg');
+  assert.ok(TL.usedMediaIds(p).has('bg'), 'arka plan resmi kullanılan medya sayılır');
+  const q = { ...p, canvas: { ...p.canvas, background: { type: 'color', color: '#E11D48FF' } } };
+  assert.equal(buildRenderSpec(q, uri).backgroundImage, null);
+  assert.equal(canvasBackground(q.canvas, q.media)[0], 0);
+});

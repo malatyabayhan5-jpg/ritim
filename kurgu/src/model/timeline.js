@@ -801,6 +801,7 @@ export function usedMediaIds(project) {
   project.main.forEach((c) => ids.add(c.mediaId));
   project.audio.forEach((a) => ids.add(a.mediaId));
   (project.overlays || []).forEach((o) => ids.add(o.mediaId));
+  if (project.canvas?.background?.type === 'image' && project.canvas.background.mediaId) ids.add(project.canvas.background.mediaId);
   return ids;
 }
 

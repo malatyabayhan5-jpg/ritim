@@ -168,9 +168,10 @@ data class RenderSpec(
   val layers: List<List<LayerClip>> = emptyList(),
   // Karışım modlu görsel katmanları (alttan üste): kompozisyon düzeyinde BlendLayerFx ile çizilir
   val blendLayers: List<BlendLayerSpec> = emptyList(),
-  // Kanvas arka planı (sığdırılan kliplerin boşlukları): kip (0 renk, 1 bulanık), bulanıklık,
-  // karartma, R, G, B (0..1). Varsayılan siyah (CanvasBgFx)
+  // Kanvas arka planı (sığdırılan kliplerin boşlukları): kip (0 renk, 1 bulanık, 2 resim),
+  // bulanıklık, karartma, R, G, B (0..1; resimde ilki en/boy oranı). Varsayılan siyah (CanvasBgFx)
   val background: FloatArray = floatArrayOf(0f, 0.5f, 0.3f, 0f, 0f, 0f),
+  val backgroundImage: String? = null,
 ) {
   companion object {
     fun parse(json: String): RenderSpec = parse(JSONObject(json))
@@ -196,6 +197,7 @@ data class RenderSpec(
         layers = o.optJSONArray("layers").arrays().map { lane -> lane.objects().map { parseLayer(it) } }.filter { it.isNotEmpty() },
         blendLayers = o.optJSONArray("blendLayers").objects().map { BlendLayerSpec(parseLayer(it), it.optInt("blend", 0).coerceIn(0, 10)) },
         background = floats(o.optJSONArray("background"), 6, floatArrayOf(0f, 0.5f, 0.3f, 0f, 0f, 0f)),
+        backgroundImage = if (o.isNull("backgroundImage")) null else o.optString("backgroundImage").takeIf { it.isNotEmpty() },
       )
     }
 

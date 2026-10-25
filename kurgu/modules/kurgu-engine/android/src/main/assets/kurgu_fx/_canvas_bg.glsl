@@ -1,8 +1,11 @@
 // Kanvas arka planı (CanvasBgFx.kt): kaynak kare kanvasa sığdırılır (Media3 Presentation
 // LAYOUT_SCALE_TO_FIT ile aynı yerleşim), kalan boşluklar düz renkle ya da kaynağın kanvası
 // dolduracak kadar büyütülmüş bulanık ve hafif karartılmış kopyasıyla doldurulur.
-// uP0 = (kaynak en/boy oranı, kip: 0 renk / 1 bulanık, bulanıklık 0..1, karartma 0..1)
-// uP1 = arka plan rengi (RGBA, 0..1). Çıktı boyutu (uRes) kanvas boyutudur.
+// uP0 = (kaynak en/boy oranı, kip: 0 renk / 1 bulanık / 2 resim, bulanıklık 0..1, karartma 0..1)
+// uP1 = arka plan rengi (RGBA, 0..1); resim kipinde uP1.x resmin en/boy oranı. Çıktı boyutu (uRes)
+// kanvas boyutudur. Resim (uBgImg) kanvası dolduracak biçimde ortalanıp kırpılır.
+
+uniform sampler2D uBgImg;
 
 vec2 fitHalf(float s, float a, bool fill) {
   bool wide = s > a;
@@ -30,6 +33,11 @@ vec4 fx(vec2 uv) {
   vec2 inner = q / fitHalf(s, a, false);
   if (abs(inner.x) <= 1.0 && abs(inner.y) <= 1.0) return tex(inner * 0.5 + 0.5);
   if (uP0.y < 0.5) return vec4(uP1.rgb, 1.0);
+  if (uP0.y > 1.5) {
+    vec2 uvImg = (q / fitHalf(max(uP1.x, 0.01), a, true)) * 0.5 + 0.5;
+    vec3 ic = texture2D(uBgImg, uvImg).rgb;
+    return vec4(ic * (1.0 - 0.6 * clamp(uP0.w, 0.0, 1.0)), 1.0);
+  }
   vec2 uvFill = (q / fitHalf(s, a, true)) * 0.5 + 0.5;
   vec3 c = blurAt(uvFill, mix(0.02, 0.07, clamp(uP0.z, 0.0, 1.0)), s);
   return vec4(c * (1.0 - 0.6 * clamp(uP0.w, 0.0, 1.0)), 1.0);
