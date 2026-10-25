@@ -16,7 +16,7 @@ export function fittedHalf(srcAspect, canvasAspect, fit) {
   return wide ? { fw: 1, fh: canvasAspect / srcAspect } : { fw: srcAspect / canvasAspect, fh: 1 };
 }
 
-function geometry(clip, media, canvas) {
+export function geometry(clip, media, canvas) {
   const W = media?.width || 16;
   const H = media?.height || 9;
   const rot = ((Math.round((clip.transform?.rotation || 0) / 90) * 90) % 360 + 360) % 360;
@@ -99,7 +99,7 @@ export function trackingBoxAt(x, y, clip, media, canvas, clipLocalMs, boxW, boxH
 
 // Ramer–Douglas–Peucker: (t, x, y) dizisinde doğrusal ara değerden en çok `eps`
 // sapan noktalar tutulur (x ve y birlikte).
-function simplify(pts, eps) {
+export function simplify(pts, eps) {
   if (pts.length <= 2) return pts;
   const keep = new Array(pts.length).fill(false);
   keep[0] = keep[pts.length - 1] = true;

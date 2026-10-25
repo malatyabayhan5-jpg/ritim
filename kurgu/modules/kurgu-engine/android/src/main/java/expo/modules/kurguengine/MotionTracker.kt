@@ -7,14 +7,15 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.util.Log
+import expo.modules.kurguengine.vision.GlobalMotion
 import expo.modules.kurguengine.vision.Tracker
 import kotlin.math.max
 
 /**
  * Hareket takibi: videoyu donanım kod çözücüsüyle çözer, saniyede `samplesPerSecond`
  * kareyi küçültülmüş (uzun kenar ≤ [MAX_SIDE]) parlaklık görüntüsüne çevirir ve
- * [Tracker] ile seçilen kutuyu izler. Kutu ve sonuçlar GÖRÜNEN karenin (döndürme
- * meta verisi uygulanmış) 0..1 koordinatlarındadır. Anahtar kareye dönüştürme
+ * [Tracker] ile seçilen kutuyu izler ya da sabitleme için genel kamera kaymasını ölçer.
+ * Kutu ve sonuçlar GÖRÜNEN karenin (döndürme meta verisi uygulanmış) 0..1 koordinatlarındadır. Anahtar kareye dönüştürme
  * JS tarafında yapılır (src/model/tracking.js). Cihaz içinde çalışır, model gerekmez.
  */
 object MotionTracker {
@@ -36,6 +37,68 @@ object MotionTracker {
     samplesPerSecond: Int,
     onProgress: (Double) -> Unit,
   ): List<Map<String, Double>> {
+    var tracker: Tracker? = null
+    val out = ArrayList<Map<String, Double>>()
+    val info = frames(context, uriString, fromMs, toMs, samplesPerSecond, onProgress) { t, g ->
+      val tr = tracker
+      if (tr == null) {
+        val created = Tracker(g.px, g.w, g.h, (box[0] * g.w).toFloat(), (box[1] * g.h).toFloat(), (box[2] * g.w).toFloat(), (box[3] * g.h).toFloat())
+        tracker = created
+        out.add(point(t, (created.x() / g.w).toDouble(), (created.y() / g.h).toDouble(), 1.0))
+      } else {
+        val r = tr.update(g.px)
+        out.add(point(t, (r[0] / g.w).toDouble(), (r[1] / g.h).toDouble(), r[2].toDouble()))
+      }
+    }
+    Log.i("KurguAI", "track points=${out.size} $info lost=${out.count { (it["c"] ?: 0.0) < Tracker.LOST }}")
+    return out
+  }
+
+  /**
+   * Sabitleme için kamera hareketi: ardışık örnekler arasındaki genel kayma ([GlobalMotion]).
+   * İlk örnek dışında her örnek bir öncekine göre içeriğin kaymasıdır, görünen karenin
+   * kesri olarak (dx genişliğe, dy yüksekliğe göre; y aşağı). Yol yumuşatma ve anahtar
+   * kareye çevirme JS tarafında (src/model/stabilize.js).
+   * @return [{ t: kaynak ms, dx, dy, c: güven 0..1 }]
+   */
+  fun stabilize(
+    context: Context,
+    uriString: String,
+    fromMs: Long,
+    toMs: Long,
+    samplesPerSecond: Int,
+    onProgress: (Double) -> Unit,
+  ): List<Map<String, Double>> {
+    var prev: Gray? = null
+    val out = ArrayList<Map<String, Double>>()
+    val info = frames(context, uriString, fromMs, toMs, samplesPerSecond, onProgress) { t, g ->
+      val p = prev
+      if (p == null || p.w != g.w || p.h != g.h) {
+        out.add(mapOf("t" to t / 1000.0, "dx" to 0.0, "dy" to 0.0, "c" to 1.0))
+      } else {
+        val m = GlobalMotion.estimate(p.px, g.px, g.w, g.h)
+        out.add(mapOf("t" to t / 1000.0, "dx" to (m[0] / g.w).toDouble(), "dy" to (m[1] / g.h).toDouble(), "c" to m[2].toDouble()))
+      }
+      prev = g
+    }
+    Log.i("KurguAI", "stabilize samples=${out.size} $info low=${out.count { (it["c"] ?: 0.0) < 0.15 }}")
+    return out
+  }
+
+  /**
+   * Videoyu donanım kod çözücüsüyle çözer; kaynak [fromMs, toMs] aralığında saniyede
+   * `samplesPerSecond` kareyi küçültülmüş, görünen yöne döndürülmüş gri görüntü olarak verir.
+   * @return günlük için "size=WxH rot=R"
+   */
+  private fun frames(
+    context: Context,
+    uriString: String,
+    fromMs: Long,
+    toMs: Long,
+    samplesPerSecond: Int,
+    onProgress: (Double) -> Unit,
+    onFrame: (Long, Gray) -> Unit,
+  ): String {
     cancelled = false
     val ex = MediaExtractor()
     var codec: MediaCodec? = null
@@ -59,10 +122,8 @@ object MotionTracker {
       val startUs = fromMs * 1000
       val endUs = toMs * 1000
       var nextUs = startUs
-      var tracker: Tracker? = null
       var gw = 0
       var gh = 0
-      val out = ArrayList<Map<String, Double>>()
       val info = MediaCodec.BufferInfo()
       var inputDone = false
       var outputDone = false
@@ -92,15 +153,7 @@ object MotionTracker {
               image.close()
               gw = g.w
               gh = g.h
-              val tr = tracker
-              if (tr == null) {
-                val created = Tracker(g.px, gw, gh, (box[0] * gw).toFloat(), (box[1] * gh).toFloat(), (box[2] * gw).toFloat(), (box[3] * gh).toFloat())
-                tracker = created
-                out.add(point(t, (created.x() / gw).toDouble(), (created.y() / gh).toDouble(), 1.0))
-              } else {
-                val r = tr.update(g.px)
-                out.add(point(t, (r[0] / gw).toDouble(), (r[1] / gh).toDouble(), r[2].toDouble()))
-              }
+              onFrame(t, g)
               nextUs = t + stepUs
               if (endUs > startUs) onProgress(((t - startUs).toDouble() / (endUs - startUs)).coerceIn(0.0, 1.0))
             }
@@ -109,8 +162,7 @@ object MotionTracker {
           if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 || t > endUs) outputDone = true
         }
       }
-      Log.i("KurguAI", "track points=${out.size} size=${gw}x$gh rot=$rotation lost=${out.count { (it["c"] ?: 0.0) < Tracker.LOST }}")
-      return out
+      return "size=${gw}x$gh rot=$rotation"
     } finally {
       try { codec?.stop() } catch (e: Exception) {}
       codec?.release()

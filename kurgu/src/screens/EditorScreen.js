@@ -17,6 +17,7 @@ import {
   ExportPrefsPanel,
   KeyEasePanel,
   ClipAnimPanel,
+  StabilizePanel,
   SpeedPanel,
   TextPanel,
   TransformPanel,
@@ -25,6 +26,7 @@ import {
 } from '../editor/panels';
 import TextHandle from '../editor/TextHandle';
 import OverlayHandle, { overlayBox } from '../editor/OverlayHandle';
+import { removeStabilizePatch, stabilizePatch } from '../model/stabilize';
 import { applyTrackKeys, trackToOverlayKeys, trackingBox, trackingBoxAt } from '../model/tracking';
 import LayerPanel from '../editor/LayerPanel';
 import TextKeysPanel from '../editor/TextKeysPanel';
@@ -45,7 +47,7 @@ import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { PlayheadValue, createPlayhead, usePlayhead } from '../editor/playhead';
 import { splitLive } from '../engine/live';
-import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, cutoutVideo, sceneScores, speechPeaks, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, cutoutVideo, sceneScores, speechPeaks, stabilizeMotion, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -667,6 +669,46 @@ export default function EditorScreen({ params, focused }) {
     } finally {
       setBusy(null);
     }
+  };
+
+  // Sabitleme: ölçüm (yerel, cihaz içi) klip aralığı başına bir kez yapılır; düzey değişince
+  // yalnızca yumuşatma ve anahtar kareler yeniden hesaplanır.
+  const stabCache = useRef(new Map());
+  const stabilizeClip = async (level) => {
+    const clip = selectedMain;
+    if (!clip || clip.kind !== 'video') return;
+    if (level === 'off') {
+      const patch = removeStabilizePatch(clip);
+      if (patch) {
+        apply((p) => TL.updateMain(p, clip.id, patch));
+        toast(t('stabilize.removed'));
+      }
+      return;
+    }
+    const media = project.media[clip.mediaId];
+    const key = `${clip.mediaId}:${clip.srcIn}:${clip.srcOut}`;
+    let samples = stabCache.current.get(key);
+    if (!samples) {
+      previewRef.current?.pause?.();
+      setBusy(t('stabilize.running'));
+      try {
+        samples = await stabilizeMotion(media, clip.srcIn, clip.srcOut, (phase, p) =>
+          phase === 'stabilize' && setBusy(t('stabilize.progress', { percent: fmt.number(Math.round((p || 0) * 100)) })),
+        );
+        stabCache.current.set(key, samples);
+      } catch (e) {
+        setBusy(null);
+        if (e?.code === 'CANCELLED') return toast(t('stabilize.cancelled'));
+        console.log(`[KurguAI] stabilize failed ${e?.code} ${e?.message}`);
+        return toast(t('stabilize.failed'), 'error');
+      }
+      setBusy(null);
+    }
+    const r = stabilizePatch(samples, { clip, media, canvas: project.canvas, level });
+    console.log(`[KurguAI] stabilize level=${level} samples=${samples.length} keys=${r?.keys ?? 0} clamped=${r?.clamped ?? 0} low=${r?.low ?? 0}`);
+    if (!r) return toast(t('stabilize.failed'), 'error');
+    apply((p) => TL.updateMain(p, clip.id, r.patch));
+    toast(r.clamped > r.samples * 0.2 ? t('stabilize.partial') : t('stabilize.done'));
   };
 
   const reverse = async () => {
@@ -1314,6 +1356,7 @@ export default function EditorScreen({ params, focused }) {
         !isImage ? T('audioFx', 'pulse-outline', () => openPanel('audioFx'), { badge: isAudioFxActive(selectedMain.audioFx) }) : null,
         !isImage ? T('freeze', 'snow-outline', freeze) : null,
         !isImage ? T('reverse', 'play-back-outline', reverse, { active: !!selectedMain.reversed }) : null,
+        !isImage ? T('stabilize', 'scan-outline', () => openPanel('stabilize'), { badge: !!selectedMain.stabilize }) : null,
       ].filter(Boolean);
     }
     if (selectedAudio) {
@@ -1577,6 +1620,8 @@ export default function EditorScreen({ params, focused }) {
         const maxMs = i > 0 ? Math.min(TL.clipDuration(project.main[i - 1]), TL.clipDuration(selectedMain)) : 0;
         return <TransitionPanel clip={selectedMain} maxMs={maxMs} onChange={updMain} onApplyAll={(patch) => { apply((p) => ({ ...TL.updateAllMain(p, patch) })); toast(t('panels.appliedToAll')); }} onClose={close} />;
       }
+      case 'stabilize':
+        return selectedMain ? <StabilizePanel clip={selectedMain} onChange={stabilizeClip} onClose={close} /> : null;
       case 'clipAnim':
         return selectedMain ? (
           <ClipAnimPanel

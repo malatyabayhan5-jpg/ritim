@@ -252,3 +252,33 @@ appId: app.kurgu.editor
 - assertVisible:
     id: "clip-0"
 
+
+# Sabitleme: ters çevrilen klipte sarsıntı ölçülür, konum anahtar kareleri yazılır
+# (sonuç günlükte: [KurguAI] stabilize level=medium samples=... keys=...)
+- repeat:
+    while:
+      notVisible:
+        id: "tool-stabilize"
+    times: 4
+    commands:
+      - swipe:
+          from:
+            id: "toolbar-scroll"
+          direction: LEFT
+- tapOn:
+    id: "tool-stabilize"
+- extendedWaitUntil:
+    visible:
+      id: "panel-stabilize"
+    timeout: 5000
+- tapOn:
+    id: "stab-medium"
+- extendedWaitUntil:
+    notVisible:
+      id: "busy"
+    timeout: 180000
+- takeScreenshot:
+    path: 37_sabitleme
+- tapOn:
+    id: "panel-done"
+    optional: true

@@ -52,6 +52,15 @@ class KurguEngineModule : Module() {
       }
     }
 
+    // Sabitleme: kaynak aralığında örnekler arası genel kayma -> [{ t, dx, dy, c }]
+    AsyncFunction("stabilizeMotion") { uri: String, fromMs: Double, toMs: Double, samplesPerSecond: Int, promise: Promise ->
+      background("stabilize", promise) {
+        MotionTracker.stabilize(context, uri, fromMs.toLong(), toMs.toLong(), samplesPerSecond) { p ->
+          sendEvent("onAiProgress", mapOf("phase" to "stabilize", "progress" to p))
+        }
+      }
+    }
+
     AsyncFunction("synthesizeSpeech") { text: String, lang: String, outPath: String, rate: Double, pitch: Double, promise: Promise ->
       Speech.synthesize(context, text, lang, outPath.removePrefix("file://"), rate.toFloat(), pitch.toFloat(), promise)
     }

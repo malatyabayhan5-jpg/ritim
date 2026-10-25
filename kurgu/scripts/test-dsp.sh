@@ -24,3 +24,6 @@ $J -cp "$OUT/img" ImageOpsTest
 
 run trk $SRC/vision/Tracker.java tools/anim-test/TrackerTest.java
 $J -cp "$OUT/trk" TrackerTest
+
+run gm $SRC/vision/GlobalMotion.java tools/anim-test/GlobalMotionTest.java
+$J -cp "$OUT/gm" GlobalMotionTest

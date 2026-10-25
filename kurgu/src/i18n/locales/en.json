@@ -158,7 +158,8 @@
     "keyEase": "Curve",
     "clipAnim": "Animations",
     "beats": "Beats",
-    "removeBg": "Remove background"
+    "removeBg": "Remove background",
+    "stabilize": "Stabilize"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -981,5 +982,19 @@
     "float": "Float",
     "shake": "Shake",
     "breathe": "Breathe"
+  },
+  "stabilize": {
+    "off": "Off",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "hint": "Smooths shaky movement; the clip is zoomed in slightly so the edges stay hidden. Rotation is not corrected.",
+    "running": "Measuring shake…",
+    "progress": "Measuring shake… %{percent}",
+    "done": "Clip stabilized",
+    "partial": "Clip stabilized; some of the shake did not fit in the margin, try a stronger level",
+    "removed": "Stabilization removed",
+    "failed": "Stabilization failed",
+    "cancelled": "Stabilization cancelled"
   }
 }

@@ -158,7 +158,8 @@
     "keyEase": "Eğri",
     "clipAnim": "Animasyonlar",
     "beats": "Ritim",
-    "removeBg": "Arka planı kaldır"
+    "removeBg": "Arka planı kaldır",
+    "stabilize": "Sabitle"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -981,5 +982,19 @@
     "float": "Süzülme",
     "shake": "Titreme",
     "breathe": "Nefes"
+  },
+  "stabilize": {
+    "off": "Kapalı",
+    "low": "Az",
+    "medium": "Orta",
+    "high": "Çok",
+    "hint": "Sarsıntılı kaymayı düzeltir; kenarlar görünmesin diye klip biraz büyütülür. Dönme düzeltilmez.",
+    "running": "Sarsıntı ölçülüyor…",
+    "progress": "Sarsıntı ölçülüyor… %{percent}",
+    "done": "Klip sabitlendi",
+    "partial": "Klip sabitlendi; sarsıntının bir kısmı kenar payına sığmadı, daha güçlü bir düzey deneyin",
+    "removed": "Sabitleme kaldırıldı",
+    "failed": "Sabitleme başarısız oldu",
+    "cancelled": "Sabitleme iptal edildi"
   }
 }

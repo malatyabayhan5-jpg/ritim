@@ -189,6 +189,14 @@ export function trackMotion(media, fromMs, toMs, box, onProgress, samplesPerSeco
   return withAiProgress(onProgress, (engine) => engine.trackMotion(mediaUri(media), fromMs, toMs, box, samplesPerSecond));
 }
 
+/**
+ * Sabitleme ölçümü: kaynak aralığında örnekler arası genel kayma.
+ * Dönüş [{ t (kaynak ms), dx, dy (görünen kare kesri, y aşağı), c (güven) }]; iptal cancelAi ile.
+ */
+export function stabilizeMotion(media, fromMs, toMs, onProgress, samplesPerSecond = 15) {
+  return withAiProgress(onProgress, (engine) => engine.stabilizeMotion(mediaUri(media), fromMs, toMs, samplesPerSecond));
+}
+
 export function downloadCaptionModel(id, onProgress) {
   return withAiProgress(onProgress, (engine) => engine.downloadCaptionModel(id));
 }

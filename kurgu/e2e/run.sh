@@ -167,6 +167,17 @@ if ran 3_ai_araclari; then
     echo "Ritim testi: GEÇTİ ($bl)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Sabitleme: akış 3 ilk klipte sarsıntıyı ölçer ve konum anahtar kareleri yazar
+if ran 3_ai_araclari; then
+  sl=$(grep -E "\[3_ai_araclari\].*\[KurguAI\] stabilize " "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')
+  if [ -z "$sl" ]; then
+    echo "Sabitleme testi: BAŞARISIZ (günlükte sabitleme satırı yok)" >> "$OUT/sonuclar.txt"
+  elif echo "$sl" | grep -qE "failed|keys=0( |$)"; then
+    echo "Sabitleme testi: BAŞARISIZ ($sl)" >> "$OUT/sonuclar.txt"
+  else
+    echo "Sabitleme testi: GEÇTİ ($sl)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
 for flow in 1_kabul_akisi 6_katmanlar; do
   ran "$flow" || continue

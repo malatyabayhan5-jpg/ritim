@@ -25,6 +25,7 @@ import { DEFAULT_ADJUST } from '../model/schema';
 import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey, toggleVolumeKey, volumeAt, volumePatch } from '../model/timeline';
 import { EASING_IDS, ease, keyAt } from '../model/keyframes';
 import { CLIP_ANIMS_COMBO, CLIP_ANIMS_IN, CLIP_ANIMS_OUT, CLIP_ANIM_DEFAULT_MS, CLIP_ANIM_MAX_MS, CLIP_ANIM_MIN_MS, COMBO_MS, normalizeAnim } from '../model/clipAnim';
+import { STAB_LEVEL_IDS } from '../model/stabilize';
 import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
 const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 20, 50, 100];
@@ -415,6 +416,26 @@ export function ClipAnimPanel({ clip, durationMs, onChange, onClose }) {
             <Slider value={Math.min(maxMs, ms)} min={CLIP_ANIM_MIN_MS} max={maxMs} step={50} onChange={(v) => onChange({ [msKey]: Math.round(v) }, 'clipAnimMs')} formatValue={(v) => fmt.duration(v)} testID="clip-anim-ms" />
           </Labeled>
         ) : null}
+      </View>
+    </Panel>
+  );
+}
+
+/** Sabitleme düzeyi: Kapalı / Az / Orta / Çok. Ölçüm ilk seçimde yapılır. */
+export function StabilizePanel({ clip, onChange, onClose }) {
+  const { t } = useI18n();
+  const cur = clip.stabilize?.level || 'off';
+  return (
+    <Panel title={t('tools.stabilize')} onClose={onClose} testID="panel-stabilize">
+      <View style={styles.body}>
+        <Hscroll>
+          {['off', ...STAB_LEVEL_IDS].map((id) => (
+            <Chip key={id} label={t(`stabilize.${id}`)} active={cur === id} onPress={() => onChange(id)} testID={`stab-${id}`} />
+          ))}
+        </Hscroll>
+        <Txt faint style={styles.hint}>
+          {t('stabilize.hint')}
+        </Txt>
       </View>
     </Panel>
   );

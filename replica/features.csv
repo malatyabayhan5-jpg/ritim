@@ -54,7 +54,7 @@ Apply transition to all,transitions,should,yes,yes,transition panel Apply to all
 Aspect ratio presets,canvas,must,yes,yes,
 Canvas background colour or blur,canvas,should,yes,yes,"colour, blurred clip or a gallery image (cover-cropped, dim slider) behind fit clips; Ratio panel and the main toolbar Background; live in preview except a new image (rebuild); shader lab-verified for all three modes; unit tests; not checked on a device"
 Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
-Stabilization,ai,could,yes,no,
+Stabilization,ai,could,yes,partial,"translation only (GlobalMotion block matching, Gaussian path smoothing, zoom 1.05-1.15 via main clip x/y keys); rotation not corrected; not run on a phone"
 Auto cut silence and scene detection,ai,could,yes,yes,
 Export resolution 480p to 4K,export,must,yes,yes,720p to 2160p offered
 Export frame rate 24 to 60,export,must,yes,yes,
