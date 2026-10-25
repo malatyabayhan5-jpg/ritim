@@ -872,7 +872,18 @@
     "replaced_two": "تغيّر سطران",
     "replaced_few": "تغيّرت {n} أسطر",
     "replaced_many": "تغيّر {n} سطرًا",
-    "replaced_other": "تغيّر {n} سطر"
+    "replaced_other": "تغيّر {n} سطر",
+    "style": "النمط",
+    "styles": {
+      "classic": "كلاسيكي",
+      "clean": "بسيط",
+      "outline": "محدّد",
+      "yellow": "أصفر",
+      "boxed": "داخل مربع",
+      "neon": "نيون",
+      "big": "كبير",
+      "top": "في الأعلى"
+    }
   },
   "layer": {
     "title": "طبقة",

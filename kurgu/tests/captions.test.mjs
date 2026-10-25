@@ -112,3 +112,22 @@ test('altyazı toplu düzenleme: seçilenleri sil, bul-değiştir, stili eşitle
   assert.deepEqual(d.texts.filter((t) => t.caption).map((t) => t.id), [caps[1].id]);
   assert.ok(d.texts.some((t) => t.id === title.id));
 });
+
+test('altyazı stili: tüm altyazılara uygulanır, normal metne dokunmaz, yeni altyazılar stili alır', async () => {
+  const { applyCaptionStyle, captionStyleOf, CAPTION_STYLE_IDS } = await import('../src/model/captions');
+  let p = projectWith([video('a', 8000)]);
+  p = TL.addText(p, 0, 'Başlık').project;
+  p = addClipCaptions(p, p.main[0].id, [{ t0: 0, t1: 1500, text: 'merhaba dünya' }, { t0: 2000, t1: 3500, text: 'ikinci satır' }]).project;
+  assert.equal(captionStyleOf(p).id, 'classic');
+  p = applyCaptionStyle(p, 'yellow');
+  const caps = p.texts.filter((t) => t.caption);
+  assert.equal(caps.length, 2);
+  for (const c of caps) assert.equal(c.style.color, '#FFD400FF');
+  assert.equal(p.texts.find((t) => !t.caption).style.color, '#FFFFFFFF', 'normal metin değişmez');
+  assert.equal(caps[0].text, 'merhaba dünya', 'metin korunur');
+  p = removeCaptions(p);
+  p = addClipCaptions(p, p.main[0].id, [{ t0: 4000, t1: 5500, text: 'yeni' }]).project;
+  assert.equal(p.texts.find((t) => t.caption).style.color, '#FFD400FF', 'yeni altyazı proje stilini alır');
+  assert.equal(applyCaptionStyle(p, 'yok'), p);
+  assert.ok(CAPTION_STYLE_IDS.length >= 8);
+});

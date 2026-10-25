@@ -852,7 +852,18 @@
     "matchStyle": "İlk seçilenin stilini uygula",
     "selectDone": "Bitti",
     "replaced_one": "{n} satır değişti",
-    "replaced_other": "{n} satır değişti"
+    "replaced_other": "{n} satır değişti",
+    "style": "Stil",
+    "styles": {
+      "classic": "Klasik",
+      "clean": "Sade",
+      "outline": "Kenarlı",
+      "yellow": "Sarı",
+      "boxed": "Kutulu",
+      "neon": "Neon",
+      "big": "Büyük",
+      "top": "Üstte"
+    }
   },
   "layer": {
     "title": "Katman",

@@ -7,10 +7,11 @@ import { useI18n } from '../i18n';
 import { Button, Chip, Icon, Panel, Row, Txt } from '../ui';
 import { formatTimecode, ltr } from '../i18n/core';
 import { colors, radius, space } from '../theme';
+import { CAPTION_STYLE_IDS } from '../model/captions';
 
 export const CAPTION_LANGS = ['auto', 'tr', 'en', 'ar'];
 
-export default function CaptionsPanel({ info, lang, onLang, translate, onTranslate, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose, onExportSrt, onImportSrt, onEdit }) {
+export default function CaptionsPanel({ styleId, onStyle, info, lang, onLang, translate, onTranslate, modelId, onModel, onStart, onCancel, onRemove, canRemove, progress, onClose, onExportSrt, onImportSrt, onEdit }) {
   const { t, fmt } = useI18n();
   const running = !!progress;
   const supported = info?.supported;
@@ -63,6 +64,17 @@ export default function CaptionsPanel({ info, lang, onLang, translate, onTransla
             )}
           </>
         )}
+        {/* Stil: tüm altyazılara ve sonra eklenenlere (tanıma gerektirmez, SRT'ye de uygulanır) */}
+        {onStyle && !running ? (
+          <>
+            <Txt dim style={styles.label}>{t('captions.style')}</Txt>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
+              {CAPTION_STYLE_IDS.map((id) => (
+                <Chip key={id} label={t(`captions.styles.${id}`)} active={styleId === id} onPress={() => onStyle(id)} testID={`caption-style-${id}`} />
+              ))}
+            </ScrollView>
+          </>
+        ) : null}
         {/* SRT: altyazıları dosyaya aktar / dosyadan al (tanıma gerektirmez) */}
         <Row style={{ gap: space.sm, flexWrap: 'wrap' }}>
           <Chip icon="download-outline" label={t('captions.importSrt')} onPress={onImportSrt} testID="srt-import" />

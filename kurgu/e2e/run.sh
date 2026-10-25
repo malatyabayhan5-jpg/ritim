@@ -148,6 +148,14 @@ if ran 1_kabul_akisi; then
     echo "Anahtar kare testi: BAŞARISIZ (günlükte ekle/kaldır yok)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Altyazı stili: akış 4 altyazılara "Sarı" stilini uygular
+if ran 4_otomatik_altyazi; then
+  if grep -q "\[4_otomatik_altyazi\].*\[KurguUI\] captionStyle yellow" "$OUT/kurgu_gunluk.txt"; then
+    echo "Altyazı stili testi: GEÇTİ (Sarı uygulandı)" >> "$OUT/sonuclar.txt"
+  else
+    echo "Altyazı stili testi: BAŞARISIZ (günlükte stil seçimi yok)" >> "$OUT/sonuclar.txt"
+  fi
+fi
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then
   tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')

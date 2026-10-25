@@ -38,7 +38,7 @@ Arabic and RTL text,text,must,yes,yes,e2e 2
 Stickers and emoji,text,should,yes,partial,emoji + own images; no library (skip)
 Auto captions on device,captions,must,yes,yes,whisper.cpp; e2e 4
 Edit captions list with batch select,captions,must,yes,yes,"select mode: select all, delete selected, find and replace, apply first style"
-Caption styles,captions,should,yes,partial,
+Caption styles,captions,should,yes,yes,"8 own caption styles in the auto captions panel (classic, clean, outline, yellow, boxed, neon, big, top): applied to every caption and remembered for new and SRT captions; unit test, e2e 4"
 Text to speech,audio,should,yes,yes,
 Extract audio from a video,audio,must,yes,yes,soundFromVideo in e2e 1
 Voiceover recording at playhead,audio,must,yes,yes,e2e 7

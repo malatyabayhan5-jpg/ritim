@@ -2,12 +2,39 @@
 // metin katmanlarına dönüştürür. Saf fonksiyonlar; birim testlidir. Tanınan metin
 // kullanıcı içeriğidir, çevrilmez.
 
-import { createText } from './schema';
+import { DEFAULT_TEXT_STYLE, createText } from './schema';
 import { clipDuration, mainLayout } from './timeline';
 import { TEXT_LAYOUTS } from './catalog';
 import { localAt } from './speed';
 
 const CAPTION = TEXT_LAYOUTS.find((l) => l.id === 'caption');
+
+// Altyazı stilleri (Kurgu'nun kendi görünümleri): otomatik altyazı panelinde seçilir, tüm
+// altyazılara uygulanır ve sonra eklenenler için projede (captionStyle) hatırlanır.
+export const CAPTION_STYLES = [
+  { id: 'classic', y: CAPTION.y, style: { ...CAPTION.style } },
+  { id: 'clean', y: -0.78, style: { size: 0.04, background: '#00000000', bold: true, shadow: true } },
+  { id: 'outline', y: -0.78, style: { size: 0.042, background: '#00000000', stroke: '#000000FF', strokeWidth: 0.006, shadow: false, bold: true } },
+  { id: 'yellow', y: -0.78, style: { size: 0.044, color: '#FFD400FF', background: '#00000000', stroke: '#000000FF', strokeWidth: 0.005, shadow: false, bold: true } },
+  { id: 'boxed', y: -0.75, style: { size: 0.04, color: '#111111FF', background: '#FFFFFFFF', boxStyle: 'lines', boxRadius: 0.2, shadow: false, bold: true } },
+  { id: 'neon', y: -0.78, style: { size: 0.042, background: '#00000000', shadow: true, shadowColor: '#22D3EEFF', shadowBlur: 0.25, shadowX: 0, shadowY: 0, bold: true } },
+  { id: 'big', y: -0.55, style: { size: 0.06, background: '#00000000', stroke: '#000000FF', strokeWidth: 0.007, shadow: false, bold: true } },
+  { id: 'top', y: 0.78, style: { ...CAPTION.style } },
+];
+export const CAPTION_STYLE_IDS = CAPTION_STYLES.map((c) => c.id);
+
+/** Projenin altyazı stili (yoksa klasik). */
+export function captionStyleOf(project) {
+  return CAPTION_STYLES.find((c) => c.id === project?.captionStyle) || CAPTION_STYLES[0];
+}
+
+/** Stili tüm altyazılara uygular (görünüm ve dikey konum; metin, zaman ve animasyon korunur). */
+export function applyCaptionStyle(project, styleId) {
+  const c = CAPTION_STYLES.find((x) => x.id === styleId);
+  if (!c) return project;
+  const texts = project.texts.map((t) => (t.caption ? { ...t, style: { ...DEFAULT_TEXT_STYLE, ...c.style }, y: c.y } : t));
+  return { ...project, texts, captionStyle: c.id, updatedAt: Date.now() };
+}
 
 // Konuşma dışı işaretler: [MUSIC], (alkış), *gülüşmeler*, ♪ … ♪
 const NON_SPEECH = /^\s*(\[[^\]]*\]|\([^)]*\)|\*[^*]*\*|[♪♫\s]+)\s*$/;
@@ -66,13 +93,14 @@ export function addClipCaptions(project, clipId, segments, opts = {}) {
   if (!hit) return { project, added: 0 };
   const { clip, start } = hit;
   const dur = clipDuration(clip);
+  const look = captionStyleOf(project);
   const texts = [];
   for (const c of captionChunks(segments, opts)) {
     const s = start + localAt(clip, clip.srcIn + c.t0);
     const e = Math.min(start + dur, start + localAt(clip, clip.srcIn + c.t1));
     if (e - s < 200 || s >= start + dur) continue;
-    const t = createText(Math.round(s), c.text, { ...CAPTION.style });
-    texts.push({ ...t, duration: Math.round(e - s), y: CAPTION.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });
+    const t = createText(Math.round(s), c.text, { ...look.style });
+    texts.push({ ...t, duration: Math.round(e - s), y: look.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });
   }
   if (!texts.length) return { project, added: 0 };
   return { project: { ...project, texts: [...project.texts, ...texts], updatedAt: Date.now() }, added: texts.length };
@@ -178,13 +206,14 @@ export function parseSrt(text) {
 
 /** SRT girdilerini altyazı metin katmanları olarak ekler (videonun dışına taşanlar kırpılır). */
 export function addSrtCaptions(project, entries, total = Infinity) {
+  const look = captionStyleOf(project);
   const texts = [];
   for (const e of entries) {
     if (e.start >= total) continue;
     const end = Math.min(e.end, total);
     if (end - e.start < 100) continue;
-    const tx = createText(e.start, e.text, CAPTION.style);
-    texts.push({ ...tx, duration: Math.round(end - e.start), y: CAPTION.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });
+    const tx = createText(e.start, e.text, look.style);
+    texts.push({ ...tx, duration: Math.round(end - e.start), y: look.y, animIn: 'fade', animOut: 'fade', animMs: 150, caption: true });
   }
   return { project: { ...project, texts: [...project.texts, ...texts], updatedAt: Date.now() }, added: texts.length };
 }

@@ -36,7 +36,7 @@ import { autoAdjust } from '../model/enhance';
 import { isAudioFxActive } from '../model/audio-fx';
 import AiPanel from '../editor/AiPanel';
 import CaptionsPanel, { CaptionListPanel } from '../editor/CaptionsPanel';
-import { addClipCaptions, addSrtCaptions, captionableClips, deleteCaptions, hasCaptions, matchCaptionStyle, parseSrt, removeCaptions, replaceInCaptions, toSrt } from '../model/captions';
+import { addClipCaptions, addSrtCaptions, applyCaptionStyle, captionStyleOf, captionableClips, deleteCaptions, hasCaptions, matchCaptionStyle, parseSrt, removeCaptions, replaceInCaptions, toSrt } from '../model/captions';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { detectSilences, pickSceneCuts, speechLanguage } from '../model/ai';
@@ -1346,6 +1346,11 @@ export default function EditorScreen({ params, focused }) {
       case 'captions':
         return (
           <CaptionsPanel
+            styleId={captionStyleOf(project).id}
+            onStyle={(id) => {
+              console.log(`[KurguUI] captionStyle ${id}`);
+              apply((p) => applyCaptionStyle(p, id));
+            }}
             info={cap.info}
             lang={cap.lang}
             onLang={(l) => setCap((c) => ({ ...c, lang: l }))}

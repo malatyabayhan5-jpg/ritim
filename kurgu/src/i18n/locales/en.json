@@ -852,7 +852,18 @@
     "matchStyle": "Apply the first one's style",
     "selectDone": "Done",
     "replaced_one": "{n} line changed",
-    "replaced_other": "{n} lines changed"
+    "replaced_other": "{n} lines changed",
+    "style": "Style",
+    "styles": {
+      "classic": "Classic",
+      "clean": "Clean",
+      "outline": "Outline",
+      "yellow": "Yellow",
+      "boxed": "Boxed",
+      "neon": "Neon",
+      "big": "Big",
+      "top": "Top"
+    }
   },
   "layer": {
     "title": "Overlay",

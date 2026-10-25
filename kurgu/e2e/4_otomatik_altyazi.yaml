@@ -76,6 +76,9 @@ appId: app.kurgu.editor
           id: "tool-captions"
       - tapOn:
           id: "tool-autoCaptions"
+# Altyazı stili: tümüne "Sarı" uygulanır (günlükte [KurguUI] captionStyle yellow)
+- tapOn:
+    id: "caption-style-yellow"
 - tapOn:
     id: "caption-edit"
 - extendedWaitUntil:
