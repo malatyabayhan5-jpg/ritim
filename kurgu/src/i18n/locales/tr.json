@@ -440,7 +440,9 @@
     "lowSpaceTitle": "Yetersiz depolama",
     "lowSpace": "Yaklaşık {need} gerekiyor, cihazda {free} boş alan var.",
     "thermal": "Cihaz ısınmış. Dışa aktarma yavaşlayabilir; yüksek çözünürlükte bekleme önerilir.",
-    "powerSave": "Güç tasarrufu açık; dışa aktarma daha uzun sürebilir."
+    "powerSave": "Güç tasarrufu açık; dışa aktarma daha uzun sürebilir.",
+    "autoRetry": "Dışa aktarma takıldı; baştan bir kez daha deneniyor…",
+    "retryLower": "{res}p ile yeniden dene"
   },
   "settings": {
     "title": "Ayarlar",

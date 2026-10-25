@@ -170,8 +170,10 @@ fi
 # Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
 for flow in 1_kabul_akisi 6_katmanlar; do
   ran "$flow" || continue
+  ar=$(grep -E "\[$flow\].*\[KurguExport\] auto-retry" "$OUT/kurgu_gunluk.txt" | head -1 | sed 's/.*\[KurguExport\] //')
+  [ -n "$ar" ] && echo "UYARI: $flow dışa aktarma takıldı, uygulama kendiliğinden yeniden başlattı ($ar)" >> "$OUT/sonuclar.txt"
   fl=$(grep -E "\[$flow\].*\[KurguExport\] failed" "$OUT/kurgu_gunluk.txt" | head -1 | sed 's/.*\[KurguExport\] //')
-  [ -n "$fl" ] && echo "UYARI: $flow dışa aktarma ilk denemede başarısız ($fl); Tekrar dene ile sürdü" >> "$OUT/sonuclar.txt"
+  [ -n "$fl" ] && echo "UYARI: $flow dışa aktarma başarısız oldu ($fl); akış Tekrar dene ile sürdü" >> "$OUT/sonuclar.txt"
 done
 # Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
 if ran 6_katmanlar; then

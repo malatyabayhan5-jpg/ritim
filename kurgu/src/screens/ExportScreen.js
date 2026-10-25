@@ -92,6 +92,17 @@ export default function ExportScreen({ params }) {
   // Editördeki Dışa Aktar düğmesi (CapCut'taki gibi tek dokunuş): proje ve kodlayıcı bilgisi gelince,
   // seçilen mod destekleniyorsa bir kez başlar; desteklenmiyorsa ayar ekranında kalınır.
   const autoStarted = useRef(false);
+  const autoRetried = useRef(false);
+  // Hata ekranından "daha düşük çözünürlükle dene": çözünürlük güncellenince başlar
+  const [startAfterRes, setStartAfterRes] = useState(false);
+  useEffect(() => {
+    if (!startAfterRes) return;
+    setStartAfterRes(false);
+    autoRetried.current = false;
+    start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startAfterRes, res]);
+  const lowerRes = [...RESOLUTIONS].reverse().find((r) => r < res && supported(r, fps, codec));
   useEffect(() => {
     if (!params.autoStart || autoStarted.current || phase !== 'setup' || !project || !caps || free == null) return;
     if (!supported(res, fps, codec)) return;
@@ -141,6 +152,15 @@ export default function ExportScreen({ params }) {
     } catch (e) {
       if (e?.code === 'CANCELLED') {
         setPhase('setup');
+        return;
+      }
+      // Takılan dışa aktarma (çıktıya uzun süre örnek yazılmadı) bir kez kendiliğinden baştan başlar;
+      // ikinci kez olursa hata gösterilir ve daha düşük çözünürlükle deneme önerilir.
+      if (/MUXING_TIMEOUT/.test(`${e?.code} ${e?.message}`) && !autoRetried.current) {
+        autoRetried.current = true;
+        console.log(`[KurguExport] auto-retry after ${e?.code} ${e?.message}`);
+        toast(t('export.autoRetry'));
+        start();
         return;
       }
       console.log(`[KurguExport] failed: ${e?.code} ${e?.message}`);
@@ -306,6 +326,20 @@ export default function ExportScreen({ params }) {
             <Button kind="secondary" title={t('common.back')} onPress={nav.pop} />
             <Button title={t('export.retry')} onPress={() => setPhase('setup')} testID="export-retry" />
           </Row>
+          {lowerRes ? (
+            <Button
+              kind="secondary"
+              icon="arrow-down-circle-outline"
+              title={t('export.retryLower', { res: lowerRes })}
+              onPress={() => {
+                console.log(`[KurguExport] retry lower ${lowerRes}p`);
+                setRes(lowerRes);
+                setStartAfterRes(true);
+              }}
+              style={{ marginTop: space.sm }}
+              testID="export-retry-lower"
+            />
+          ) : null}
         </View>
       ) : null}
     </View>

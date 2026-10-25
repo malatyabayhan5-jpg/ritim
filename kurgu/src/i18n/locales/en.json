@@ -440,7 +440,9 @@
     "lowSpaceTitle": "Not enough storage",
     "lowSpace": "About {need} is required and {free} is free on the device.",
     "thermal": "The device is hot. Export may be slower; consider waiting before exporting at high resolution.",
-    "powerSave": "Battery saver is on; exporting may take longer."
+    "powerSave": "Battery saver is on; exporting may take longer.",
+    "autoRetry": "The export got stuck; trying once more from the start…",
+    "retryLower": "Try again at {res}p"
   },
   "settings": {
     "title": "Settings",

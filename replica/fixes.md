@@ -41,8 +41,8 @@ export free", which is H1.
 | fix | evidence | size | skill | Kurgu today |
 | --- | --- | --- | --- | --- |
 | Every export resolution and frame rate the phone can encode is free, no watermark, no account | H1 | S | replica-launch (say it) | already true: no paywall, no watermark code, no account |
-| Export that survives a stall: watchdog detects no progress, restarts the export once from the start, tells the user | H2 | M | replica-build | partial: stall watchdog logs thread stacks; the user has to tap Try again |
-| Honest export progress: no fake 99 %, show the reason when it fails and a lower-resolution retry button | H2 | S | replica-build | partial: error text and Try again exist; no "retry at lower resolution" |
+| Export that survives a stall: watchdog detects no progress, restarts the export once from the start, tells the user | H2 | M | replica-build | done 2026-10-25: one automatic restart after a stall, with a notice |
+| Honest export progress: no fake 99 %, show the reason when it fails and a lower-resolution retry button | H2 | S | replica-build | done 2026-10-25: error screen offers the next lower supported resolution |
 | Everything on the device: captions (whisper.cpp), background removal, tracking run locally; no upload | H4 | S | replica-launch (say it), replica-backend (keep it true) | already true; the optional image generator talks only to the user's own server |
 | Light mode for big projects: lower preview resolution automatically, warn before memory runs out | H3 | M | replica-build | partial: preview quality setting and lower preview resolution for multi-lane projects |
 

@@ -73,6 +73,6 @@ Server-side AI (script to video avatars generative),ai,could,yes,skip,runs on th
 CapCut logo icons copy and colours,brand,could,yes,skip,never copied
 Stock media library,import,could,yes,skip,licensed content
 Every export resolution and fps free with no watermark or account,export,must,no,yes,"fixes.md H1; no paywall, watermark or account code in Kurgu"
-Export recovers from a stall by itself,export,should,no,partial,"fixes.md H2; watchdog logs stalls, user taps Try again; automatic restart not built"
-Retry export at a lower resolution after a failure,export,could,no,no,fixes.md H2
+Export recovers from a stall by itself,export,should,no,yes,"fixes.md H2; a MUXING_TIMEOUT restarts the export once by itself with a notice; CI reports it as UYARI"
+Retry export at a lower resolution after a failure,export,could,no,yes,"fixes.md H2; error screen offers the next lower supported resolution"
 All AI processing on the device with no upload,ai,should,no,yes,"fixes.md H4; whisper.cpp captions, TFLite segmentation, tracking local; optional image generator only to the user's own server"
