@@ -1191,10 +1191,11 @@ export default function EditorScreen({ params, focused }) {
                         onPress={() => {
                           // Oynatma durur; oynatma kafası öğenin dışındaysa öğenin en yakın ucuna gelir
                           // (kare hiçbir zaman öğenin süresi dışına düşmez)
-                          if (playing) previewRef.current?.pause?.();
+                          previewRef.current?.pause?.();
                           const now = playhead.get();
                           const local = Math.round(Math.max(0, Math.min(keyTarget.dur, now - keyTarget.start)));
-                          if (playing || Math.abs(keyTarget.start + local - now) > 1) seek(keyTarget.start + local, false);
+                          // Duraklatma eski konumu sonradan bildirir; kare anına her zaman yeniden konumlanır
+                          seek(keyTarget.start + local, false);
                           const removing = TL.hasAnyKeyAt(project, keyTarget.type, keyTarget.id, local, KT);
                           console.log(`[KurguUI] keyframe ${keyTarget.type} t=${local} ${removing ? 'remove' : 'add'}${playing ? ' paused' : ''}`);
                           apply((p) => TL.toggleAllKeys(p, keyTarget.type, keyTarget.id, local, KT));
@@ -1227,8 +1228,9 @@ export default function EditorScreen({ params, focused }) {
           selection={selection}
           onSeek={seek}
           onSelect={(sel) => {
-            // Düzenlemek için öğe seçmek oynatmayı durdurur (oynatma kafası seçilen öğeden kaçmasın)
-            if (sel && playing) previewRef.current?.pause?.();
+            // Düzenlemek için öğe seçmek oynatmayı durdurur (oynatma kafası seçilen öğeden kaçmasın).
+            // Koşulsuz: oynatıcı sondan yeniden kurulunca `playing` durumu gecikebiliyor (CI #127).
+            if (sel) previewRef.current?.pause?.();
             setSelection(sel);
             setSub(null);
             setPanel(null);

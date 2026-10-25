@@ -95,14 +95,14 @@ class KeyedPlacement(
 
 /** Anahtar kareli opaklık (ana iz): rengi siyaha doğru karartır. */
 @OptIn(UnstableApi::class)
-class KeyedOpacity(private val base: Float, private val track: FloatArray?, private val clipStartMs: Long) : RgbMatrix {
+class KeyedOpacity(private val base: Float, private val track: FloatArray?, private val clipStartMs: Long, private val diag: Boolean = false) : RgbMatrix {
   private val out = FloatArray(16)
   private var logged = 0
 
   override fun getMatrix(presentationTimeUs: Long, useHdr: Boolean): FloatArray {
     val k = Keyframes.valueAt(track, presentationTimeUs / 1000.0 - clipStartMs, base).coerceIn(0f, 1f)
     // Tanı: ilk birkaç karede uygulanan opaklık (e2e klip animasyonu denetimi için)
-    if (logged < 3) {
+    if (diag && logged < 3) {
       logged++
       Log.i("KurguExport", "opacity t=${presentationTimeUs / 1000} start=$clipStartMs k=$k")
     }

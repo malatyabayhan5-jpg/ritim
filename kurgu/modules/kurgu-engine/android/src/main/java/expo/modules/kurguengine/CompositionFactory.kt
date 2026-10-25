@@ -307,7 +307,7 @@ object CompositionFactory {
     if (clip.blur > 0.01f) video.add(GaussianBlur(max(0.5f, clip.blur * h * 0.02f)))
     if (!clip.fx.isNoOp) video.add(FxEffect(clip.fx))
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
-    if (kf.containsKey("opacity") || clip.opacity < 0.999f) video.add(KeyedOpacity(clip.opacity, kf["opacity"], clip.startMs))
+    if (kf.containsKey("opacity") || clip.opacity < 0.999f) video.add(KeyedOpacity(clip.opacity, kf["opacity"], clip.startMs, diag = forExport))
 
     val speed = if (isImage) null else speedProviderOf(clip.speed, clip.speedSegments)
     val audio = mutableListOf<AudioProcessor>()

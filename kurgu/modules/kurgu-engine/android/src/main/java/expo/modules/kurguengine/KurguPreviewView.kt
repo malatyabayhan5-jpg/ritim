@@ -305,15 +305,21 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   }
 
   fun pause() {
+    // Yalnızca oynarken durduğu konumu bildirir: durmuşken bir arama sürüyorsa currentPosition
+    // eski konumu verir ve JS'teki (yeni) oynatma kafasını ezerdi.
+    val wasPlaying = player?.isPlaying == true
     player?.pause()
-    emitPosition(force = true)
+    if (wasPlaying) emitPosition(force = true)
   }
 
   fun seekTo(ms: Double) {
     val target = max(0L, ms.toLong())
     pendingPositionMs = target
     atTimelineEnd = false
-    if (graphSpent && playerMulti) return rebuildAt(target, playWhenReady = false)
+    if (graphSpent && playerMulti) {
+      rebuildAt(target, playWhenReady = false)
+      return reportSeekTarget(target)
+    }
     if (player == null) return applyComposition()
     // Kaydırırken bir arama işlenirken gelen hedefler birikmez: yalnızca sonuncusu saklanır
     if (scrubbing && seekInFlight) {
@@ -321,9 +327,19 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       return
     }
     issueSeek(target)
-    // Duraklatılmışken konum olayı gelmez; pause() hemen öncesinde eski konumu bildirdiyse
-    // (duraklat + atla) JS'teki oynatma kafası o eski konumda kalırdı. Yeni konum bildirilir.
-    if (!scrubbing && player?.isPlaying != true) emitPosition(force = true)
+    reportSeekTarget(target)
+  }
+
+  /**
+   * Duraklatılmışken konum olayı gelmez; pause() hemen öncesinde eski konumu bildirdiyse
+   * (duraklat + atla) JS'teki oynatma kafası o eski konumda kalırdı. Hedef doğrudan bildirilir:
+   * CompositionPlayer aramayı eşzamansız işler, currentPosition bu anda hâlâ eski konumu verir
+   * (CI #127'de ilk sürüm bu yüzden kafayı sona geri taşıdı).
+   */
+  private fun reportSeekTarget(target: Long) {
+    if (scrubbing || player?.isPlaying == true) return
+    lastReportedMs = target
+    onPosition(mapOf("positionMs" to target))
   }
 
   // Kaydırma sırasında arama birleştirme: çok girişli grafikte her arama tüm boru hattını

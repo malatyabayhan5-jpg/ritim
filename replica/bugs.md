@@ -111,8 +111,12 @@ Actual: the key was added at 10.0 s (log `keyframe main t=10023 add paused`), bu
 then showed 12.4 s, so the Curve tool (shown only on a key) never appeared.
 Cause: `pause()` reports the player's position through an async event; JS had already moved the
 playhead to the key, and the late event overwrote it. A paused seek reported no position of its own.
-Status: fixed (pending CI): a seek while paused reports its new position, which arrives after the
-pause event. Selecting a timeline item now also pauses playback, so the item stays under the playhead.
+Status: first fix (d7a65f7) reported `player.currentPosition` after a paused seek, but
+CompositionPlayer handles seeks asynchronously, so that still returned the old position and CI #127
+saw the playhead jump back to the end (17.55 s) after the key was added at 5.0 s. Fixed again (pending
+CI): a paused seek reports its target; `pause()` reports a position only when it was playing;
+selecting an item and the keyframe diamond pause unconditionally (`playing` can lag after the player
+is rebuilt at the end of the timeline).
 
 ## Test tooling bugs (not app bugs)
 

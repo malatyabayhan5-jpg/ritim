@@ -21,7 +21,7 @@ is blurred in the reference), so the preview area always counts as different.
 | screen | reference | clone screenshot | score |
 | --- | --- | --- | --- |
 | S01 home | S01_home | 01_ana_ekran | 3.8 / 100, different (CI #123) |
-| S03 editor | S03_editor | 04_editor | 13.1 / 100, preview left out 18.2 (CI #126) |
+| S03 editor | S03_editor | 04_editor | 25.1 / 100, preview left out 19.2 (CI #127, timeline at 32 %; was 13.1 / 18.2) |
 | S04 clip toolbar | S04_clip_b | 06_bolme | not measured: flow 1 stopped before this screenshot (CI #123) |
 | S15 filters / adjust | S15_adjust_custom | 08_filtre | not measured: same |
 
