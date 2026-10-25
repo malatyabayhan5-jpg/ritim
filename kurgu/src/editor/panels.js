@@ -569,14 +569,14 @@ export function TextPanel({ item, onChange, onClose, initialTab = 'style', tabs 
             <Labeled label={t('text.animIn')}>
               <Hscroll>
                 {TEXT_ANIMATIONS_IN.map((a) => (
-                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animIn === a} onPress={() => onChange({ animIn: a })} />
+                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animIn === a} onPress={() => onChange({ animIn: a })} testID={`text-anim-in-${a}`} />
                 ))}
               </Hscroll>
             </Labeled>
             <Labeled label={t('text.animOut')}>
               <Hscroll>
                 {TEXT_ANIMATIONS_OUT.map((a) => (
-                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animOut === a} onPress={() => onChange({ animOut: a })} />
+                  <Chip key={a} label={t(`text.anim.${a}`)} active={item.animOut === a} onPress={() => onChange({ animOut: a })} testID={`text-anim-out-${a}`} />
                 ))}
               </Hscroll>
             </Labeled>

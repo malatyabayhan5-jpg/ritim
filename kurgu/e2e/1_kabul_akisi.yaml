@@ -80,6 +80,9 @@ appId: app.kurgu.editor
 - hideKeyboard
 - tapOn:
     id: "text-tab-animation"
+# Giriş animasyonu: kayarak gelme (dışa aktarılan videoda text_check.py ile ölçülür)
+- tapOn:
+    id: "text-anim-in-slideUp"
 - takeScreenshot:
     path: 07_metin_paneli
     optional: true

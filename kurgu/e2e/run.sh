@@ -162,6 +162,15 @@ elif [ -n "$OUTFILE" ]; then
   fi
   # Efekt katmanı çıktıya gerçekten işlendi mi? (yalnızca katman aralığında)
   python3 "$(dirname "$0")/fx_check.py" "$OUT/cikti.mp4" > "$OUT/efekt.txt" 2>&1
+  # Metin ve giriş animasyonu: dışa aktarma günlüğündeki ilk metnin zamanlarıyla
+  tl=$(grep -E "\[1_kabul_akisi\].*KurguExport: text start=" "$OUT/kurgu_gunluk.txt" | tail -1)
+  if [ -n "$tl" ]; then
+    ts=$(echo "$tl" | sed -E 's/.*start=([0-9]+).*/\1/'); te=$(echo "$tl" | sed -E 's/.* end=([0-9]+).*/\1/'); tm=$(echo "$tl" | sed -E 's/.* ms=([0-9]+).*/\1/')
+    python3 "$(dirname "$0")/text_check.py" "$OUT/cikti.mp4" "$ts" "$te" "$tm" >> "$OUT/sonuclar.txt" 2>&1 || true
+    echo "  ($tl)" | sed 's/.*KurguExport: /  metin: /' >> "$OUT/sonuclar.txt"
+  else
+    echo "Metin testi: BAŞARISIZ (dışa aktarma günlüğünde metin yok)" >> "$OUT/sonuclar.txt"
+  fi
   tail -1 "$OUT/efekt.txt" >> "$OUT/sonuclar.txt"
   head -1 "$OUT/efekt.txt" | cut -c1-900 >> "$OUT/sonuclar.txt"
   # Kare başına ortalama renk (efektlerin görsel izi)

@@ -81,6 +81,8 @@ class Exporter(
     try {
       Log.i("KurguExport", "export start ${options.width}x${options.height}@${options.fps} totalMs=${spec.totalMs} layers=${spec.layers.size} audioLanes=${spec.audioLanes.size}")
       CompositionFactory.describe(composition).forEach { Log.i("KurguExport", it) }
+      // Metinler (e2e text_check.py çıktıda animasyonu bu zamanlarla ölçer)
+      spec.texts.forEach { Log.i("KurguExport", "text start=${it.startMs} end=${it.endMs} in=${it.animIn} out=${it.animOut} ms=${it.animMs}") }
     } catch (e: Exception) {
       Log.w("KurguExport", "describe failed: ${e.message}")
     }
