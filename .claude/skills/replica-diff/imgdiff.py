@@ -272,9 +272,23 @@ def _regions(flags, n_rows, n_cols):
     return regions
 
 
+def _ignored(r, c, n_rows, cols, ignore):
+    """True when the cell's centre lies in one of the ignore rectangles (fractions)."""
+    if not ignore:
+        return False
+    cy = (r + 0.5) / float(n_rows)
+    cx = (c + 0.5) / float(cols)
+    return any(x0 <= cx <= x1 and y0 <= cy <= y1 for x0, y0, x1, y1 in ignore)
+
+
 def compare(img_a, img_b, mode="layout", width=480, cols=12, tolerance=24,
-            edge_threshold=40):
-    """Compare two decoded images. Returns (report dict, diff rows)."""
+            edge_threshold=40, ignore=None):
+    """Compare two decoded images. Returns (report dict, diff rows).
+
+    ignore: rectangles (x0, y0, x1, y1) as fractions of the compared area; layout
+    cells whose centre falls inside are not scored (for example a video preview
+    that shows different footage in the two apps by design).
+    """
     wa, ha, _ = img_a
     wb, hb, _ = img_b
     target = min(width, wa, wb)
@@ -340,7 +354,7 @@ def compare(img_a, img_b, mode="layout", width=480, cols=12, tolerance=24,
                 y0, y1 = r * cell, min(h, (r + 1) * cell)
                 x0, x1 = c * cell, min(w, (c + 1) * cell)
                 area = (y1 - y0) * (x1 - x0)
-                if area <= 0:
+                if area <= 0 or _ignored(r, c, n_rows, cols, ignore):
                     continue
                 da = sum(sum(ea[y][x0:x1]) for y in range(y0, y1)) / float(area)
                 db = sum(sum(eb[y][x0:x1]) for y in range(y0, y1)) / float(area)
@@ -370,6 +384,8 @@ def compare(img_a, img_b, mode="layout", width=480, cols=12, tolerance=24,
         })
     report["score"] = round(score, 1)
     report["verdict"] = verdict(score)
+    if ignore:
+        report["ignored"] = [list(r) for r in ignore]
     report["regions"] = regions
     return report, dim
 
@@ -425,6 +441,9 @@ def main(argv=None):
                     help="pixel mode: per-channel difference ignored (default 24)")
     ap.add_argument("--out", help="write a diff image here (PNG)")
     ap.add_argument("--json", action="store_true", help="print JSON instead of text")
+    ap.add_argument("--ignore", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                    help="layout mode: leave out cells whose centre is in this "
+                         "rectangle (fractions 0-1); repeatable")
     ap.add_argument("--fail-under", type=float,
                     help="exit 1 when the score is below this")
     args = ap.parse_args(argv)
@@ -434,8 +453,15 @@ def main(argv=None):
     except (PngError, OSError, zlib.error) as exc:
         print("imgdiff: %s" % exc, file=sys.stderr)
         return 2
+    try:
+        ignore = [tuple(float(v) for v in r.split(",")) for r in args.ignore]
+        if any(len(r) != 4 for r in ignore):
+            raise ValueError
+    except ValueError:
+        print("imgdiff: --ignore takes X0,Y0,X1,Y1 fractions", file=sys.stderr)
+        return 2
     report, diff = compare(a, b, mode=args.mode, width=args.width, cols=args.cols,
-                           tolerance=args.tolerance)
+                           tolerance=args.tolerance, ignore=ignore)
     report["files"] = {"original": args.original, "clone": args.clone}
     if args.out:
         write_png(args.out, report["compared_at"]["width"],

@@ -297,12 +297,23 @@ if ran 1_kabul_akisi && [ -f "$IMGDIFF" ] && [ -d "$REF" ]; then
       echo "Düzen farkı $ref: ekran görüntüsü yok ($shot.png; bulunan png: $(find "$OUT" "$(dirname "$0")" "$HOME/.maestro" -maxdepth 5 -name '0*.png' 2>/dev/null | head -3 | tr '\n' ' '))" >> "$OUT/sonuclar.txt"
       continue
     fi
+    # Ana ekran dışında önizleme alanı (referansta yüksekliğin %10–53'ü) ayrıca hariç tutulup puanlanır:
+    # iki uygulamada önizlemede farklı videolar var. Ölçek: referansın iki farklı ekranı birbirine 75.
+    mask=""
+    [ "$ref" != "S01_home" ] && mask="--ignore 0,0.10,1,0.53"
+    python3 "$IMGDIFF" "$REF/$ref.png" "$img" $mask --json > "$OUT/fark_${ref}_maske.json" 2>/dev/null || true
+    python3 "$(dirname "$0")/ascii_shot.py" "$REF/$ref.png" "$img" >> "$OUT/ekran_ascii.txt" 2>&1 || true
     if python3 "$IMGDIFF" "$REF/$ref.png" "$img" --out "$OUT/fark_$ref.png" --json > "$OUT/fark_$ref.json" 2> "$OUT/fark_$ref.err"; then
-      python3 - "$OUT/fark_$ref.json" "$ref" "$shot" >> "$OUT/sonuclar.txt" <<'PY'
+      python3 - "$OUT/fark_$ref.json" "$ref" "$shot" "$OUT/fark_${ref}_maske.json" >> "$OUT/sonuclar.txt" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
 regs = ', '.join(f"{r['where']} {r['w']}x{r['h']}@{r['x']},{r['y']}" for r in d.get('regions', [])[:3])
-print(f"Düzen farkı {sys.argv[2]} ↔ {sys.argv[3]}: {d['score']} ({d['verdict']}), yükseklik farkı %{d.get('height_delta_pct', 0)}; en farklı: {regs}")
+try:
+    m = json.load(open(sys.argv[4]))
+    masked = f"; önizleme hariç {m['score']} ({m['verdict']})" if m.get('ignored') else ""
+except Exception:
+    masked = ""
+print(f"Düzen farkı {sys.argv[2]} ↔ {sys.argv[3]}: {d['score']} ({d['verdict']}){masked}, yükseklik farkı %{d.get('height_delta_pct', 0)}; en farklı: {regs}")
 PY
     else
       echo "Düzen farkı $ref: karşılaştırılamadı ($(head -c 200 "$OUT/fark_$ref.err"))" >> "$OUT/sonuclar.txt"
@@ -314,6 +325,8 @@ adb logcat -d -b crash > "$OUT/cokme.txt" 2>&1 || true
 adb logcat -d -s "ReactNativeJS:*" "KurguAI:*" "AndroidRuntime:*" "CompositionPlayer:*" "Transformer:*" "ExoPlayerImpl:*" > "$OUT/logcat.txt" 2>&1 || true
 [ -s "$OUT/cokme.txt" ] && grep -q "$PKG" "$OUT/cokme.txt" && echo "UYARI: uygulama çökme kaydı var (cokme.txt)" >> "$OUT/sonuclar.txt"
 cat "$OUT/sonuclar.txt"
+# Ekran görüntüleri (referans | klon) ASCII olarak: yapıt indirilemeyen ortamlarda düzen incelemesi için
+if [ -s "$OUT/ekran_ascii.txt" ]; then echo "===== ekranlar (referans | klon) ====="; cat "$OUT/ekran_ascii.txt"; fi
 
 # Ayrıntılar iş günlüğüne de yazılır (yapıt indirilemeyen ortamlar için)
 for flow in $FLOWS; do

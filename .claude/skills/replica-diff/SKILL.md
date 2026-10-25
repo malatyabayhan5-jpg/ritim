@@ -18,6 +18,7 @@ Two tools in this folder, both standard-library Python, no installs:
 python3 parity.py replica/features.csv                         # feature parity + missing list
 python3 imgdiff.py replica/screens/S07.png replica/clone-screens/S07.png --out diff-S07.png
 python3 imgdiff.py a.png b.png --json > replica/diffs/S07.json # for parity.py --visual
+python3 imgdiff.py a.png b.png --ignore 0,0.1,1,0.53           # leave out a region (fractions), e.g. a video preview
 python3 parity.py replica/features.csv --visual replica/diffs/*.json --markdown > replica/parity.md
 ```
 
