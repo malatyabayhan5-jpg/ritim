@@ -143,6 +143,13 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #79** (ce8426c, karışım modları; derleme geçti): 2, 4, 5 (p50 28 ms), 7, 8 GEÇTİ. Hareket takibi yine çalıştı
+(46 nokta, 26 kare, kayıp 0) ama kısa bildirim Maestro'ya yakalanmadı → takip adımı dışa aktarmadan sonraya alındı,
+bitiş meşgul göstergesinden anlaşılır. 3: "Karışım" sekmesi dar ekranda sekme şeridinin dışında kaldı → Konum'un
+yanına alındı. **1: dışa aktarma 5 dk sınıra rağmen %70'te durdu (MUXING_TIMEOUT)** — #72 ve #74'te de aynı
+bölgede (çıktı ~12,3 sn; ikinci klibin sessiz ses aralığı 12,0–14,0 sn ile çakışıyor) takılma/aşırı yavaşlama
+görüldü; aralıklı bir boru hattı sorunu. Media3 izleme özeti artık parçalı günlüğe yazılıyor (kök neden araştırılıyor).
+
 **CI #77** (6323313): 1, 2, 4, 5, 7, 8 GEÇTİ. **Hareket takibi emülatörde ilk kez çalıştı** (46 nokta, 26 anahtar kare,
 kayıp 0). Hemen ardından emülatörün Android sistem süreci aşırı yükten çöktü (`FATAL EXCEPTION IN SYSTEM PROCESS:
 FinalizerWatchdogDaemon`, sistem yeniden başladı; uygulama çökme kaydı yok) → 6 düştü. 3: ses düzeyi düğmesi yine geç

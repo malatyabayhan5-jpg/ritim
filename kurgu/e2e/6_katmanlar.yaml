@@ -77,28 +77,6 @@ appId: app.kurgu.editor
 - tapOn:
     id: "redo"
     optional: true
-# Hareket takibi (katman videodaki nesneyi izler). Sonuç ne olursa olsun bildirim
-# görünmeli ve uygulama çökmemeli; ardından geri alınır (katman testi sabit konumu bekler).
-# Geri al/yinele sonrası araç çubuğu yeniden çizilir (CI #72: erken dokunuş)
-# Maestro bu düğmeyi kimliğiyle bulamıyor (CI #74/#75: ekranda "Track" görünürken); metinle eşlenir
-- extendedWaitUntil:
-    visible:
-      text: "(Takip|Track|تتبّع)"
-    timeout: 15000
-- tapOn:
-    text: "(Takip|Track|تتبّع)"
-- extendedWaitUntil:
-    visible:
-      text: "(Takip tamamlandı|Nesne izlenemedi|Hareket takibi başarısız|Tracking done|Couldn't track|Motion tracking failed).*"
-    timeout: 120000
-- runFlow:
-    when:
-      visible:
-        text: "(Takip tamamlandı|Tracking done).*"
-    commands:
-      - tapOn:
-          id: "undo"
-          optional: true
 - tapOn:
     id: "tool-back"
     optional: true
@@ -132,3 +110,22 @@ appId: app.kurgu.editor
       id: "export-finish"
 - tapOn:
     id: "export-finish"
+# Hareket takibi (dışa aktarmadan sonra: katman testi sabit konumu bekler). Katman seçilir,
+# Takip çalışır; işlem bitince (meşgul göstergesi kaybolur) uygulama ayakta kalmalı.
+# Bildirim kısa sürdüğünden yakalanması beklenmez; sonuç günlükte ([KurguAI] track).
+- tapOn:
+    id: "overlay-item-ovl_.*"
+- extendedWaitUntil:
+    visible:
+      text: "(Takip|Track|تتبّع)"
+    timeout: 15000
+- tapOn:
+    text: "(Takip|Track|تتبّع)"
+- extendedWaitUntil:
+    notVisible:
+      id: "busy"
+    timeout: 180000
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible:
+    text: "(Takip|Track|تتبّع)"

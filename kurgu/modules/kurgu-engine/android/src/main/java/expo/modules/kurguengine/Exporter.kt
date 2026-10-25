@@ -141,6 +141,11 @@ class Exporter(
             depth++
           }
           deepest?.stackTrace?.take(8)?.forEach { Log.e("KurguExport", "  at $it") }
+          // Media3 izleme özeti (hangi bileşenin en son ne zaman kare ürettiği): logcat satır
+          // sınırına takılmasın diye parçalı yazılır (CI #79: %70'te 5 dk takılma teşhisi)
+          (exportException.cause?.message ?: "").substringAfter("DebugTrace: ", "").chunked(3000).forEachIndexed { i, part ->
+            Log.e("KurguExport", "trace[$i] $part")
+          }
           onFail("EXPORT_FAILED", "${exportException.errorCodeName}: ${exportException.message ?: ""}")
         }
       })

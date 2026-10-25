@@ -68,7 +68,7 @@ export default function LayerPanel({ item, localMs, onChange, onLane, onDetectKe
     <Panel title={t('layer.title')} onClose={onClose} testID="panel-layer">
       <View style={styles.body}>
         <Hscroll>
-          {(item.kind === 'image' ? [...TABS.slice(0, 3), 'blend', 'order'] : TABS).map((k) => (
+          {(item.kind === 'image' ? ['position', 'blend', 'mask', 'chroma', 'order'] : TABS).map((k) => (
             <Chip key={k} label={t(`layer.tab.${k}`)} active={tab === k} onPress={() => setTab(k)} testID={`layer-tab-${k}`} />
           ))}
         </Hscroll>
