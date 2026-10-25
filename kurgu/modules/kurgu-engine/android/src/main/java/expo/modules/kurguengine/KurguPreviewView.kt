@@ -207,7 +207,10 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
         // işleme hatası verir: kullanıcıya hata göstermeden oynatıcı aynı konumdan yeniden kurulur.
         // ERROR_CODE_TIMEOUT: oynatma iş parçacığı yoğun işte (ör. ters oynatma kodlaması) zamanında
         // yanıt veremedi (CI #74); oynatıcı aynı yoldan yeniden kurulur.
-        val recoverable = (playerMulti && error.errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED) ||
+        // Kare işleme iş parçacığı Media3'ün 500 ms'lik eşzamanlı çağrısına yetişemediğinde
+        // (TimeoutException, CI #82: emülatörde ağır kompozisyon) de aynı şekilde yeniden kurulur.
+        val timedOut = generateSequence(error.cause) { it.cause }.any { it is java.util.concurrent.TimeoutException }
+        val recoverable = (error.errorCode == PlaybackException.ERROR_CODE_VIDEO_FRAME_PROCESSING_FAILED && (playerMulti || timedOut)) ||
           error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT
         if (recoverable && recoveries < 3) {
           recoveries++
@@ -248,7 +251,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     try {
       val multi = CompositionFactory.needsCompositor(s)
       if (multi && graphSpent) releasePlayer()
-      val composition = CompositionFactory.build(s, w, h, forExport = false, live = true, padUri = if (multi) TransparentPad.uri(context) else null)
+      val composition = CompositionFactory.build(s, w, h, forExport = false, live = true, padUri = if (multi) TransparentPad.uri(context) else null, context = context)
       val p = ensurePlayer(multi)
       val wasPlaying = p.playWhenReady
       val pos = if (p.playbackState == Player.STATE_IDLE) pendingPositionMs else p.currentPosition

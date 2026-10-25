@@ -1,5 +1,6 @@
 package expo.modules.kurguengine
 
+import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.C
@@ -61,6 +62,7 @@ object CompositionFactory {
     forExport: Boolean = false,
     live: Boolean = false,
     padUri: String? = null,
+    context: Context? = null,
   ): Composition {
     require(spec.main.isNotEmpty()) { "EMPTY_TIMELINE" }
     val w = even(outWidth)
@@ -138,7 +140,11 @@ object CompositionFactory {
     }
     // Karışım modlu görsel katmanları: tüm alt katmanlar birleştikten sonra, efekt izinin ve
     // metinlerin altında çizilir (Media3 birleştiricisi yalnızca alfa karışımı yapar).
-    spec.blendLayers.forEach { compositionEffects.add(BlendLayerFx(it.layer, it.mode, w, h, if (live) "ly:${it.layer.key}" else null)) }
+    spec.blendLayers.forEach {
+      val fx = BlendLayerFx(it.layer, it.mode, w, h, if (live) "ly:${it.layer.key}" else null)
+      context?.let(fx::prefetch)
+      compositionEffects.add(fx)
+    }
     // Efekt katmanları (zaman çizelgesindeki efekt izi): metinlerin altında kalır.
     spec.effectLayers.forEach { compositionEffects.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
     val overlays: List<TextureOverlay> = spec.texts.filter { it.text.isNotBlank() && it.endMs > it.startMs }.map { TextLayerOverlay(it) }

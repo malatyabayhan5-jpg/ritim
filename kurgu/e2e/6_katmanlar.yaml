@@ -136,5 +136,11 @@ appId: app.kurgu.editor
     timeout: 180000
 - waitForAnimationToEnd:
     timeout: 3000
+# Takip sonucu günlükten doğrulanır (run.sh: [KurguAI] track ... lost=); burada yalnızca
+# uygulamanın ayakta ve önizlemenin hatasız olduğu denetlenir. Kimlikle eleman arama bu
+# ekranda kararsız (CI #82: düğme görünürken bulunamadı), bu yüzden metin denetimi.
+- assertNotVisible:
+    text: "(Önizleme hatası|Preview error).*"
 - assertVisible:
     text: "(Takip|Track|تتبّع)"
+    optional: true

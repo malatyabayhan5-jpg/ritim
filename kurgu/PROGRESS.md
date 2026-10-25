@@ -143,6 +143,19 @@ hiç çalışamadı. Bu nedenle dışa aktarmanın 8cdef07 ile düzelip düzelme
 Önlem: akış başına 25 dk sınır, emülatör yanıt vermezse kalan akışları atlama, ağır dışa
 aktarma akışı en sona alındı; her akışın ürettiği MP4 ayrı izlenir.
 
+**CI #80–#82** (08d8cad…e0e99ca): 1, 2, 4, 5, 7, 8 GEÇTİ; **katman testi GEÇTİ** (konum, maske, zaman aralığı);
+hareket takibi 46 nokta / 26 kare / kayıp 0. 6 yalnızca son "Takip" görünürlük denetiminde düştü (düğme ekrandayken
+Maestro bulamadı) → takip artık günlükten doğrulanıyor (run.sh "Takip testi"), akış yalnızca önizleme hatası
+olmadığını denetliyor. 3: karışım katmanı eklenince önizlemede `VideoFrameProcessingException ← TimeoutException`:
+katman görseli GL iş parçacığında piksel piksel dönüştürülüyordu, Media3'ün 500 ms'lik eşzamanlı çağrısı zaman
+aşımına uğradı → görsel kompozisyon kurulurken arka planda hazırlanıp önbelleğe alınıyor (BlendPixels; satır
+çevirme ve renk sırası tek geçişte), tek dizili oynatıcıda da zaman aşımı hatası kurtarılıyor. Dışa aktarma
+takılması (#82, %71'de 2,5 dk): izleme özeti çözüldü — ses kodlayıcı 10,15 sn'de videoyu bekliyor (karıştırıcı
+sınırı), video tarafında **tüm bileşenler (çözücü çıkışı, birleştirici, son işlemci, kodlayıcı) 141,2 sn'de aynı
+anda susuyor**; kayıp kare yok (çözücü 312 = yüzey 312). Ortak GL iş parçacığının bloke olduğu çağrıyı görmek için
+bekçi artık iş parçacığı yığınlarını yazıyor; Media3 uyarıları ayrıca toplanıyor. Takılma anı, iki üst video
+katmanının (0,5× hız, kaynağın sonuna yakın) başladığı 9,77 sn'ye denk geliyor.
+
 **CI #79** (ce8426c, karışım modları; derleme geçti): 2, 4, 5 (p50 28 ms), 7, 8 GEÇTİ. Hareket takibi yine çalıştı
 (46 nokta, 26 kare, kayıp 0) ama kısa bildirim Maestro'ya yakalanmadı → takip adımı dışa aktarmadan sonraya alındı,
 bitiş meşgul göstergesinden anlaşılır. 3: "Karışım" sekmesi dar ekranda sekme şeridinin dışında kaldı → Konum'un

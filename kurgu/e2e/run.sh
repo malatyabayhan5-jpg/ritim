@@ -83,6 +83,8 @@ for flow in $FLOWS; do
     code=$?
   fi
   adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
+  # Media3 uyarıları (zorla akış sonu, zaman aşımı, kodlayıcı): takılma teşhisi için
+  adb logcat -d "*:S" ExternalTextureManager:W DefaultVideoFrameProcessor:W VideoFrameProcessingTaskExecutor:W MultipleInputVideoGraph:W DefaultVideoCompositor:W TransformerInternal:W MuxerWrapper:W ExoAssetLoaderVideoRenderer:W CCodec:W 2>/dev/null | grep -v "^-----" | head -40 | sed "s/^/[$flow] /" | cut -c1-400 >> "$OUT/medya3.txt"
   # Yerel hata ayrıntıları (önizleme/dışa aktarma istisnaları) akış başına
   adb logcat -d 2>/dev/null | grep -E "KurguPreview|KurguExport|AndroidRuntime|IllegalStateException|IllegalArgumentException|ExoPlaybackException|PlaybackException|Caused by|\tat androidx.media3" | head -60 | sed "s/^/[$flow] /" >> "$OUT/yerel_hatalar.txt"
   adb logcat -c
@@ -123,6 +125,11 @@ elif [ -n "$LAYERFILE" ]; then
   for s in 1 2 5; do ffmpeg -v error -y -ss $s -i "$OUT/katman.mp4" -frames:v 1 "$OUT/katman_${s}sn.png" 2>/dev/null; done
 else
   echo "Katman testi: dışa aktarılmış video bulunamadı" >> "$OUT/sonuclar.txt"
+fi
+# Hareket takibi: akış 6 takip düğmesine basar; yerel izleyicinin sonucu günlükte
+if ran 6_katmanlar; then
+  tl=$(grep -E "\[6_katmanlar\].*\[KurguAI\] track .*points=[1-9]" "$OUT/kurgu_gunluk.txt" | tail -1 | sed 's/.*\[KurguAI\] //')
+  [ -n "$tl" ] && echo "Takip testi: GEÇTİ ($tl)" >> "$OUT/sonuclar.txt" || echo "Takip testi: BAŞARISIZ (günlükte takip sonucu yok)" >> "$OUT/sonuclar.txt"
 fi
 
 # Dışa aktarılan videoyu cihazdan al ve bağımsız bir araçla (ffprobe) denetle
@@ -182,7 +189,9 @@ done
 echo "===== çökme kayıtları ====="
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== AI araçları günlüğü ====="
-cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -80
+cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -250
+echo "===== Media3 uyarıları ====="
+cat "$OUT/medya3.txt" 2>/dev/null | head -120
 echo "===== yerel hata ayrıntıları (akış başına) ====="
 cut -c1-400 "$OUT/yerel_hatalar.txt" 2>/dev/null | head -150
 echo "===== JS / yerel hata satırları ====="

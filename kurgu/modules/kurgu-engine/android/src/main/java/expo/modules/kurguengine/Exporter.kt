@@ -75,6 +75,7 @@ class Exporter(
     val composition: Composition = CompositionFactory.build(
       spec, options.width, options.height, forExport = true,
       padUri = if (CompositionFactory.needsCompositor(spec)) TransparentPad.uri(context) else null,
+      context = context,
     )
     // Teşhis: dizi yapısı (iz türleri, öğe türleri, süreler, hızlar) — takılmalar CI günlüğünden çözülebilsin
     try {
@@ -197,9 +198,22 @@ class Exporter(
         stallDumps++
         lastChangeAt = now
         Log.w("KurguExport", "stall #$stallDumps at $lastProgress%")
-        DebugTraceUtil.generateTraceSummary().chunked(3000).forEachIndexed { i, part -> Log.w("KurguExport", "stall$stallDumps[$i] $part") }
+        if (stallDumps == 1) DebugTraceUtil.generateTraceSummary().chunked(3000).forEachIndexed { i, part -> Log.w("KurguExport", "stall$stallDumps[$i] $part") }
+        // CI #82 izi: ses videoyu bekliyor, tüm video bileşenleri (ortak GL iş parçacığı) aynı
+        // anda susuyor. Hangi çağrıda beklediği iş parçacığı yığınlarından görülür.
+        dumpThreads(stallDumps)
       }
       main.postDelayed(this, 250)
+    }
+  }
+
+  private val idleThreads = Regex("Binder|Daemon|Signal Catcher|Jit|mqt_|hermes|OkHttp|Profile Saver|RenderThread|hwui|perfetto|queued-work|Okio")
+
+  private fun dumpThreads(n: Int) {
+    for ((th, st) in Thread.getAllStackTraces()) {
+      if (st.isEmpty() || idleThreads.containsMatchIn(th.name)) continue
+      val frames = st.take(14).joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }
+      Log.w("KurguExport", "stack$n ${th.name} ${th.state}: $frames")
     }
   }
 

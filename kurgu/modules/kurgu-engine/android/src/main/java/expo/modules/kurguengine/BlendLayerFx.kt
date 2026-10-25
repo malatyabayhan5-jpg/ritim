@@ -13,6 +13,11 @@ import androidx.media3.effect.GlEffect
 import androidx.media3.effect.GlShaderProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Karışım modlu görsel katmanı (çıkartma, şekil, fotoğraf): Media3 birleştiricisi yalnızca
@@ -32,6 +37,58 @@ class BlendLayerFx(
 ) : GlEffect {
   override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
     BlendLayerProgram(context, useHdr, layer, mode, canvasW, canvasH, liveKey)
+
+  /** Görseli kompozisyon kurulurken arka planda hazırlatır (ilk kare GL iş parçacığını bekletmesin). */
+  fun prefetch(context: Context) {
+    BlendPixels.get(context, layer.uri, longSide(canvasW, canvasH, liveKey != null))
+  }
+
+  companion object {
+    /** Önizlemede kanvas boyutu yeter; dışa aktarmada yakınlaştırılmış katman için 2048. */
+    fun longSide(canvasW: Int, canvasH: Int, live: Boolean): Int = if (live) min(2048, max(canvasW, canvasH)) else 2048
+  }
+}
+
+/**
+ * Karışım katmanı görsellerinin GL'ye hazır pikselleri: düz (ön çarpılmamış) alfa, RGBA bayt
+ * sırası, alt satır başta (_layer.glsl düz alfa bekler, GL doku koordinatında t=0 alt kenardır).
+ * Önizleme her düzenlemede yeniden kurulduğundan son birkaç görsel saklanır. Hazırlık GL
+ * iş parçacığında yapılırsa (büyük görsel, emülatör) Media3'ün 500 ms'lik eşzamanlı çağrıları
+ * zaman aşımına uğrar (CI #82: önizleme TimeoutException).
+ */
+internal object BlendPixels {
+  class Pixels(val w: Int, val h: Int, val data: ByteBuffer)
+
+  private val pool = Executors.newSingleThreadExecutor { r -> Thread(r, "KurguBlendPixels") }
+  private val cache = object : LinkedHashMap<String, Future<Pixels?>>(4, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Future<Pixels?>>?) = size > 3
+  }
+
+  fun get(context: Context, uri: String, longSide: Int): Future<Pixels?> {
+    val app = context.applicationContext
+    return synchronized(cache) { cache.getOrPut("$uri#$longSide") { pool.submit<Pixels?> { load(app, uri, longSide) } } }
+  }
+
+  fun forget(uri: String, longSide: Int) {
+    synchronized(cache) { cache.remove("$uri#$longSide") }
+  }
+
+  private fun load(context: Context, uri: String, longSide: Int): Pixels? {
+    val bmp = PhotoRenderer.decode(context, uri, longSide) ?: return null
+    val w = bmp.width
+    val h = bmp.height
+    val px = IntArray(w * h)
+    // Negatif adım: satırlar alttan üste yazılır. getPixels düz alfa ARGB verir.
+    bmp.getPixels(px, (h - 1) * w, -w, 0, 0, w, h)
+    // 0xAARRGGBB -> 0xAABBGGRR: küçük uçlu bellekte R, G, B, A baytları
+    for (i in px.indices) {
+      val c = px[i]
+      px[i] = (c and 0xFF00FF00.toInt()) or ((c ushr 16) and 0xFF) or ((c and 0xFF) shl 16)
+    }
+    val buf = ByteBuffer.allocateDirect(px.size * 4).order(ByteOrder.LITTLE_ENDIAN)
+    buf.asIntBuffer().put(px)
+    return Pixels(w, h, buf)
+  }
 }
 
 @OptIn(UnstableApi::class)
@@ -63,30 +120,20 @@ internal class BlendLayerProgram(
 
   override fun configure(inputWidth: Int, inputHeight: Int): Size = Size(inputWidth, inputHeight)
 
-  /**
-   * Görsel düz (ön çarpılmamış) alfayla ve alt satırı başta olacak şekilde yüklenir:
-   * _layer.glsl düz alfa bekler, GL doku koordinatında t=0 alt kenardır.
-   */
+  /** Görsel BlendPixels'te (arka planda, kompozisyon kurulurken) hazırlanır; burada yalnızca yüklenir. */
   private fun ensureTexture() {
     if (layerTex >= 0) return
-    val bmp = PhotoRenderer.decode(context, layer.uri, 2048) ?: throw VideoFrameProcessingException("BLEND_IMAGE_DECODE")
-    srcW = bmp.width
-    srcH = bmp.height
-    val px = IntArray(srcW * srcH)
-    bmp.getPixels(px, 0, srcW, 0, 0, srcW, srcH)
-    bmp.recycle()
-    val buf = ByteBuffer.allocateDirect(px.size * 4).order(ByteOrder.nativeOrder())
-    for (y in srcH - 1 downTo 0) {
-      val row = y * srcW
-      for (x in 0 until srcW) {
-        val c = px[row + x]
-        buf.put((c shr 16 and 0xFF).toByte())
-        buf.put((c shr 8 and 0xFF).toByte())
-        buf.put((c and 0xFF).toByte())
-        buf.put((c ushr 24).toByte())
-      }
+    val longSide = BlendLayerFx.longSide(canvasW, canvasH, cmKey != null)
+    val px = try {
+      BlendPixels.get(context, layer.uri, longSide).get(20, TimeUnit.SECONDS)
+    } catch (e: Exception) {
+      null
+    } ?: run {
+      BlendPixels.forget(layer.uri, longSide)
+      throw VideoFrameProcessingException("BLEND_IMAGE_DECODE")
     }
-    buf.position(0)
+    srcW = px.w
+    srcH = px.h
     val ids = IntArray(1)
     GLES20.glGenTextures(1, ids, 0)
     layerTex = ids[0]
@@ -95,7 +142,9 @@ internal class BlendLayerProgram(
     GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
     GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
     GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
-    GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, srcW, srcH, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf)
+    // Paylaşılan arabelleğin konumu değişmesin (önizleme ve dışa aktarma aynı anda okuyabilir)
+    val data = px.data.duplicate().also { it.position(0) }
+    GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, srcW, srcH, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, data)
     GlUtil.checkGlError()
   }
 
