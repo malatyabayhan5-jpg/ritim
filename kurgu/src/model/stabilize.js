@@ -127,7 +127,7 @@ function withPatch(clip, patch) {
  * kareleri yerine sabitleme kareleri yazılır.
  * @returns { patch, keys, clamped, low } ya da yeterli örnek yoksa null
  */
-export function stabilizePatch(samples, { clip, media, canvas, level = 'medium' }) {
+export function stabilizePatch(samples, { clip, media, canvas, level = 'medium', rounds = 3 }) {
   if (!samples || samples.length < 3) return null;
   const L = stabLevel(level);
   const base = withPatch(clip, removeStabilizePatch(clip));
@@ -139,27 +139,61 @@ export function stabilizePatch(samples, { clip, media, canvas, level = 'medium' 
   else zoomed.transform.scale = (base.transform?.scale ?? 1) * L.zoom;
 
   const { path, low } = cameraPath(samples);
-  const smooth = smoothPath(path, L.sigmaMs);
   const g = geometry(zoomed, media, canvas);
   const bx = base.transform?.x ?? 0;
   const by = base.transform?.y ?? 0;
+  // Örnek başına: klip zamanı, kenar payı (NDC) ve kaynak kaymasından kanvas kaymasına doğrusal
+  // dönüşüm (çevirme, döndürme, sığdırma ve ölçek dahil; sonlu farkla)
+  const geo = path.map((p) => {
+    const t = Math.round(localAt(clip, p.t));
+    const S = mainPropAt(zoomed, 'scale', t);
+    const c0 = videoToCanvas(0.5, 0.5, zoomed, media, canvas, t);
+    const cu = videoToCanvas(0.51, 0.5, zoomed, media, canvas, t);
+    const cv = videoToCanvas(0.5, 0.51, zoomed, media, canvas, t);
+    return {
+      t,
+      // Kenar görünmeden kaydırılabilecek pay; sığdırmada bant olan eksende büyütme payı
+      lx: Math.max(g.fw * S - 1, (S - 1) * g.fw, 0),
+      ly: Math.max(g.fh * S - 1, (S - 1) * g.fh, 0),
+      m: [(cu.x - c0.x) / 0.01, (cv.x - c0.x) / 0.01, (cu.y - c0.y) / 0.01, (cv.y - c0.y) / 0.01],
+    };
+  });
+  const offsetOf = (i, du, dv) => {
+    const m = geo[i].m;
+    return { x: m[0] * du + m[1] * dv, y: m[2] * du + m[3] * dv };
+  };
+  // Kenar payına sığmayan düzeltme kırpılır. Yalnızca kırpmak, pay dolunca görüntünün sıçramasına
+  // yol açar; bu yüzden kırpılmış yol daha kısa σ ile yeniden yumuşatılıp tekrar kırpılır (`rounds`).
+  let smooth = smoothPath(path, L.sigmaMs);
   let clamped = 0;
+  let out = [];
+  for (let round = 0; round < rounds; round++) {
+    clamped = 0;
+    out = path.map((p, i) => {
+      const o = offsetOf(i, smooth[i].x - p.x, smooth[i].y - p.y);
+      const { lx, ly } = geo[i];
+      const over = Math.abs(o.x) > lx || Math.abs(o.y) > ly;
+      if (over) clamped++;
+      return { x: Math.max(-lx, Math.min(lx, o.x)), y: Math.max(-ly, Math.min(ly, o.y)), over };
+    });
+    if (!clamped || round === rounds - 1) break;
+    // Kırpılan kanvas kaymasını kaynak kaymasına geri çevir (2×2 ters), yolu düzelt, yeniden yumuşat
+    const fixed = path.map((p, i) => {
+      if (!out[i].over) return smooth[i];
+      const [a, b2, c, d] = geo[i].m;
+      const det = a * d - b2 * c;
+      if (Math.abs(det) < 1e-9) return { t: p.t, x: p.x, y: p.y };
+      const du = (d * out[i].x - b2 * out[i].y) / det;
+      const dv = (-c * out[i].x + a * out[i].y) / det;
+      return { t: p.t, x: p.x + du, y: p.y + dv };
+    });
+    smooth = smoothPath(fixed, L.sigmaMs / 3);
+  }
   const pts = [];
   for (let i = 0; i < path.length; i++) {
-    const t = Math.round(localAt(clip, path[i].t));
+    const t = geo[i].t;
     if (pts.length && t <= pts[pts.length - 1].t) continue;
-    const S = mainPropAt(zoomed, 'scale', t);
-    // Kenar görünmeden kaydırılabilecek pay (NDC); sığdırmada bant olan eksende büyütme payı
-    const lx = Math.max(g.fw * S - 1, (S - 1) * g.fw, 0);
-    const ly = Math.max(g.fh * S - 1, (S - 1) * g.fh, 0);
-    const c0 = videoToCanvas(0.5, 0.5, zoomed, media, canvas, t);
-    const c1 = videoToCanvas(0.5 + smooth[i].x - path[i].x, 0.5 + smooth[i].y - path[i].y, zoomed, media, canvas, t);
-    let ox = c1.x - c0.x;
-    let oy = c1.y - c0.y;
-    if (Math.abs(ox) > lx || Math.abs(oy) > ly) clamped++;
-    ox = Math.max(-lx, Math.min(lx, ox));
-    oy = Math.max(-ly, Math.min(ly, oy));
-    pts.push({ t, x: bx + ox, y: by + oy });
+    pts.push({ t, x: bx + out[i].x, y: by + out[i].y });
   }
   if (pts.length < 2) return null;
   const r4 = (v) => Math.round(v * 10000) / 10000;

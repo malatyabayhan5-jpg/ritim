@@ -74,3 +74,33 @@ test('hızlandırılmış klipte kaynak zamanı klip zamanına çevrilir', () =>
   const last = r.patch.keyframes.x[r.patch.keyframes.x.length - 1];
   assert.equal(last.t, Math.round(29 * 100 / 2));
 });
+
+test('kenar payı dolduğunda düzeltme sıçramaz (kırpılan yol yeniden yumuşatılır)', () => {
+  const clip = createMainClip(media);
+  // Payı aşan, yaklaşık 1 sn periyotlu sallanma + küçük titreşim: Az düzeyinde pay dolar
+  const n = 90;
+  const pos = Array.from({ length: n }, (_, i) => 0.05 * Math.sin(i / 2.5) + 0.004 * Math.sin(i * 2.7));
+  const samples = pos.map((v, i) => ({ t: i * 66.667, dx: i ? v - pos[i - 1] : 0, dy: 0, c: 0.9 }));
+  // Görünen içerik konumu (kanvas NDC); ikinci farkın karesel ortalaması kalan sarsıntıdır
+  const shake = (level, rounds) => {
+    const r = stabilizePatch(samples, { clip, media, canvas: landscape, level, rounds });
+    const out = { ...clip, ...r.patch, transform: { ...clip.transform, ...r.patch.transform } };
+    const q = pos.map((v, i) => videoToCanvas(0.5 + v, 0.5, out, media, landscape, Math.round(samples[i].t)).x);
+    let s2 = 0;
+    for (let i = 1; i < n - 1; i++) s2 += (q[i + 1] - 2 * q[i] + q[i - 1]) ** 2;
+    return { rms: Math.sqrt(s2 / (n - 2)), xs: out.keyframes.x, clamped: r.clamped };
+  };
+  for (const level of ['low', 'medium']) {
+    const only = shake(level, 1);
+    const again = shake(level, 3);
+    assert.ok(only.clamped > 0, 'test pay dolduran bir yol kullanmalı');
+    // Ölçülen: yaklaşık %17–20 daha az kalan sarsıntı
+    assert.ok(again.rms < only.rms * 0.9, `${level}: yeniden yumuşatma ${again.rms}, yalnızca kırpma ${only.rms}`);
+  }
+  // Payı yeten düzeyde (Çok) kırpma olmaz, sarsıntı neredeyse tamamen gider
+  const high = shake('high', 3);
+  assert.equal(high.clamped, 0);
+  assert.ok(high.rms < 0.001, String(high.rms));
+  const xs = shake('low', 3).xs;
+  for (const k of xs) assert.ok(Math.abs(k.v) <= 0.05 + 1e-9);
+});
