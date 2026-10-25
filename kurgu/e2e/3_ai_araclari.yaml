@@ -109,9 +109,24 @@ appId: app.kurgu.editor
 - tapOn:
     text: "(Konum|Position)"
 - tapOn:
-    text: "(Karışım|Blend)"
+    id: "layer-tab-blend"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "layer-blend-screen"
+    commands:
+      - tapOn:
+          text: "(Karışım|Blend)"
+# Karışım sekmesinde olunduğu açıklama metninden anlaşılır; mod seçimi (iki yoldan biri) eşgüçlüdür
+- assertVisible:
+    text: "(Karışım modları görsel|Blend modes apply).*"
+- tapOn:
+    id: "layer-blend-screen"
+    optional: true
 - tapOn:
     text: "(Ekran|Screen)"
+    optional: true
 - waitForAnimationToEnd:
     timeout: 5000
 - assertNotVisible:

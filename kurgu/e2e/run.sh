@@ -90,7 +90,7 @@ for flow in $FLOWS; do
   if [ $code -eq 0 ]; then
     echo "$flow: GEÇTİ" >> "$OUT/sonuclar.txt"
   else
-    echo "$flow: BAŞARISIZ (çıkış $code) — ekranda: $(screen_texts | cut -c1-500)" >> "$OUT/sonuclar.txt"
+    echo "$flow: BAŞARISIZ (çıkış $code) — ekranda: $(screen_texts | cut -c1-1500)" >> "$OUT/sonuclar.txt"
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
   fi
   [ $code -eq 124 ] && echo "$flow: 25 dk akış sınırı aşıldı" >> "$OUT/sonuclar.txt"

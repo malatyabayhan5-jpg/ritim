@@ -152,6 +152,8 @@ class Exporter(
       .build()
     transformer = t
     lastProgress = -1
+    lastChangeAt = System.currentTimeMillis()
+    stallDumps = 0
     t.start(composition, file.absolutePath)
     main.post(progressTick)
   }
@@ -177,13 +179,25 @@ class Exporter(
     failCallback = null
   }
 
+  private var lastChangeAt = 0L
+  private var stallDumps = 0
+
   private val progressTick = object : Runnable {
     override fun run() {
       val t = transformer ?: return
+      val now = System.currentTimeMillis()
       if (t.getProgress(holder) == Transformer.PROGRESS_STATE_AVAILABLE && holder.progress != lastProgress) {
         lastProgress = holder.progress
+        lastChangeAt = now
         if (holder.progress % 5 == 0) Log.i("KurguExport", "progress ${holder.progress}%")
         onProgress(holder.progress)
+      } else if (now - lastChangeAt > 30_000 && stallDumps < 3) {
+        // Takılma teşhisi: ilerleme 30 sn değişmediyse Media3 izleme özeti (bileşen başına son
+        // olaylar ve zamanları) parçalı yazılır; en çok 3 kez (CI #72/#74/#79: %70'te yavaşlama)
+        stallDumps++
+        lastChangeAt = now
+        Log.w("KurguExport", "stall #$stallDumps at $lastProgress%")
+        DebugTraceUtil.generateTraceSummary().chunked(3000).forEachIndexed { i, part -> Log.w("KurguExport", "stall$stallDumps[$i] $part") }
       }
       main.postDelayed(this, 250)
     }
