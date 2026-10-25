@@ -149,7 +149,8 @@
     "captions": "Altyazılar",
     "autoCaptions": "Otomatik altyazı",
     "captionList": "Altyazıları düzenle",
-    "background": "Arka plan"
+    "background": "Arka plan",
+    "keyEase": "Eğri"
   },
   "panels": {
     "speedHint": "Hız değiştiğinde ses perdesi korunur. 1x üzeri hızlandırır, altı yavaşlatır.",
@@ -181,7 +182,17 @@
     "denoise": "Gürültü azaltma",
     "volumeKeyHint": "Ses düzeyi anahtar karelerle zamana göre değişiyor; kaydırıcı oynatma kafasındaki kareyi düzenler.",
     "autoEnhance": "Otomatik",
-    "autoApplied": "Otomatik iyileştirme uygulandı; kaydırıcılarla ince ayar yapabilirsiniz."
+    "autoApplied": "Otomatik iyileştirme uygulandı; kaydırıcılarla ince ayar yapabilirsiniz.",
+    "easeHint": "Bu karelerden sonraki geçişe uygulanır.",
+    "ease": {
+      "linear": "Doğrusal",
+      "in": "Yavaş başla",
+      "out": "Yavaş bitir",
+      "inOut": "Yavaş başla ve bitir",
+      "smooth": "Yumuşak",
+      "backOut": "Esnek",
+      "hold": "Sabit"
+    }
   },
   "adjust": {
     "brightness": "Parlaklık",

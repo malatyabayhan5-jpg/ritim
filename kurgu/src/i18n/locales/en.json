@@ -149,7 +149,8 @@
     "captions": "Captions",
     "autoCaptions": "Auto captions",
     "captionList": "Edit captions",
-    "background": "Background"
+    "background": "Background",
+    "keyEase": "Curve"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -181,7 +182,17 @@
     "denoise": "Noise reduction",
     "volumeKeyHint": "Volume changes over time with keyframes; the slider edits the keyframe at the playhead.",
     "autoEnhance": "Auto",
-    "autoApplied": "Auto enhance applied; fine-tune with the sliders."
+    "autoApplied": "Auto enhance applied; fine-tune with the sliders.",
+    "easeHint": "Applies to the change after these keyframes.",
+    "ease": {
+      "linear": "Linear",
+      "in": "Ease in",
+      "out": "Ease out",
+      "inOut": "Ease in and out",
+      "smooth": "Smooth",
+      "backOut": "Spring",
+      "hold": "Hold"
+    }
   },
   "adjust": {
     "brightness": "Brightness",

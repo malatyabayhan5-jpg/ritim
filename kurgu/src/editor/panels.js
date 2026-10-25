@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { ScrollView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useI18n } from '../i18n';
 import { Button, Chip, Icon, Panel, Row, Slider, Txt } from '../ui';
 import { colors, radius, space } from '../theme';
@@ -22,7 +23,7 @@ import {
 } from '../model/catalog';
 import { DEFAULT_ADJUST } from '../model/schema';
 import { SPEED_MAX, SPEED_MIN, mainPropAt, mainPropPatch, toggleMainKey, toggleVolumeKey, volumeAt, volumePatch } from '../model/timeline';
-import { keyAt } from '../model/keyframes';
+import { EASING_IDS, ease, keyAt } from '../model/keyframes';
 import { CURVE_HANDLES, SPEED_PRESETS as CURVE_PRESETS, curveAt, presetCurve } from '../model/speed';
 
 const SPEED_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 20, 50, 100];
@@ -389,6 +390,53 @@ import { FPS as EXPORT_FPS, RESOLUTIONS as EXPORT_RESOLUTIONS } from '../model/e
 
 const CANVAS_BG_COLORS = ['#000000FF', '#FFFFFFFF', '#1F2937FF', '#F5E6CCFF', '#E11D48FF', '#2563EBFF', '#16A34AFF', '#F59E0BFF'];
 
+/** Anahtar kare eğrisi: oynatma kafasındaki karelerden sonraki geçişin yumuşatması. */
+export function KeyEasePanel({ value, onChange, onClose }) {
+  const { t } = useI18n();
+  return (
+    <Panel title={t('tools.keyEase')} onClose={onClose} testID="panel-keyEase">
+      <View style={styles.body}>
+        <Hscroll>
+          {EASING_IDS.map((id) => (
+            <Pressable
+              key={id}
+              onPress={() => onChange(id)}
+              accessibilityRole="button"
+              accessibilityLabel={t(`panels.ease.${id}`)}
+              accessibilityState={{ selected: value === id }}
+              testID={`ease-${id}`}
+              style={[styles.easeTile, value === id && styles.easeTileActive]}
+            >
+              <Svg width={EASE_W} height={EASE_H}>
+                <Path d={easePath(id)} stroke={value === id ? colors.accent : colors.text} strokeWidth={2} fill="none" />
+              </Svg>
+              <Txt numberOfLines={1} style={styles.easeLabel}>
+                {t(`panels.ease.${id}`)}
+              </Txt>
+            </Pressable>
+          ))}
+        </Hscroll>
+        <Txt faint style={styles.hint}>
+          {t('panels.easeHint')}
+        </Txt>
+      </View>
+    </Panel>
+  );
+}
+
+const EASE_W = 56;
+const EASE_H = 36;
+function easePath(id) {
+  // Eğri önizlemesi: x zaman, y değer (yukarı doğru), 24 parça
+  const pts = [];
+  for (let i = 0; i <= 24; i++) {
+    const p = i / 24;
+    const v = id === 'hold' ? (i === 24 ? 1 : 0) : ease(id, p);
+    pts.push(`${i ? 'L' : 'M'}${(p * (EASE_W - 4) + 2).toFixed(1)} ${(EASE_H - 4 - v * (EASE_H - 8)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+
 /** Editörde Dışa Aktar'ın yanındaki çözünürlük seçicisi: çözünürlük ve kare hızı projeye yazılır. */
 export function ExportPrefsPanel({ value, onChange, onClose }) {
   const { t, fmt } = useI18n();
@@ -720,6 +768,9 @@ const styles = StyleSheet.create({
   labeled: { gap: 2 },
   label: { fontSize: 12 },
   hint: { fontSize: 12 },
+  easeTile: { alignItems: 'center', gap: 4, padding: space.xs, borderRadius: radius.md, borderWidth: 2, borderColor: 'transparent', backgroundColor: colors.surface2, minWidth: 72 },
+  easeTileActive: { borderColor: colors.accent },
+  easeLabel: { fontSize: 11 },
   tile: { width: 72, alignItems: 'center', gap: 4, padding: 3, borderRadius: radius.md, borderWidth: 2, borderColor: 'transparent' },
   tileActive: { borderColor: colors.accent },
   tileSwatch: { width: 60, height: 60, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },

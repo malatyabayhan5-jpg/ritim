@@ -858,3 +858,33 @@ export function toggleAllKeys(project, type, id, localMs) {
   }
   return next;
 }
+
+/** Oynatma kafasındaki karelerin yumuşatması (kareden sonraki geçişin eğrisi); kare yoksa null. */
+export function keyEasingAt(project, type, id, localMs) {
+  const tg = KEY_TARGETS[type];
+  const item = tg && tg.get(project, id);
+  if (!item) return null;
+  for (const k of tg.props) {
+    const f = (item.keyframes?.[k] || []).find((x) => Math.abs(x.t - localMs) <= 15);
+    if (f) return f.e || 'linear';
+  }
+  return null;
+}
+
+/** Oynatma kafasındaki tüm özellik karelerinin yumuşatmasını `e` yapar. */
+export function setKeysEasing(project, type, id, localMs, e) {
+  const tg = KEY_TARGETS[type];
+  const item = tg && tg.get(project, id);
+  if (!item) return project;
+  const keyframes = { ...item.keyframes };
+  let changed = false;
+  for (const k of tg.props) {
+    const track = keyframes[k];
+    if (!track) continue;
+    const i = track.findIndex((x) => Math.abs(x.t - localMs) <= 15);
+    if (i < 0) continue;
+    keyframes[k] = track.map((x, j) => (j === i ? { ...x, e } : x));
+    changed = true;
+  }
+  return changed ? tg.update(project, id, { keyframes }) : project;
+}

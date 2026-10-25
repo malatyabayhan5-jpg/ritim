@@ -2,7 +2,7 @@ feature,area,priority,original,clone,notes
 Smooth timeline scroll and pinch zoom on a mid-range phone,performance,must,yes,partial,user reported freezes on Xiaomi 2026-10-25; playhead moved out of editor render in 3c6df80; needs re-check on the phone
 Smooth preview playback with layers and effects,performance,must,yes,partial,same report; lower preview resolution for multi-lane projects; not measured on a real device
 No freeze when applying an edit (effect filter text),performance,must,yes,partial,"text drag, typing, style, size and main clip placement are live (no rebuild); adding or removing items still rebuilds; check on phone"
-Frame-accurate scrubbing with live preview,performance,must,yes,partial,seeks throttled to 60 ms; multi-input graph seek is slow on emulator
+Frame-accurate scrubbing with live preview,performance,must,yes,partial,"JS seek throttle 33 ms + native latest-wins seek coalescing; multi-input graph seek is slow on emulator; check on phone"
 New project from phone videos and photos (multi-select),import,must,yes,yes,e2e 1
 Drafts list with autosave and reopen,projects,must,yes,yes,e2e 1 (reopen and export)
 Rename duplicate delete drafts,projects,should,yes,partial,workspace list; e2e 8 covers photo side
@@ -22,7 +22,7 @@ Freeze frame,clip,should,yes,yes,
 Replace clip media,clip,should,yes,yes,"clip toolbar Replace: keeps timeline length, effects, volume; clears reverse link (bug fixed 2026-10-25); unit test"
 Duplicate clip,clip,could,yes,yes,seen in the recording (clip toolbar); Kurgu has Duplicate
 Keyframes position scale rotation opacity,keyframes,must,yes,yes,"main track, overlays and text; one diamond button under the preview adds or removes keys for all properties at the playhead (unit tests, e2e 1)"
-Keyframe easing (linear ease in ease out),keyframes,should,yes,partial,check easing set against keyframes.js
+Keyframe easing (linear ease in ease out),keyframes,should,yes,yes,"Curve tool appears in the clip / layer / text toolbar while the playhead is on a keyframe: 7 curves with previews (linear, in, out, in-out, smooth, spring, hold); unit test, e2e 1"
 Clip animations in out combo,clip,should,yes,no,Kurgu has text animations only
 Crop rotate flip clip,clip,must,yes,yes,
 Mask (shapes feather invert),clip,should,yes,yes,e2e 6 layer test
@@ -62,7 +62,7 @@ Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + c
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
 Share sheet after export,export,should,yes,partial,
 Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"toolbars in the recording's order, captions / stickers / background on the main toolbar, + Add audio / + Add text rows, fullscreen, keyframe button, resolution picker next to Export, two-line tool labels. Filters / Adjust share one tabbed panel; Clip audio tile left of the main track. Cover tile not built (Kurgu's cover is automatic); not yet seen on the phone"
-Fullscreen preview,ux,could,yes,no,"seen in the recording (controls row, left)"
+Fullscreen preview,ux,could,yes,yes,"controls row left like the recording; hides top bar, timeline and toolbar; back exits"
 Template store,templates,could,yes,skip,their creators and content
 Music and sound effect library,audio,could,yes,skip,licensed catalogue
 Sticker and effect asset packs,effects,could,yes,skip,their content; Kurgu ships its own

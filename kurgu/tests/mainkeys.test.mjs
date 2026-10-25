@@ -110,3 +110,21 @@ test('anahtar kare düğmesi metin ve katmanda da çalışır', () => {
   p = TL.toggleAllKeys(p, 'text', r.newId, 200);
   assert.equal(TL.hasAnyKeyAt(p, 'text', r.newId, 200), false);
 });
+
+test('eğri: oynatma kafasındaki karelerin yumuşatması değişir, ara değer eğriyi izler', () => {
+  let p = projectWith([video('a', 6000)]);
+  const id = p.main[0].id;
+  p = TL.toggleAllKeys(p, 'main', id, 0);
+  p = TL.updateMain(p, id, TL.mainPropPatch(p.main[0], 'scale', 2, 4000));
+  const mid = () => TL.mainPropAt(p.main[0], 'scale', 2000);
+  assert.equal(TL.keyEasingAt(p, 'main', id, 0), 'inOut', 'yeni karelerin varsayılanı');
+  assert.ok(Math.abs(mid() - 1.5) < 1e-6, 'simetrik eğri ortada yarı yolda');
+  p = TL.setKeysEasing(p, 'main', id, 0, 'in');
+  assert.equal(TL.keyEasingAt(p, 'main', id, 0), 'in');
+  for (const k of TL.MAIN_KEY_PROPS) assert.equal(p.main[0].keyframes[k][0].e, 'in', k);
+  assert.ok(mid() < 1.5, 'yavaş başlayan eğri ortada geride kalır');
+  p = TL.setKeysEasing(p, 'main', id, 0, 'hold');
+  assert.equal(mid(), 1, 'sabit: sonraki kareye kadar değer değişmez');
+  assert.equal(TL.keyEasingAt(p, 'main', id, 1000), null, 'kare olmayan anda null');
+  assert.equal(TL.setKeysEasing(p, 'main', id, 1000, 'out'), p);
+});

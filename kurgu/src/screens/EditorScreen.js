@@ -15,6 +15,7 @@ import {
   ImageDurationPanel,
   RatioPanel,
   ExportPrefsPanel,
+  KeyEasePanel,
   SpeedPanel,
   TextPanel,
   TransformPanel,
@@ -248,6 +249,8 @@ export default function EditorScreen({ params, focused }) {
       : selectedText
         ? { type: 'text', id: selectedText.id, start: selectedText.start }
         : null;
+  // Oynatma kafası seçili öğenin bir karesindeyse o karenin eğrisi (araç çubuğunda "Eğri")
+  const keyEase = keyTarget && project ? TL.keyEasingAt(project, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start)) : null;
 
   useEffect(() => {
     // Silinen öğe seçili kalmasın
@@ -1134,6 +1137,7 @@ export default function EditorScreen({ params, focused }) {
 
   function renderTools() {
     const T = (key, icon, onPress, extra = {}) => <ToolButton key={key} testID={`tool-${key}`} icon={icon} label={t(`tools.${key}`)} onPress={onPress} {...extra} />;
+    const keyTool = keyEase ? T('keyEase', 'analytics-outline', () => openPanel('keyEase'), { active: keyEase !== 'inOut' }) : null;
     if (sub === 'audio') {
       return [T('soundFromVideo', 'film-outline', () => {
         const c = ensureClipSelected();
@@ -1164,6 +1168,7 @@ export default function EditorScreen({ params, focused }) {
       const index = project.main.findIndex((c) => c.id === selectedMain.id);
       // Sıra kullanıcının CapCut kaydındaki klip araç çubuğunu izler (replica/recon.md)
       return [
+        keyTool,
         T('split', 'cut-outline', split),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('volume')) : null,
         T('effects', 'sparkles-outline', () => {
@@ -1201,6 +1206,7 @@ export default function EditorScreen({ params, focused }) {
     if (selectedOverlay) {
       const isImage = selectedOverlay.kind === 'image';
       return [
+        keyTool,
         T('layerEdit', 'move-outline', () => openPanel('layer')),
         T('track', 'locate-outline', trackOverlay),
         T('mask', 'ellipse-outline', () => openPanel('layerMask')),
@@ -1212,7 +1218,7 @@ export default function EditorScreen({ params, focused }) {
         T('adjust', 'options-outline', () => openPanel('ovAdjust')),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),
-      ];
+      ].filter(Boolean);
     }
     if (selectedEffect) {
       return [
@@ -1225,6 +1231,7 @@ export default function EditorScreen({ params, focused }) {
     }
     if (selectedText) {
       return [
+        keyTool,
         T('editText', 'create-outline', () => openPanel('text')),
         T('textAnimation', 'film-outline', () => openPanel('textAnim')),
         T('textKeys', 'diamond-outline', () => openPanel('textKeys')),
@@ -1232,7 +1239,7 @@ export default function EditorScreen({ params, focused }) {
         T('split', 'cut-outline', split),
         T('duplicate', 'copy-outline', duplicate),
         T('delete', 'trash-outline', remove),
-      ];
+      ].filter(Boolean);
     }
     // Sıra kullanıcının CapCut kaydındaki ana araç çubuğuyla aynı (replica/recon.md); AI en sonda
     return [
@@ -1440,6 +1447,14 @@ export default function EditorScreen({ params, focused }) {
         const maxMs = i > 0 ? Math.min(TL.clipDuration(project.main[i - 1]), TL.clipDuration(selectedMain)) : 0;
         return <TransitionPanel clip={selectedMain} maxMs={maxMs} onChange={updMain} onApplyAll={(patch) => { apply((p) => ({ ...TL.updateAllMain(p, patch) })); toast(t('panels.appliedToAll')); }} onClose={close} />;
       }
+      case 'keyEase':
+        return keyTarget && keyEase ? (
+          <KeyEasePanel
+            value={keyEase}
+            onChange={(e) => apply((p) => TL.setKeysEasing(p, keyTarget.type, keyTarget.id, Math.round(position - keyTarget.start), e))}
+            onClose={close}
+          />
+        ) : null;
       case 'exportPrefs':
         return <ExportPrefsPanel value={exportPrefs(project)} onChange={(patch) => apply((p) => setExportPrefs(p, patch))} onClose={close} />;
       case 'ratio':

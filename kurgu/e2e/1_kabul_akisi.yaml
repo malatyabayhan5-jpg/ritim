@@ -64,6 +64,13 @@ appId: app.kurgu.editor
 # Anahtar kare düğmesi (kontrol satırı): ekle ve aynı anda kaldır (günlükte [KurguUI] keyframe main)
 - tapOn:
     id: "key-toggle"
+# Kare üzerindeyken araç çubuğunda "Eğri": yavaş bitir seçilir
+- tapOn:
+    id: "tool-keyEase"
+- tapOn:
+    id: "ease-out"
+- tapOn:
+    id: "panel-done"
 - tapOn:
     id: "key-toggle"
 - tapOn:
