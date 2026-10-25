@@ -157,7 +157,8 @@
     "background": "Background",
     "keyEase": "Curve",
     "clipAnim": "Animations",
-    "beats": "Beats"
+    "beats": "Beats",
+    "removeBg": "Remove background"
   },
   "panels": {
     "speedHint": "Pitch is preserved when the speed changes. Above 1x speeds up, below slows down.",
@@ -913,7 +914,18 @@
     "blendNote": "Blend modes apply to image layers (stickers, shapes, photos) and blend with all layers below. Video overlays support only \"Normal\" (opacity and masks are supported).",
     "lanesFull": "Up to 6 overlay tracks can be used.",
     "keyNotFound": "No dominant screen color found at the edges; pick a color manually.",
-    "keyFound": "Key color: {color}"
+    "keyFound": "Key color: {color}",
+    "cutout": {
+      "progress": "Removing background… {percent}%",
+      "done": "Background removed.",
+      "restored": "The original video is back.",
+      "failed": "Could not remove the background.",
+      "cancelled": "Background removal cancelled.",
+      "tooLong": "The background can be removed from at most 60 seconds; trim the layer.",
+      "unsupported": "Video background removal needs Android 9 or later.",
+      "noPerson": "No person found in the video; this tool only separates people.",
+      "suffix": "no background"
+    }
   },
   "speed": {
     "normal": "Normal",

@@ -161,3 +161,24 @@ test('karışım modlu görsel katmanı şeritlerden ayrılır (blendLayers), vi
   const other = splitLive(buildRenderSpec(TL.updateOverlay(p, stId, { blend: 'overlay' }), uri));
   assert.notEqual(a.structure, other.structure);
 });
+
+test('videoda arka plan kaldırma: katman kopyaya geçer, chroma açılır, geri alınca her şey döner', () => {
+  let p = projectWith([video('a', 8000)]);
+  const r = TL.addOverlay(p, video('ov', 6000), 0);
+  p = TL.updateOverlay(r.project, r.newId, { srcIn: 1000, srcOut: 4000, chroma: { tolerance: 0.5 } });
+  const before = p.overlays[0];
+  const cut = { id: 'cut1', kind: 'video', path: 'media/cut1.mp4', name: 'ov (kesik)', durationMs: 3000, width: 720, height: 1280, hasAudio: true, cutoutOf: { mediaId: 'ov', srcIn: 1000, srcOut: 4000 } };
+  p = TL.applyCutout(p, r.newId, cut);
+  const o = p.overlays[0];
+  assert.equal(o.mediaId, 'cut1');
+  assert.deepEqual([o.srcIn, o.srcOut], [0, 3000]);
+  assert.equal(TL.overlayDuration(o), TL.overlayDuration(before), 'zamanlama aynı');
+  assert.equal(o.chroma.on, true);
+  assert.equal(o.chroma.color, '#00B140');
+  assert.equal(TL.findCutoutMedia(p, 'ov', 1000, 4000).id, 'cut1');
+  assert.equal(TL.applyCutout(p, r.newId, cut), p, 'iki kez uygulanmaz');
+  p = TL.removeCutout(p, r.newId);
+  const back = p.overlays[0];
+  assert.deepEqual([back.mediaId, back.srcIn, back.srcOut, back.chroma.tolerance, back.chroma.on], ['ov', 1000, 4000, 0.5, false]);
+  assert.equal(back.cutoutFrom, null);
+});

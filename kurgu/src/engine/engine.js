@@ -208,6 +208,11 @@ export async function transcribe(media, fromMs, toMs, language, modelId, onProgr
  * Klibin kaynak aralığını ters çevrilmiş yeni bir MP4 olarak üretir (cihaz içi yeniden kodlama).
  * Dönüş: { path, durationMs, width, height, hasAudio, frames }.
  */
+/** Videoda arka plan kaldırma: kişi dışı anahtar yeşiline boyanmış yeni video (Cutout.kt). */
+export function cutoutVideo(media, fromMs, toMs, outPath, maxSide, onProgress) {
+  return withAiProgress(onProgress, (engine) => engine.cutoutVideo(mediaUri(media), fromMs, toMs, outPath, maxSide));
+}
+
 export function reverseVideo(media, fromMs, toMs, outPath, maxSide, onProgress) {
   return withAiProgress(onProgress, (engine) => engine.reverseVideo(mediaUri(media), fromMs, toMs, outPath, maxSide));
 }

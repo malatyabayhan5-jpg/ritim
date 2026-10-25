@@ -27,7 +27,7 @@ Clip animations in out combo,clip,should,yes,yes,"Animations in the clip toolbar
 Crop rotate flip clip,clip,must,yes,yes,
 Mask (shapes feather invert),clip,should,yes,yes,e2e 6 layer test
 Chroma key,clip,should,yes,partial,lab verified; no on-device visual check
-Remove background from video (person),ai,should,yes,no,photo only today (TFLite)
+Remove background from video (person),ai,should,yes,partial,"video layers: Remove background segments every frame on the device (DeepLab v3, smoothed between frames), paints the rest key green and turns the layer's chroma key on; tap again to restore. Chroma step lab-verified after H.264; native pipeline compiled in CI but not run on a phone (no e2e video layer)"
 Opacity,clip,must,yes,yes,
 Blend modes for overlays,clip,could,yes,partial,images and stickers 11 modes; video overlays normal only
 Picture in picture overlays,overlay,must,yes,yes,e2e 6

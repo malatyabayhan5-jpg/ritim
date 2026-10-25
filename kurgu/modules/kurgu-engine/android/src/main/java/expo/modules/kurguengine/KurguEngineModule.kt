@@ -130,7 +130,17 @@ class KurguEngineModule : Module() {
       }
     }
 
+    // Videoda arka plan kaldırma: kişi dışı anahtar yeşiline boyanmış yeni video (katmanda chroma key)
+    AsyncFunction("cutoutVideo") { uri: String, fromMs: Double, toMs: Double, outPath: String, maxSide: Int, promise: Promise ->
+      background("cutout", promise) {
+        Cutout.run(context, uri, fromMs.toLong(), toMs.toLong(), outPath, maxSide) { p ->
+          sendEvent("onAiProgress", mapOf("phase" to "cutout", "progress" to p))
+        }
+      }
+    }
+
     AsyncFunction("cancelAi") {
+      Cutout.cancel()
       Reverser.cancel()
       Captions.cancel()
       MotionTracker.cancel()

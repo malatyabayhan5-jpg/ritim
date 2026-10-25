@@ -188,7 +188,7 @@ object Reverser {
   }
 
   /** Kareyi görüntülenen yöne çevirir (gerekirse) ve çıktı boyutuna ölçekler. */
-  private fun prepare(bmp: Bitmap, vw: Int, vh: Int, rot: Int, outW: Int, outH: Int): Bitmap {
+  internal fun prepare(bmp: Bitmap, vw: Int, vh: Int, rot: Int, outW: Int, outH: Int): Bitmap {
     var b = bmp
     // Bazı sürümler döndürmeyi uygulamaz: kare ham boyuttaysa burada döndürülür.
     if ((rot == 90 || rot == 270 || rot == 180) && b.width == vw && b.height == vh && (vw != vh || rot == 180)) {
@@ -204,7 +204,7 @@ object Reverser {
   }
 
   /** ARGB -> YUV 4:2:0 (BT.601 sınırlı aralık), kodlayıcının esnek düzlem düzenine yazılır. */
-  private fun writeYuv(argb: IntArray, w: Int, h: Int, image: android.media.Image) {
+  internal fun writeYuv(argb: IntArray, w: Int, h: Int, image: android.media.Image) {
     val yP = image.planes[0]
     val uP = image.planes[1]
     val vP = image.planes[2]

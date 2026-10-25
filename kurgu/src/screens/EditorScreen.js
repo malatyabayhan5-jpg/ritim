@@ -45,7 +45,7 @@ import { KurguPreview } from '../../modules/kurgu-engine';
 import { buildRenderSpec } from '../engine/renderSpec';
 import { PlayheadValue, createPlayhead, usePlayhead } from '../editor/playhead';
 import { splitLive } from '../engine/live';
-import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, sceneScores, speechPeaks, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
+import { imageStats, renderPhoto, cancelAi, captionModels, cancelRecording, downloadCaptionModel, keyColor, probe, requestMicPermission, reverseVideo, cutoutVideo, sceneScores, speechPeaks, trackMotion, startRecording, stopRecording, synthesizeSpeech, thumbnails, transcribe } from '../engine/engine';
 import { CACHE_DIR, adoptFile, loadProject, mediaExists, mediaUri, saveProject, setProjectCover } from '../storage/library';
 import { importLutFile, importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { loadSettings } from '../storage/settings';
@@ -621,6 +621,54 @@ export default function EditorScreen({ params, focused }) {
   };
 
   // Ters oynatma: klip aralığı cihazda ters kodlanır (bir kez; aynı aralık yeniden kullanılır)
+  // Videoda arka plan kaldırma (katman): kişi dışı yeşile boyanmış kopya + chroma key; ikinci dokunuş geri alır
+  const removeVideoBackground = async () => {
+    const o = selectedOverlay;
+    if (!o || o.kind !== 'video') return;
+    if (o.cutoutFrom) {
+      apply((p) => TL.removeCutout(p, o.id));
+      return toast(t('layer.cutout.restored'));
+    }
+    const cached = TL.findCutoutMedia(project, o.mediaId, o.srcIn, o.srcOut);
+    if (cached) {
+      apply((p) => TL.applyCutout(p, o.id, cached));
+      return toast(t('layer.cutout.done'));
+    }
+    const media = project.media[o.mediaId];
+    previewRef.current?.pause?.();
+    setBusy(t('layer.cutout.progress', { percent: 0 }));
+    try {
+      const tmp = `${CACHE_DIR}cutout_${Date.now()}.mp4`;
+      const r = await cutoutVideo(media, o.srcIn, o.srcOut, tmp, Math.min(1280, Math.max(media.width || 1280, media.height || 720)), (phase, p) =>
+        setBusy(t('layer.cutout.progress', { percent: Math.round((p || 0) * 100) })),
+      );
+      console.log(`[KurguUI] cutout frames=${r.frames} ms=${r.durationMs} coverage=${(r.coverage || 0).toFixed(3)} audio=${r.hasAudio}`);
+      if ((r.coverage || 0) < 0.01) return toast(t('layer.cutout.noPerson'), 'error');
+      const adopted = await adoptFile(r.path, 'cutout.mp4', 'video/mp4');
+      const cut = {
+        id: adopted.id,
+        kind: 'video',
+        path: adopted.path,
+        name: `${media.name} (${t('layer.cutout.suffix')})`,
+        size: adopted.size,
+        durationMs: r.durationMs,
+        width: r.width,
+        height: r.height,
+        hasAudio: r.hasAudio,
+        importedAt: Date.now(),
+        cutoutOf: { mediaId: o.mediaId, srcIn: o.srcIn, srcOut: o.srcOut },
+      };
+      apply((p) => TL.applyCutout(p, o.id, cut));
+      toast(t('layer.cutout.done'));
+    } catch (e) {
+      const code = e?.code || '';
+      console.log(`[KurguUI] cutout failed ${code} ${e?.message}`);
+      toast(t(code === 'CANCELLED' ? 'layer.cutout.cancelled' : /TOO_LONG/.test(`${code} ${e?.message}`) ? 'layer.cutout.tooLong' : /UNSUPPORTED/.test(`${code} ${e?.message}`) ? 'layer.cutout.unsupported' : 'layer.cutout.failed'), 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const reverse = async () => {
     const clip = selectedMain;
     if (!clip || clip.kind !== 'video') return;
@@ -1287,6 +1335,7 @@ export default function EditorScreen({ params, focused }) {
         T('track', 'locate-outline', trackOverlay),
         T('mask', 'ellipse-outline', () => openPanel('layerMask')),
         T('chromaKey', 'color-wand-outline', () => openPanel('layerChroma')),
+        !isImage ? T('removeBg', 'person-outline', removeVideoBackground, { active: !!selectedOverlay.cutoutFrom }) : null,
         T('split', 'cut-outline', split),
         !isImage ? T('volume', 'volume-high-outline', () => openPanel('ovVolume')) : null,
         !isImage ? T('speed', 'speedometer-outline', () => openPanel('ovSpeed')) : null,

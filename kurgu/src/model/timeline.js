@@ -920,3 +920,38 @@ export function toggleBeatMarkers(project, times, from, to) {
     .map((t) => ({ id: newId('mk'), time: t, auto: true }));
   return { project: touch({ ...project, markers: [...markers, ...fresh].sort((a, b) => a.time - b.time) }), added: fresh.length, removed: 0 };
 }
+
+// --- Videoda arka plan kaldırma (katmanlar) ---
+
+/** Arka planı kaldırılmış videolar kişi dışını bu yeşille boyar (Cutout.kt KEY_RGB); katmanın chroma key'i onu saydam yapar. */
+export const CUTOUT_CHROMA = { on: true, color: '#00B140', tolerance: 0.3, softness: 0.15, spill: 0.7 };
+
+export function findCutoutMedia(project, mediaId, srcIn, srcOut) {
+  return Object.values(project.media).find((m) => m.cutoutOf && m.cutoutOf.mediaId === mediaId && Math.abs(m.cutoutOf.srcIn - srcIn) < 2 && Math.abs(m.cutoutOf.srcOut - srcOut) < 2) || null;
+}
+
+/**
+ * Katmanın videosunu arka planı kaldırılmış kopyasıyla değiştirir (aynı aralık, aynı zamanlama)
+ * ve chroma key'i anahtar yeşiline ayarlar. Asıl medya ve chroma ayarı geri dönmek için saklanır.
+ */
+export function applyCutout(project, overlayId, media) {
+  const o = (project.overlays || []).find((x) => x.id === overlayId);
+  if (!o || o.cutoutFrom) return project;
+  const withMedia = { ...project, media: { ...project.media, [media.id]: media } };
+  return updateOverlay(withMedia, overlayId, {
+    mediaId: media.id,
+    srcIn: 0,
+    srcOut: Math.max(1, Math.round(media.durationMs)),
+    chroma: { ...CUTOUT_CHROMA },
+    cutoutFrom: { mediaId: o.mediaId, srcIn: o.srcIn, srcOut: o.srcOut, chroma: o.chroma },
+  });
+}
+
+/** Arka plan kaldırmayı geri alır: asıl video, aralık ve chroma ayarı döner. */
+export function removeCutout(project, overlayId) {
+  const o = (project.overlays || []).find((x) => x.id === overlayId);
+  if (!o?.cutoutFrom) return project;
+  const { mediaId, srcIn, srcOut, chroma } = o.cutoutFrom;
+  const next = updateOverlay(project, overlayId, { mediaId, srcIn, srcOut, cutoutFrom: null });
+  return touch({ ...next, overlays: next.overlays.map((x) => (x.id === overlayId ? { ...x, chroma } : x)) });
+}

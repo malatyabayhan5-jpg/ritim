@@ -52,11 +52,18 @@ object Segmenter {
    * Kişi maskesi üretir (gri PNG, kaynağın en/boy oranında, uzun kenar ≤ 1024).
    * Dönüş: { path, coverage } — coverage: kişi olarak işaretlenen alan oranı (0..1).
    */
-  fun segmentPerson(context: Context, uriString: String, outPath: String): Map<String, Any> {
-    val src = decode(context, uriString, 1024)
-    val input = Bitmap.createScaledBitmap(src, SIZE, SIZE, true)
+  /** Izgara kenarı (personProbs dizisi GRID × GRID). */
+  const val GRID = SIZE
+
+  /**
+   * Görselin kişi olasılık ızgarası (GRID × GRID, satırlar yukarıdan aşağı, 0..1).
+   * Video arka plan kaldırmada (Cutout) her kare için kullanılır.
+   */
+  fun personProbs(context: Context, bmp: Bitmap): FloatArray {
+    val input = if (bmp.width == SIZE && bmp.height == SIZE) bmp else Bitmap.createScaledBitmap(bmp, SIZE, SIZE, true)
     val px = IntArray(SIZE * SIZE)
     input.getPixels(px, 0, SIZE, 0, 0, SIZE, SIZE)
+    if (input !== bmp) input.recycle()
     val inBuf = ByteBuffer.allocateDirect(SIZE * SIZE * 3 * 4).order(ByteOrder.nativeOrder())
     for (c in px) {
       inBuf.putFloat((((c shr 16) and 0xFF) - 127.5f) / 127.5f)
@@ -65,11 +72,10 @@ object Segmenter {
     }
     inBuf.rewind()
     val outBuf = ByteBuffer.allocateDirect(SIZE * SIZE * CLASSES * 4).order(ByteOrder.nativeOrder())
-    interpreter(context).run(inBuf, outBuf)
+    synchronized(this) { interpreter(context).run(inBuf, outBuf) }
     outBuf.rewind()
     val logits = FloatArray(CLASSES)
-    val small = IntArray(SIZE * SIZE)
-    var sum = 0.0
+    val probs = FloatArray(SIZE * SIZE)
     for (i in 0 until SIZE * SIZE) {
       // Piksel başına softmax: kişi sınıfının olasılığı
       var mx = -Float.MAX_VALUE
@@ -79,7 +85,18 @@ object Segmenter {
       }
       var den = 0.0
       for (k in 0 until CLASSES) den += exp((logits[k] - mx).toDouble())
-      val v = (exp((logits[PERSON] - mx).toDouble()) / den).toFloat().coerceIn(0f, 1f)
+      probs[i] = (exp((logits[PERSON] - mx).toDouble()) / den).toFloat().coerceIn(0f, 1f)
+    }
+    return probs
+  }
+
+  fun segmentPerson(context: Context, uriString: String, outPath: String): Map<String, Any> {
+    val src = decode(context, uriString, 1024)
+    val probs = personProbs(context, src)
+    val small = IntArray(SIZE * SIZE)
+    var sum = 0.0
+    for (i in 0 until SIZE * SIZE) {
+      val v = probs[i]
       sum += v
       val g = (v * 255).roundToInt()
       small[i] = Color.argb(255, g, g, g)
