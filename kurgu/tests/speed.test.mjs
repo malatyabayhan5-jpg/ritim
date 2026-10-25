@@ -104,3 +104,33 @@ test('sabit hız 100x\'e kadar: süre 1/100, sınırın üstü kırpılır', asy
   p = TL.setSpeed(p, p.main[0].id, 250);
   assert.equal(p.main[0].speed, 100);
 });
+
+test('klibi değiştir: zaman çizelgesindeki süre ve efektler korunur, ters kaydı düşer', async () => {
+  const TL = await import('../src/model/timeline');
+  const { projectWith, video, image } = await import('./helpers.mjs');
+  let p = projectWith([video('a', 10000), video('b', 4000)]);
+  const id = p.main[0].id;
+  p = TL.updateMain(p, id, { srcIn: 1000, srcOut: 5000, volume: 0.5 });
+  p = TL.addClipEffect(p, id, 'glow').project;
+  const before = TL.totalDuration(p);
+  // Uzun yeni video: süre (4 sn) korunur, baştan başlar
+  let r = TL.replaceMedia(p, id, video('c', 20000));
+  assert.equal(r.main[0].mediaId, 'c');
+  assert.deepEqual([r.main[0].srcIn, r.main[0].srcOut], [0, 4000]);
+  assert.equal(r.main[0].volume, 0.5);
+  assert.equal(r.main[0].effects.length, 1);
+  assert.equal(TL.totalDuration(r), before);
+  // Kısa yeni video: kendi uzunluğuyla sınırlı
+  r = TL.replaceMedia(p, id, video('d', 1500));
+  assert.equal(r.main[0].srcOut, 1500);
+  // Görsel: süre korunur, tür değişir
+  r = TL.replaceMedia(p, id, image('e'));
+  assert.equal(r.main[0].kind, 'image');
+  assert.equal(r.main[0].srcOut - r.main[0].srcIn, 4000);
+  // Ters çevrilmiş klip değiştirilince "ters" kaydı düşer (eski videoya dönmez)
+  const rev = { id: 'rev1', kind: 'video', path: 'media/rev1.mp4', durationMs: 4000, reverseOf: { mediaId: 'a', srcIn: 1000, srcOut: 5000 } };
+  const reversed = TL.reverseMain(p, id, rev);
+  const swapped = TL.replaceMedia(reversed, id, video('f', 9000));
+  assert.equal(swapped.main[0].reversed, null);
+  assert.equal(TL.reverseMain(swapped, id).main[0].mediaId, 'f');
+});

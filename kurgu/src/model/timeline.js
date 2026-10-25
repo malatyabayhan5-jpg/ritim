@@ -311,7 +311,8 @@ export function replaceMedia(project, clipId, media) {
   const isImage = media.kind === 'image';
   const srcOut = isImage ? dur : Math.min(media.durationMs || dur, dur);
   const p = { ...project, media: { ...project.media, [media.id]: media } };
-  return updateMain(p, clipId, { mediaId: media.id, kind: isImage ? 'image' : 'video', srcIn: 0, srcOut: Math.max(MIN_CLIP_MS, srcOut) });
+  // Ters çevrilmiş klibin özgün medya kaydı da düşer: yoksa sonraki "ters" eski videoya dönerdi
+  return updateMain(p, clipId, { mediaId: media.id, kind: isImage ? 'image' : 'video', srcIn: 0, srcOut: Math.max(MIN_CLIP_MS, srcOut), reversed: null });
 }
 
 // --- Ses katmanı ---

@@ -19,7 +19,7 @@ Volume per clip and mute,audio,must,yes,yes,
 Fade in and out,audio,should,yes,yes,
 Reverse clip,clip,should,yes,yes,on-device re-encode; e2e 3
 Freeze frame,clip,should,yes,yes,
-Replace clip media,clip,should,yes,no,
+Replace clip media,clip,should,yes,yes,"clip toolbar Replace: keeps timeline length, effects, volume; clears reverse link (bug fixed 2026-10-25); unit test"
 Duplicate clip,clip,could,low,no,not confirmed in CapCut mobile either
 Keyframes position scale rotation opacity,keyframes,must,yes,yes,main track and overlays; text keyframes partial
 Keyframe easing (linear ease in ease out),keyframes,should,yes,partial,check easing set against keyframes.js
@@ -50,9 +50,9 @@ Effect track with start duration intensity,effects,must,yes,yes,effect layers; e
 Filters with intensity,color,must,yes,yes,116 own filters
 Adjust brightness contrast saturation etc,color,must,yes,yes,
 Transitions between clips with duration,transitions,must,yes,yes,93 own transitions; export slow on emulator
-Apply transition to all,transitions,should,yes,partial,check UI
+Apply transition to all,transitions,should,yes,yes,transition panel Apply to all; per-pair duration clamped to the shorter clip in renderSpec
 Aspect ratio presets,canvas,must,yes,yes,
-Canvas background colour or blur,canvas,should,yes,partial,
+Canvas background colour or blur,canvas,should,yes,partial,letterbox bars are black; no colour / blur / image background yet (next)
 Motion tracking for overlays and text,ai,could,yes,yes,emulator verified for layers
 Stabilization,ai,could,yes,no,
 Auto cut silence and scene detection,ai,could,yes,yes,
