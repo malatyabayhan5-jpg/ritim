@@ -182,7 +182,7 @@ export function Slider({ value, min = 0, max = 1, step = 0, onChange, onComplete
 
 /** Alt panel: başlık + kapat/onayla. Önizleme ve zaman çizelgesi görünür kalır. */
 /**
- * Alt panel. `tabs` verilirse başlık yerine sekmeler çizilir (CapCut'taki Filtreler / Ayarla
+ * Alt panel. `tabs` verilirse başlık yerine sekmeler çizilir (referans uygulamadaki Filtreler / Ayarla
  * paneli gibi): [{ key, label, active, onPress, testID }].
  */
 export function Panel({ title, onClose, onDone, children, testID, right, tabs }) {

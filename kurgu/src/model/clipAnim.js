@@ -1,4 +1,4 @@
-// Ana iz klip animasyonları (CapCut'taki klip araç çubuğu "Animasyonlar": giriş, çıkış, kombo).
+// Ana iz klip animasyonları (referans uygulamadaki klip araç çubuğu "Animasyonlar": giriş, çıkış, kombo).
 // Yerel tarafta ayrı bir efekt yok: animasyon render tanımında klibin konum / ölçek / açı /
 // opaklık anahtar kareleriyle birleştirilir (Fx.kt KeyedPlacement, KeyedOpacity). Kullanıcının
 // kendi kareleri korunur: ölçek ve opaklık çarpılır, konum ve açı eklenir.

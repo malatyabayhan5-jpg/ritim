@@ -267,7 +267,7 @@ export default function Timeline({
             />
           ))}
 
-          {/* Ana izin solunda, izle birlikte kayan "Klip sesi" düğmesi (CapCut kaydındaki sol sütun) */}
+          {/* Ana izin solunda, izle birlikte kayan "Klip sesi" düğmesi (referans kayıttaki sol sütun) */}
           {onToggleMainAudio ? (
             <Pressable
               testID="main-audio-toggle"

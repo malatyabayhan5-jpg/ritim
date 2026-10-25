@@ -232,7 +232,7 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "clip-0"
-# Ters çevir klip araç çubuğunun sonunda (CapCut sırası): görünene kadar kaydır
+# Ters çevir klip araç çubuğunun sonunda (referans sıra): görünene kadar kaydır
 - repeat:
     while:
       notVisible:

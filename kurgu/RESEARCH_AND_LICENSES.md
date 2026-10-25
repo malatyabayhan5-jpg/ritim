@@ -10,18 +10,15 @@ kod yalnızca lisansı açıkça ticari kullanıma izin veriyorsa ve atıf yapı
 
 | Kaynak | Durum |
 |---|---|
-| capcut.com | Bu ortamdan doğrudan erişilemedi (DNS). Sayfa içerikleri arama motoru özetleri üzerinden okundu. |
+| referans uygulamanın sitesi | Bu ortamdan doğrudan erişilemedi (DNS). Sayfa içerikleri arama motoru özetleri üzerinden okundu (ayrıntı: replica/recon.md). |
 | openeffects.org (OpenFX) | Erişilemedi (DNS). OpenFX yalnızca masaüstü eklenti API'si olduğu için mobil motora doğrudan katkısı yok; karar etkilenmedi. |
 | dl.google.com / Android SDK | Engelli; yerelde APK derlenemiyor. Derleme ve emülatör testi GitHub Actions'ta yapılır. |
 
 ## 2. Ürün araştırması (yalnızca kategori ve kullanıcı beklentisi)
 
-| Kaynak | Alınan bilgi | Kullanım |
-|---|---|---|
-| https://www.capcut.com/resource/video-effects-app | Efekt sekmeleri: Trend, Sinematik, Retro, Glitch, AI efektleri; popüler aileler: açılış/kapanış, gece kulübü/retro, glitch/bozulma, vlog, 3B/çizgi film, karanlık/bölünmüş ekran | Kategori listemizi (ışık, glitch, retro, hareket, bulanıklık, stil, yaratıcı, bozulma, atmosfer, sinematik) belirlemede referans. İsimler, simgeler ve görseller **alınmadı**. |
-| https://www.capcut.com/help/recommended-alternative-effects | Efektlerin zaman çizelgesinde ayrı iz olarak, süreli öğe şeklinde uygulandığı; klibe de uygulanabildiği | Efekt katmanı şeridi + klip efekt yığını tasarımı |
-| https://www.capcut.com/resource/ai-effect | AI efektlerinin bulut işleme gerektirdiği | Çevrimdışı ilke nedeniyle bu sürüme alınmadı |
-| APKMirror'daki CapCut 18.0.0 / 17.9.0 sürüm listeleri | Yalnızca sürüm/minimum Android bilgisi | APK indirilmedi, açılmadı, incelenmedi |
+Referans uygulamanın herkese açık sayfalarından yapılan ürün araştırması ve kaynak bağlantıları
+`replica/recon.md` dosyasındadır (Kaynaklar, "2026-10-18 araştırması"). Bu belge yalnızca
+teknik araştırmayı ve lisansları tutar.
 
 ## 3. Teknik araştırma
 

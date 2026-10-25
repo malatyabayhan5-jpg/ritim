@@ -391,7 +391,7 @@ import { FPS as EXPORT_FPS, RESOLUTIONS as EXPORT_RESOLUTIONS } from '../model/e
 
 const CANVAS_BG_COLORS = ['#000000FF', '#FFFFFFFF', '#1F2937FF', '#F5E6CCFF', '#E11D48FF', '#2563EBFF', '#16A34AFF', '#F59E0BFF'];
 
-/** Klip animasyonları (CapCut klip araç çubuğu "Animasyonlar"): giriş, çıkış, kombo sekmeleri. */
+/** Klip animasyonları (referans uygulamanın klip araç çubuğu "Animasyonlar"): giriş, çıkış, kombo sekmeleri. */
 export function ClipAnimPanel({ clip, durationMs, onChange, onClose }) {
   const { t, fmt } = useI18n();
   const [tab, setTab] = useState(() => (clip.anim?.combo && clip.anim.combo !== 'none' && (!clip.anim.in || clip.anim.in === 'none') ? 'combo' : 'in'));

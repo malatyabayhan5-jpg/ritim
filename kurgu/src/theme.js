@@ -11,7 +11,7 @@ export const colors = {
   accent: '#8B6CFF',
   onAccent: '#0B0B0F', // vurgu zemini üstünde yazı (AA 5.3:1)
   accentSoft: 'rgba(139,108,255,0.18)',
-  accent2: '#2EE6C9',
+  accent2: '#FF7EB6', // ikincil vurgu (pembe): referans uygulamanın camgöbeğinden ayrı aile
   danger: '#FF5A6E',
   warning: '#FFB547',
   success: '#3DDC97',
@@ -37,6 +37,6 @@ export const font = {
   small: { fontSize: 13 },
   tiny: { fontSize: 11 },
 };
-// Editör düzeni (dp): kullanıcının CapCut kaydından ölçüldü (replica/design/tokens.json "layout")
+// Editör düzeni (dp): referans kayıttan ölçüldü (replica/design/tokens.json "layout")
 export const layout = { toolW: 64, toolbarH: 72, controlsH: 46, topBarH: 52 };
 export const HIT = 44; // en küçük dokunma hedefi (dp)

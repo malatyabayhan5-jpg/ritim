@@ -249,7 +249,7 @@ if ran 1_kabul_akisi && [ -f "$OUT/cikti.mp4" ]; then
     echo "Klip animasyonu testi: BAŞARISIZ (günlükte animasyon seçimi yok)" >> "$OUT/sonuclar.txt"
   fi
 fi
-# Düzen karşılaştırması (replica-diff): kullanıcının CapCut kaydından referans kareler ile klonun
+# Düzen karşılaştırması (replica-diff): referans kayıttan referans kareler ile klonun
 # aynı ekranları. Kenar haritası ızgarası, renk yok sayılır; önizlemedeki videolar farklı olduğu için
 # önizleme alanı da farka katkı verir. Puanlar sonuclar.txt'ye, fark görselleri yapıta.
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

@@ -117,7 +117,7 @@ appId: app.kurgu.editor
 - takeScreenshot:
     path: 08_filtre
     optional: true
-# Aynı panelde Ayarla sekmesi (CapCut'taki gibi Filtreler / Ayarla sekmeleri)
+# Aynı panelde Ayarla sekmesi (referans uygulamadaki gibi Filtreler / Ayarla sekmeleri)
 - tapOn:
     id: "color-tab-adjust"
 - extendedWaitUntil:
@@ -268,7 +268,7 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "panel-done"
-# Dışa aktarma: CapCut'taki gibi tek dokunuşla başlar (ayar ekranı atlanır)
+# Dışa aktarma: referans uygulamadaki gibi tek dokunuşla başlar (ayar ekranı atlanır)
 - tapOn:
     id: "export-open"
 # Android 13+: dışa aktarma bildirimi için sistem izin penceresi (veriler sıfırlandığı için yeniden sorulur)

@@ -1,0 +1,18 @@
+{
+  "avoid": [
+    "CapCut",
+    "ByteDance",
+    "Bytedance",
+    "lvoverseas",
+    "Lemon Inc"
+  ],
+  "domains": [
+    "capcut.com",
+    "capcutapi.com"
+  ],
+  "colors": [
+    "#00C8DF",
+    "#00C8E1",
+    "#00C8DD"
+  ]
+}

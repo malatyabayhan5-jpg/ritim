@@ -27,8 +27,8 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 
 | # | Bulgu | Etki | Kök neden |
 |---|---|---|---|
-| K1 | **Efekt sistemi CapCut düzeyinin çok altında**: 12 efekt tek bir "süper shader"ın parametre varyasyonlarıdır; glow/bloom, ışık sızıntısı, bulanıklık türleri, distorsiyon, parçacık, CRT gibi temel efektler yok | Ürünün ana değer önerisi karşılanmıyor | Efektler tek `FxShaderProgram` içinde birkaç uniform ile sınırlı tasarlandı |
-| K2 | **Klip başına yalnızca bir efekt** ve efektler zaman çizelgesinde ayrı katman olarak yok (CapCut'ta efektler ayrı bir izde süreli öğelerdir) | Birden fazla efekt birleştirilemiyor, efekt süresi ayarlanamıyor | Veri modelinde `clip.fx` tek nesne |
+| K1 | **Efekt sistemi referans uygulama düzeyinin çok altında**: 12 efekt tek bir "süper shader"ın parametre varyasyonlarıdır; glow/bloom, ışık sızıntısı, bulanıklık türleri, distorsiyon, parçacık, CRT gibi temel efektler yok | Ürünün ana değer önerisi karşılanmıyor | Efektler tek `FxShaderProgram` içinde birkaç uniform ile sınırlı tasarlandı |
+| K2 | **Klip başına yalnızca bir efekt** ve efektler zaman çizelgesinde ayrı katman olarak yok (referans uygulamada efektler ayrı bir izde süreli öğelerdir) | Birden fazla efekt birleştirilemiyor, efekt süresi ayarlanamıyor | Veri modelinde `clip.fx` tek nesne |
 | K3 | **HDR kaynaklarda renkler tutarsız olabilir**: kompozisyonda HDR modu belirtilmemiş (varsayılan HDR'yi koru); efekt shader'ları SDR değer aralığı varsayıyor, H.264 HDR taşıyamaz | Modern telefonların HDR/HLG videolarında önizleme ile çıktı renkleri ve efektler bozulabilir | `Composition.Builder.setHdrMode` çağrılmıyor |
 
 ### Yüksek
@@ -37,7 +37,7 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 |---|---|---|---|
 | Y1 | Geri al geçmişinde kaydırıcı birleştirmesi zamandan bağımsız: aynı türden iki ayrı ayar (ör. A klibinin hızı, sonra B klibinin hızı) tek adımda birleşir | Geri al, beklenenden fazlasını geri alır | `pushHistory` yalnızca anahtar eşitliğine bakıyor |
 | Y2 | Dışa aktarılan her video hem uygulama içinde hem galeride tutuluyor; uygulama içi kopyalar hiç silinmiyor | Depolama hızla dolar | Kopya temizliği yalnızca "önbelleği temizle" ile |
-| Y3 | Efekt önizleme küçük resimleri yok (renk kutucuğu / simge) | Kullanıcı efekti seçmeden göremiyor; CapCut'tan belirgin fark | Katalogda görsel yok |
+| Y3 | Efekt önizleme küçük resimleri yok (renk kutucuğu / simge) | Kullanıcı efekti seçmeden göremiyor; referans uygulamadan belirgin fark | Katalogda görsel yok |
 | Y4 | Eksik medyayı yeniden bağlama hatası sessizce yutuluyor | Kullanıcı neden olmadığını anlamıyor | `relink` içinde boş `catch` |
 | Y6 | Oynatma kafası sondayken eklenen efekt katmanı/metin video dışına düşüyordu (emülatör testinde bulundu) | Efekt veya metin çıktıda görünmüyor | Yerleşimde video süresi hesaba katılmıyordu |
 | Y7 | Yavaş cihazda yoğun efektli dışa aktarma muxer zaman aşımıyla iptal (emülatörde bulundu) | Dışa aktarma başarısız | Media3 varsayılan 10 sn örnek bekleme sınırı |
@@ -48,7 +48,7 @@ Kodda TODO/FIXME, sahte veri veya boş işlevli düğme bulunmadı.
 | # | Bulgu | Etki |
 |---|---|---|
 | O1 | Android 13+ bildirim izni istenmiyor; dışa aktarma bildirimi görünmeyebilir | İlerleme yalnızca uygulamada görülür |
-| O2 | Geçişler tek klip üzerinde çalışır (siyaha/beyaza geçiş, giriş hareketi); iki klibin üst üste karıştığı çapraz geçiş yok | CapCut'taki dissolve/push gibi geçişler eksik |
+| O2 | Geçişler tek klip üzerinde çalışır (siyaha/beyaza geçiş, giriş hareketi); iki klibin üst üste karıştığı çapraz geçiş yok | referans uygulamadaki dissolve/push gibi geçişler eksik |
 | O3 | Ses %100 üzerine yükseltilemiyor; ses efektleri yok | Sessiz kayıtlar için sınırlayıcı |
 | O4 | Zaman çizelgesinde kare adımı yok | Hassas konumlandırma yalnızca yakınlaştırmayla |
 | O5 | Isınma/güç tasarrufu yalnızca dışa aktarma öncesi kontrol ediliyor | Uzun önizlemede ısınma uyarısı yok |

@@ -1,11 +1,11 @@
 # Kurgu — Özellik envanteri
 
-**Kaynak notu.** CapCut'ın resmî Play Store sayfasına bu geliştirme ortamından
-erişilemedi. Karşılaştırma için yalnızca CapCut Android sürümlerinin mağaza
+**Kaynak notu.** referans uygulamanın resmî Play Store sayfasına bu geliştirme ortamından
+erişilemedi. Karşılaştırma için yalnızca referans uygulamanın Android sürümlerinin mağaza
 açıklamasını yansıtan APKMirror listeleri kullanıldı (ör. 18.0.0 sürümü:
 otomatik altyazı, arka plan kaldırma, tüm ayarlarda anahtar kare, 0,1x–100x hız
 ve hız eğrisi, optik akış, chroma key, sabitleme, çok izli zaman çizelgesi,
-metinden konuşma, hareket takibi). Bu listede bulunmayan CapCut özellikleri
+metinden konuşma, hareket takibi). Bu listede bulunmayan referans uygulama özellikleri
 "doğrulanmadı" olarak işaretlenmiştir. Hiçbir özellik uydurulmamıştır.
 
 **Durum değerleri** (`PROGRESS.md` ile aynıdır, o dosya esas kaynaktır):

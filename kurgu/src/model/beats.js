@@ -1,4 +1,4 @@
-// Ritim işaretleri (CapCut klip araç çubuğundaki "Ritim"): sesin genlik zarfındaki ani
+// Ritim işaretleri (referans uygulamanın klip araç çubuğundaki "Ritim"): sesin genlik zarfındaki ani
 // yükselişler (başlangıçlar) vuruş sayılır. Girdi motorun waveform() tepe değerleridir
 // (saniyede `rate` örnek, 0..1). Saf fonksiyon; birim testlidir.
 

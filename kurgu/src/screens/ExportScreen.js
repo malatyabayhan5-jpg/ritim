@@ -89,7 +89,7 @@ export default function ExportScreen({ params }) {
     return false;
   }, [phase]);
 
-  // Editördeki Dışa Aktar düğmesi (CapCut'taki gibi tek dokunuş): proje ve kodlayıcı bilgisi gelince,
+  // Editördeki Dışa Aktar düğmesi (referans uygulamadaki gibi tek dokunuş): proje ve kodlayıcı bilgisi gelince,
   // seçilen mod destekleniyorsa bir kez başlar; desteklenmiyorsa ayar ekranında kalınır.
   const autoStarted = useRef(false);
   const autoRetried = useRef(false);

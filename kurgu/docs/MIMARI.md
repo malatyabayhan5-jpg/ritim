@@ -129,7 +129,7 @@ parça render motorudur. Önerilen yol:
 - H.264/HEVC kodlama cihazın kendi (lisanslı) donanım kodlayıcısıyla yapılır; uygulama kodek dağıtmaz.
 - Kullanıcı dosyaları hiçbir sunucuya gönderilmez; telemetri yoktur. API anahtarı kaynak kodda yoktur.
 - Silme işlemleri onay ister; proje silinirken yalnızca o projeye ait medya kopyaları silinir.
-- Marka, simge ve renk paleti özgündür; CapCut'a ait kod, marka, simge veya varlık kullanılmaz.
+- Marka, simge ve renk paleti özgündür; referans uygulamaya ait kod, marka, simge veya varlık kullanılmaz.
 
 ## 9b. Efekt motoru
 

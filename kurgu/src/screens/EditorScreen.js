@@ -1049,7 +1049,7 @@ export default function EditorScreen({ params, focused }) {
       </View>
 
       {/* Oynatma denetimleri */}
-      {/* Oynatma denetimleri: CapCut kaydındaki gibi tam ekran solda, oynat ortada, geri al / yinele sağda */}
+      {/* Oynatma denetimleri: referans kayıttaki gibi tam ekran solda, oynat ortada, geri al / yinele sağda */}
       <Row style={styles.controls}>
         <Row gap={0} style={styles.controlsSide}>
           <IconButton icon={fullscreen ? 'contract-outline' : 'expand-outline'} size={20} label={t(fullscreen ? 'editor.exitFullscreen' : 'editor.fullscreen')} onPress={() => setFullscreen((f) => !f)} testID="fullscreen-toggle" />
@@ -1213,7 +1213,7 @@ export default function EditorScreen({ params, focused }) {
     if (selectedMain) {
       const isImage = selectedMain.kind === 'image';
       const index = project.main.findIndex((c) => c.id === selectedMain.id);
-      // Sıra kullanıcının CapCut kaydındaki klip araç çubuğunu izler (replica/recon.md)
+      // Sıra referans kayıttaki klip araç çubuğunu izler (replica/recon.md)
       return [
         keyTool,
         T('split', 'cut-outline', split),
@@ -1291,7 +1291,7 @@ export default function EditorScreen({ params, focused }) {
         T('delete', 'trash-outline', remove),
       ].filter(Boolean);
     }
-    // Sıra kullanıcının CapCut kaydındaki ana araç çubuğuyla aynı (replica/recon.md); AI en sonda
+    // Sıra referans kayıttaki ana araç çubuğuyla aynı (replica/recon.md); AI en sonda
     return [
       T('edit', 'cut-outline', () => ensureClipSelected()),
       T('audio', 'musical-notes-outline', () => setSub('audio')),
@@ -1319,7 +1319,7 @@ export default function EditorScreen({ params, focused }) {
       toast(t('panels.appliedToAll'));
     };
     const target = selectedMain || clipAtPlayhead();
-    // Filtreler ve Ayarla tek panelde iki sekme (kullanıcının CapCut kaydı, S15)
+    // Filtreler ve Ayarla tek panelde iki sekme (referans kayıt, S15)
     const colorTabs = (filtersKey, adjustKey) => [
       { key: 'filters', label: t('tools.filters'), active: panel === filtersKey, onPress: () => setPanel(filtersKey), testID: 'color-tab-filters' },
       { key: 'adjust', label: t('tools.adjust'), active: panel === adjustKey, onPress: () => setPanel(adjustKey), testID: 'color-tab-adjust' },

@@ -1,7 +1,7 @@
 # Kurgu — mobil video düzenleyici
 
 Özgün markalı, mobil öncelikli, çok katmanlı bir video düzenleyici. Kullanım
-mantığı yaygın mobil editörlere (CapCut benzeri) yakındır: üstte önizleme,
+mantığı yaygın mobil editörlere (referans uygulama benzeri) yakındır: üstte önizleme,
 ortada oynatma kafası sabit zaman çizelgesi, altta araç çubuğu ve alt paneller.
 Kod, marka, simge ve varlıklar özgündür.
 

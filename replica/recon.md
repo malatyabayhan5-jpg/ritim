@@ -48,6 +48,15 @@ Date: 2026-10-25
 | 15 | miracamp export guide | https://www.miracamp.com/learn/capcut/how-to-export-high-quality-videos | export: 480p / 720p / 1080p / 4K, 24 / 30 / 60 fps, bitrate Low / Medium / High, H.264 / HEVC. `low`: third party |
 | 16 | user's own phone (screen recording) | `replica/screens/` | received 2026-10-25: home, editor, main and clip toolbars, text / audio / caption menus, auto captions, adjust panel, export progress |
 
+### 2026-10-18 research (moved from kurgu/RESEARCH_AND_LICENSES.md)
+
+| Kaynak | Alınan bilgi | Kullanım |
+|---|---|---|
+| https://www.capcut.com/resource/video-effects-app | Efekt sekmeleri: Trend, Sinematik, Retro, Glitch, AI efektleri; popüler aileler: açılış/kapanış, gece kulübü/retro, glitch/bozulma, vlog, 3B/çizgi film, karanlık/bölünmüş ekran | Kategori listemizi (ışık, glitch, retro, hareket, bulanıklık, stil, yaratıcı, bozulma, atmosfer, sinematik) belirlemede referans. İsimler, simgeler ve görseller **alınmadı**. |
+| https://www.capcut.com/help/recommended-alternative-effects | Efektlerin zaman çizelgesinde ayrı iz olarak, süreli öğe şeklinde uygulandığı; klibe de uygulanabildiği | Efekt katmanı şeridi + klip efekt yığını tasarımı |
+| https://www.capcut.com/resource/ai-effect | AI efektlerinin bulut işleme gerektirdiği | Çevrimdışı ilke nedeniyle bu sürüme alınmadı |
+| APKMirror'daki CapCut 18.0.0 / 17.9.0 sürüm listeleri | Yalnızca sürüm/minimum Android bilgisi | APK indirilmedi, açılmadı, incelenmedi |
+
 ## Core loop
 
 Open the app, start a project from phone media, cut it into a short vertical
