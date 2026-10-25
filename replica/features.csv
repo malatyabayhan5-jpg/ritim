@@ -5,7 +5,7 @@ No freeze when applying an edit (effect filter text),performance,must,yes,partia
 Frame-accurate scrubbing with live preview,performance,must,yes,partial,"JS seek throttle 33 ms + native latest-wins seek coalescing; multi-input graph seek is slow on emulator; check on phone"
 New project from phone videos and photos (multi-select),import,must,yes,yes,e2e 1
 Drafts list with autosave and reopen,projects,must,yes,yes,e2e 1 (reopen and export)
-Rename duplicate delete drafts,projects,should,yes,partial,workspace list; e2e 8 covers photo side
+Rename duplicate delete drafts,projects,should,yes,yes,"long-press menu on video and photo drafts: open, rename, duplicate, share package, delete (code review); e2e 8 covers the photo side, video drafts not automated"
 Multi-track timeline (main overlay audio text effect caption),timeline,must,yes,yes,six overlay lanes; e2e 6
 Trim clip edges by dragging handles,timeline,must,yes,yes,
 Split at playhead,timeline,must,yes,yes,e2e 1
@@ -60,7 +60,7 @@ Export resolution 480p to 4K,export,must,yes,yes,720p to 2160p offered
 Export frame rate 24 to 60,export,must,yes,yes,
 Export bitrate low medium high and codec,export,should,yes,yes,quality tiers + codec row
 Export progress and save to gallery,export,must,yes,yes,e2e 1 ffprobe check
-Share sheet after export,export,should,yes,partial,
+Share sheet after export,export,should,yes,yes,"Share button on the export done screen opens the Android share sheet (expo-sharing); code review, the share sheet itself is not automated"
 Editor layout close to CapCut (toolbar order sub toolbars bottom sheets),ux,must,yes,partial,"toolbars in the recording's order, captions / stickers / background on the main toolbar, + Add audio / + Add text rows, fullscreen, keyframe button, resolution picker next to Export, two-line tool labels. Filters / Adjust share one tabbed panel; Clip audio tile left of the main track. Cover tile not built (Kurgu's cover is automatic); not yet seen on the phone"
 Fullscreen preview,ux,could,yes,yes,"controls row left like the recording; hides top bar, timeline and toolbar; back exits"
 Template store,templates,could,yes,skip,their creators and content
