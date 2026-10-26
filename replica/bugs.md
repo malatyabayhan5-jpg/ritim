@@ -118,6 +118,26 @@ a paused seek reports its target; `pause()` reports a position only when it was 
 selecting an item and the keyframe diamond pause unconditionally (`playing` can lag after the player
 is rebuilt at the end of the timeline).
 
+### BUG-010: Main thread and JS thread stalled for 91 s after a video layer turned on the multi-input preview
+
+- Severity: S1 (app freezes; Android may show "isn't responding")
+- Flow / case: F01, F05 / e2e 1 (and probably e2e 6 "Kurgu isn't responding" in CI #131)
+- Screen: S03
+- Build: fd453bf  Device: CI emulator #133 (software GPU)
+
+Steps
+1. Two or three clips, a text, then add an effect layer (the preview switches to the multi-input graph).
+
+Expected: the editor stays responsive.
+Actual: `KurguPerf compose total=46 ... multi=true` at 02:14:17, then `main stall ms=91454` and
+`jsStall ms=91261` reported at 02:15:54. Every preview rebuild itself took 20–184 ms, so the time is
+spent after the rebuild, outside `applyComposition`. This matches the test driver not finding
+buttons for 15–30 s in CI #129–#133.
+Evidence: CI #133 flow 1 log.
+Status: open. Next run logs the stacks of the main, JS, playback and GL threads while a stall lasts
+over 3 s, to see what the main thread is waiting for. Whether a real phone GPU shows the same length
+is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.

@@ -446,13 +446,52 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   // Tanı: ana iş parçacığı 700 ms'den uzun tıkanırsa süresi günlüğe yazılır (KurguPerf). Kare
   // geri çağrısı yerine seyrek bir zamanlayıcı: boşta ekran çizimini zorlamaz.
   private var stallDueAt = 0L
+  @Volatile private var mainBeat = 0L
   private val stallWatch = object : Runnable {
     override fun run() {
       val now = android.os.SystemClock.uptimeMillis()
       val late = now - stallDueAt
       if (stallDueAt > 0 && late > 700) android.util.Log.w("KurguPerf", "main stall ms=$late")
       stallDueAt = now + 500
+      mainBeat = now
       main.postDelayed(this, 500)
+    }
+  }
+
+  // Tıkanma sürerken ana iş parçacığının (ve JS / oynatma / GL iş parçacıklarının) o anki yığını
+  // arka plandan bir kez yazılır: neyin beklettiği doğrudan görünür.
+  @Volatile private var samplerOn = false
+  private fun startStallSampler() {
+    if (samplerOn) return
+    samplerOn = true
+    Thread({
+      var dumpedFor = 0L
+      while (samplerOn) {
+        try { Thread.sleep(1000) } catch (e: InterruptedException) { break }
+        val beat = mainBeat
+        if (beat == 0L) continue
+        val stuck = android.os.SystemClock.uptimeMillis() - beat
+        if (stuck > 3000 && dumpedFor != beat) {
+          dumpedFor = beat
+          dumpThreads(stuck)
+        }
+      }
+    }, "kurgu-stall-sampler").apply { isDaemon = true }.start()
+  }
+
+  private fun dumpThreads(stuckMs: Long) {
+    try {
+      val all = Thread.getAllStackTraces()
+      for ((t, frames) in all) {
+        val n = t.name
+        val interesting = t === Looper.getMainLooper().thread || n.startsWith("mqt_js") || n.contains("Playback") ||
+          n.contains("Effect") || n.contains("GL") || n.contains("Composition") || n.contains("VideoFrame")
+        if (!interesting) continue
+        val top = frames.take(14).joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }
+        android.util.Log.w("KurguPerf", "stack stuck=${stuckMs}ms thread=$n state=${t.state} :: $top")
+      }
+    } catch (e: Throwable) {
+      android.util.Log.w("KurguPerf", "stack dump failed ${e.javaClass.simpleName}")
     }
   }
 
@@ -461,12 +500,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     attached = true
     stallDueAt = 0L
     main.post(stallWatch)
+    startStallSampler()
     applyComposition()
   }
 
   override fun onDetachedFromWindow() {
     attached = false
     main.removeCallbacks(stallWatch)
+    samplerOn = false
+    mainBeat = 0L
     releasePlayer()
     super.onDetachedFromWindow()
   }
