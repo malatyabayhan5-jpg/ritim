@@ -273,16 +273,23 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val w = (s.width * scale).roundToInt()
     val h = (s.height * scale).roundToInt()
     try {
+      // Tanı: ana iş parçacığında geçen süre parça parça (donma araştırması, CI #129–#132)
+      val t0 = android.os.SystemClock.uptimeMillis()
       val multi = CompositionFactory.needsCompositor(s)
       if (multi && graphSpent) releasePlayer()
+      val t1 = android.os.SystemClock.uptimeMillis()
       val composition = CompositionFactory.build(s, w, h, forExport = false, live = true, padUri = if (multi) TransparentPad.uri(context) else null, context = context)
+      val t2 = android.os.SystemClock.uptimeMillis()
       val p = ensurePlayer(multi)
       val wasPlaying = p.playWhenReady
       val pos = if (p.playbackState == Player.STATE_IDLE) pendingPositionMs else p.currentPosition
       val clamped = pos.coerceIn(0L, max(0L, s.totalMs - 1))
+      val t3 = android.os.SystemClock.uptimeMillis()
       p.setComposition(composition, clamped)
       p.prepare()
       p.playWhenReady = wasPlaying
+      val t4 = android.os.SystemClock.uptimeMillis()
+      android.util.Log.i("KurguPerf", "compose total=${t4 - t0} release=${t1 - t0} build=${t2 - t1} player=${t3 - t2} set=${t4 - t3} multi=$multi clips=${s.main.size}")
     } catch (e: Exception) {
       onPreviewError(mapOf("code" to "COMPOSITION_FAILED", "message" to (e.message ?: e.javaClass.simpleName)))
     }
@@ -422,8 +429,11 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     queuedSeekMs = -1L
     player?.let {
       pendingPositionMs = it.currentPosition
+      val r0 = android.os.SystemClock.uptimeMillis()
       try {
         it.release()
+        val took = android.os.SystemClock.uptimeMillis() - r0
+        if (took > 100) android.util.Log.w("KurguPerf", "release ms=$took")
       } catch (e: IllegalStateException) {
         // Oynatma iş parçacığı Media3 hatasıyla ölmüşse release() denetime takılır
         // (CompositionPlayer.handleRelease: playbackThread.isAlive). Oynatıcı bırakılır.
@@ -433,14 +443,30 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     player = null
   }
 
+  // Tanı: ana iş parçacığı 700 ms'den uzun tıkanırsa süresi günlüğe yazılır (KurguPerf). Kare
+  // geri çağrısı yerine seyrek bir zamanlayıcı: boşta ekran çizimini zorlamaz.
+  private var stallDueAt = 0L
+  private val stallWatch = object : Runnable {
+    override fun run() {
+      val now = android.os.SystemClock.uptimeMillis()
+      val late = now - stallDueAt
+      if (stallDueAt > 0 && late > 700) android.util.Log.w("KurguPerf", "main stall ms=$late")
+      stallDueAt = now + 500
+      main.postDelayed(this, 500)
+    }
+  }
+
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     attached = true
+    stallDueAt = 0L
+    main.post(stallWatch)
     applyComposition()
   }
 
   override fun onDetachedFromWindow() {
     attached = false
+    main.removeCallbacks(stallWatch)
     releasePlayer()
     super.onDetachedFromWindow()
   }

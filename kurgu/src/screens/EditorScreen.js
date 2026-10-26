@@ -1017,6 +1017,17 @@ export default function EditorScreen({ params, focused }) {
     return now < start || now > start + dur ? Math.round(to) : null;
   };
 
+  // Tanı: JS iş parçacığı 700 ms'den uzun tıkanırsa günlüğe yazılır (donma araştırması, e2e)
+  useEffect(() => {
+    let due = Date.now() + 500;
+    const id = setInterval(() => {
+      const late = Date.now() - due;
+      if (late > 700) console.log(`[KurguUI] jsStall ms=${late}`);
+      due = Date.now() + 500;
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
+
   const zoom = (next) => setPxPerMs(Math.max(MIN_PX_PER_MS, Math.min(MAX_PX_PER_MS, next)));
 
   // Dışa Aktar doğrudan başlar (çözünürlük üst çubuktaki seçiciden); "Diğer ayarlar" ayar ekranını açar

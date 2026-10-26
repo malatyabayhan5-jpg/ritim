@@ -82,7 +82,7 @@ for flow in $FLOWS; do
     (cd "$OUT" && timeout 1500 maestro test "../kurgu/e2e/$flow.yaml" > "$OUT/$flow.log" 2>&1)
     code=$?
   fi
-  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
+  adb logcat -d -s "ReactNativeJS:*" "KurguExport:*" "KurguAI:*" "KurguPerf:*" 2>/dev/null | grep -E "Kurgu(AI|Export|UI|Photo|Perf)" | sed "s/^/[$flow] /" | cut -c1-3500 >> "$OUT/kurgu_gunluk.txt"
   # Media3 uyarıları (zorla akış sonu, zaman aşımı, kodlayıcı): takılma teşhisi için
   adb logcat -d "*:S" ExternalTextureManager:W DefaultVideoFrameProcessor:W VideoFrameProcessingTaskExecutor:W MultipleInputVideoGraph:W DefaultVideoCompositor:W TransformerInternal:W MuxerWrapper:W ExoAssetLoaderVideoRenderer:W CCodec:W 2>/dev/null | grep -v "^-----" | head -40 | sed "s/^/[$flow] /" | cut -c1-400 >> "$OUT/medya3.txt"
   # Yerel hata ayrıntıları (önizleme/dışa aktarma istisnaları) akış başına
@@ -186,6 +186,15 @@ if ran 3_ai_araclari; then
     echo "Sabitleme testi: GEÇTİ ($sl)" >> "$OUT/sonuclar.txt"
   fi
 fi
+# Tıkanmalar (donma araştırması): ana iş parçacığı / JS iş parçacığı 700 ms'yi aşan gecikmeler
+# ve önizleme kurulum süreleri, akış başına özet
+for flow in $FLOWS; do
+  ms=$(grep -E "\[$flow\].*KurguPerf.*main stall ms=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*ms=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
+  js=$(grep -E "\[$flow\].*jsStall ms=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*ms=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
+  cp=$(grep -E "\[$flow\].*KurguPerf.*compose total=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*total=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
+  nm=$(grep -cE "\[$flow\].*KurguPerf.*main stall" "$OUT/kurgu_gunluk.txt")
+  [ -n "$ms$js$cp" ] && echo "Tıkanma $flow: ana iş parçacığı $nm kez (en uzun ms: ${ms:-yok}); JS en uzun ms: ${js:-yok}; önizleme kurulumu en uzun ms: ${cp:-yok}" >> "$OUT/sonuclar.txt"
+done
 # Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
 for flow in 1_kabul_akisi 6_katmanlar; do
   ran "$flow" || continue

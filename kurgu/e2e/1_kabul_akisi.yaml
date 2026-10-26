@@ -188,6 +188,12 @@ appId: app.kurgu.editor
     optional: true
 - tapOn:
     id: "panel-done"
+# CI #129–#132: geçişten sonra arayüz test aracına uzun süre yanıt vermedi; bekleme süresi
+# (ve uygulamanın tıkanma günlüğü, run.sh "Tıkanma" satırı) neden olduğunu ölçer.
+- extendedWaitUntil:
+    visible:
+      id: "tool-back"
+    timeout: 30000
 - tapOn:
     id: "tool-back"
 # Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle.
