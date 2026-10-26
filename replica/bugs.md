@@ -165,6 +165,19 @@ the emulator's software GL pipe being held. Experiment (pending CI): only the fl
 emulator with `-gpu swangle_indirect` (ANGLE over SwiftShader Vulkan); the stack dump now lists every
 non-idle thread, not just ones picked by name. Whether a real phone GPU shows the same length
 is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
+CI #138: swangle made it worse: the emulator's own System UI stopped responding ("System UI isn't
+responding" on the home screen, so flow 1 could not even start) and the emulator log filled with
+`Failed to find ColorBuffer` / `context was preempted` errors. Reverted; every group runs
+`swiftshader_indirect` again. The same run gave a clean stack for a shorter stall (flow 7, 15.8 s,
+project from flow 6 with a video layer, `multi=true`): main thread in `nSyncAndDrawFrame`,
+`Effect:MultipleInputVideoGraph:Thread` in `glCreateProgram` for the canvas background shader, playback
+thread reading audio underruns. So the UI waits while the video graph compiles its shaders on the
+emulator's software GL; flows 3/6 had 0–1 s stalls in the same run. Judgement: the length is an
+emulator artefact (software shader compilation behind one GL pipe), not app code holding the main
+thread, and nothing the app does on the main thread is in the stacks. Flow 7 now waits 30 s (was 5 s)
+for the record panel; run.sh still prints every stall in its "Tıkanma" line, so it stays visible.
+Open: the multi-input graph builds a fresh set of shader programs on each rebuild; on a phone that is a
+one-off cost of tens of ms per program, but it has not been measured on a real device.
 
 ## Test tooling bugs (not app bugs)
 

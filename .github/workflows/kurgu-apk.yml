@@ -95,10 +95,8 @@ jobs:
             akislar: 6_katmanlar 7_seslendirme 8_fotograf
           - grup: kabul-disa-aktarma
             akislar: 1_kabul_akisi
-            # Deney (BUG-010): geçişli çok girişli önizlemede arayüz 90 sn donuyor; yalnızca bu
-            # grupta ANGLE üzerinden SwiftShader (swangle) denenir, diğer gruplar karşılaştırma için
-            # eski modda kalır.
-            gpu: swangle_indirect
+            # swangle_indirect denendi (CI #138): System UI yanıt vermedi, ColorBuffer hataları;
+            # tüm gruplar swiftshader_indirect ile kalır. Gerekirse grup başına `gpu:` verilebilir.
     name: e2e (${{ matrix.grup }})
     env:
       E2E_FLOWS: ${{ matrix.akislar }}

@@ -37,10 +37,12 @@ appId: app.kurgu.editor
     timeout: 2000
 - tapOn:
     text: "(Seslendir|Voiceover|تعليق صوتي)"
+# Çok girişli önizleme kurulurken emülatörün yazılım GL'i arayüzü 15 sn'ye kadar
+# durdurabiliyor (CI #138, BUG-010); süre run.sh'ın "Tıkanma" satırında ayrıca raporlanır.
 - extendedWaitUntil:
     visible:
       id: "record-start"
-    timeout: 5000
+    timeout: 30000
 - tapOn:
     id: "record-start"
 - tapOn:
