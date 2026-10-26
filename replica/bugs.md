@@ -134,8 +134,13 @@ Actual: `KurguPerf compose total=46 ... multi=true` at 02:14:17, then `main stal
 spent after the rebuild, outside `applyComposition`. This matches the test driver not finding
 buttons for 15–30 s in CI #129–#133.
 Evidence: CI #133 flow 1 log.
-Status: open. Next run logs the stacks of the main, JS, playback and GL threads while a stall lasts
-over 3 s, to see what the main thread is waiting for. Whether a real phone GPU shows the same length
+CI #133 per flow: flows with layers or A/B transitions stalled 65–108 s (3: 93/108 s, 6: 65/79/89 s,
+7: 72 s, 1: 91 s); flows without (2, 4, 5) had no stall at all.
+Status: partly mitigated (pending CI): when a project has no video layer, image / sticker / shape
+layers in normal blend mode now go through the single-input `BlendLayerFx` path like the blended ones,
+so they no longer switch the preview to the multi-input graph. A/B transitions and video layers still
+use it; the next run logs the stacks of the main, JS, playback and GL threads while a stall lasts
+over 3 s, to fix those at the root. Whether a real phone GPU shows the same length
 is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
 
 ## Test tooling bugs (not app bugs)

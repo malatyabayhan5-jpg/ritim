@@ -182,3 +182,21 @@ test('videoda arka plan kaldırma: katman kopyaya geçer, chroma açılır, geri
   assert.deepEqual([back.mediaId, back.srcIn, back.srcOut, back.chroma.tolerance, back.chroma.on], ['ov', 1000, 4000, 0.5, false]);
   assert.equal(back.cutoutFrom, null);
 });
+
+test('video katmanı yoksa normal görsel katmanları da tek girişli yoldan çizilir (BUG-010)', () => {
+  let p = projectWith([video('v1')]);
+  let r = TL.addOverlay(p, image('st1'), 0);
+  const first = r.newId;
+  r = TL.addOverlay(r.project, image('st2'), 1000);
+  p = r.project;
+  let spec = buildRenderSpec(p, uri);
+  // Çok girişli birleştirici gerekmez: şerit yok, iki görsel de karışım yolunda, normal kipte
+  assert.equal(spec.layers.length, 0);
+  assert.deepEqual(spec.blendLayers.map((l) => l.blend), [0, 0]);
+  assert.ok(spec.blendLayers.some((l) => l.key === first));
+  // Video katmanı eklenince şerit sırası korunur: normal görseller yeniden birleştiriciye döner
+  p = TL.addOverlay(p, video('v2'), 0).project;
+  spec = buildRenderSpec(p, uri);
+  assert.ok(spec.layers.length >= 1);
+  assert.equal(spec.blendLayers.length, 0);
+});

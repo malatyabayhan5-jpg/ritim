@@ -37,7 +37,9 @@ test('A/B katmanları: pencere kesmeyi ortalar, A altta B üstte, kullanıcı ka
   let p = withTransition('dissolve', 1000);
   p = TL.addOverlay(p, image('o'), 0).project;
   const s = buildRenderSpec(p, uri);
-  assert.equal(s.layers.length, 3);
+  // Video katmanı yokken görsel katman tek girişli karışım yolundan, birleştiriciden sonra
+  // (yani geçiş şeritlerinin üstünde) çizilir (BUG-010)
+  assert.equal(s.layers.length, 2);
   const [a] = s.layers[0];
   const [b] = s.layers[1];
   assert.equal(a.key, `tr:${p.main[1].id}:A`);
@@ -45,7 +47,9 @@ test('A/B katmanları: pencere kesmeyi ortalar, A altta B üstte, kullanıcı ka
   assert.equal(a.startMs, 4500);
   assert.deepEqual(a.tr, [1, 4500, 1000, 0, 0.2]);
   assert.equal(b.tr[3], 1);
-  assert.equal(s.layers[2][0].key, p.overlays[0].id);
+  assert.equal(s.blendLayers.length, 1);
+  assert.equal(s.blendLayers[0].key, p.overlays[0].id);
+  assert.equal(s.blendLayers[0].blend, 0);
 });
 
 test('fazlalık yoksa yarım hız (sıçrama yok), varsa normal hız', () => {

@@ -171,7 +171,11 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
 
   // Karışım modlu görsel katmanları birleştiriciye değil, kompozisyon efektine gider
   // (BlendLayerFx.kt). Video katmanlarında karışım desteklenmez: normal çizilir.
-  const blended = (o) => isBlendedOverlay(o);
+  // Projede video katmanı yoksa normal karışımlı görsel katmanları da aynı tek girişli yoldan
+  // çizilir: çok girişli video grafiği (MultipleInputVideoGraph) emülatörde ana iş parçacığını
+  // 60–110 sn kilitledi (BUG-010). Video katmanı varsa şerit sırası korunsun diye eski yol.
+  const hasVideoOverlay = overlays.some((o) => o.kind !== 'image');
+  const blended = (o) => isBlendedOverlay(o) || (!hasVideoOverlay && o.kind === 'image');
   const laneIds = [...new Set(overlays.filter((o) => !blended(o)).map((o) => o.lane))].sort((a, b) => a - b);
   const trLanes = transitionLayers(project, layout, main, transitions);
   const layers = [...trLanes, ...laneIds.map((lane) =>
@@ -183,7 +187,7 @@ export function buildRenderSpec(project, resolveUri, options = {}) {
   const blendLayers = overlays
     .filter(blended)
     .sort((a, b) => a.lane - b.lane || a.start - b.start)
-    .map((o) => ({ ...overlaySpec(project, o, resolveUri), blend: BLEND_MODES.indexOf(o.blend) }));
+    .map((o) => ({ ...overlaySpec(project, o, resolveUri), blend: Math.max(0, BLEND_MODES.indexOf(o.blend || 'normal')) }));
 
   return {
     width: project.canvas.width,
