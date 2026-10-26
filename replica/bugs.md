@@ -118,29 +118,18 @@ a paused seek reports its target; `pause()` reports a position only when it was 
 selecting an item and the keyframe diamond pause unconditionally (`playing` can lag after the player
 is rebuilt at the end of the timeline).
 
-### BUG-009: Timeline drawn over the toolbar after text and effect lanes were added
-
-- Severity: S2 (main toolbar unusable)
-- Flow / case: F01 / e2e 1
-- Screen: S03
-- Build: 343e046 (APK of CI #128)  Device: CI emulator #129, #130
-
-Steps
-1. Add clips, a text, an effect layer, a clip effect and a transition; go back to the main toolbar.
-
-Expected: the main toolbar (Edit, Audio, Text, …) is visible and tappable.
-Actual: Maestro never saw `tool-audio` as visible for 15 s. The UI dump puts the toolbar at
-y 1107–1163 of 1170, but the failure screenshot shows the timeline's dark background and the playhead
-line running down to the bottom of the screen where the toolbar should be.
-Status: the timeline box now clips its content (`overflow: hidden`), so nothing inside it can paint
-over the toolbar. Not yet confirmed as the cause; the next failure (if any) also logs the bounds of
-the preview, timeline box and toolbar and the screen density. Pending CI.
-
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.
 - text_check at 160x90 lost thin letters — fixed in c46a929.
 - Flow 6 redo tap missed after undo — retried by label in f904ac9.
+- Flow 1 could not find `tool-audio` after the transition step (CI #129–#131), although the button
+  is on screen: CI #131 logged the main toolbar at y 1107–1163 of 1170 (density 160), the timeline
+  box at 778–1098, and the failure screenshot shows the toolbar icons. An earlier reading that the
+  timeline covered the toolbar was wrong (the ASCII output had been cut short when read). The
+  timeline box now clips its content anyway. Maestro still did not see the id; the flow now taps the
+  button by its label when the id is not visible, and on failure run.sh logs the tool ids in
+  Maestro's own hierarchy to find out why.
 - Clip animation check compared brightness, but flow 1's duotone effect layer turns black into a dark
   purple, so a fully transparent first frame measured Y≈35 against 48 (CI #118). It now compares
   contrast (YHIGH − YLOW); validated on synthetic fade-in videos with a colour lift (20 vs 155 passes,

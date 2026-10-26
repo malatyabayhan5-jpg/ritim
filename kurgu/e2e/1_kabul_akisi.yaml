@@ -194,10 +194,25 @@ appId: app.kurgu.editor
 # Geçişten sonra önizleme yeniden kurulurken emülatörde ana araç çubuğu geç gelebilir (CI #128).
 - extendedWaitUntil:
     visible:
-      id: "tool-audio"
+      id: "toolbar-scroll"
     timeout: 15000
-- tapOn:
-    id: "tool-audio"
+# CI #129–#131: Maestro bu noktada "tool-audio" kimliğini bulamadı, oysa düğme ekranda ve
+# uiautomator dökümünde var (run.sh hata bloğu Maestro'nun hiyerarşisini de yazar). Kimlik
+# görünmüyorsa düğmeye etiketinden dokunulur; akışın kalanı (dışa aktarma, metin) yine koşar.
+- runFlow:
+    when:
+      visible:
+        id: "tool-audio"
+    commands:
+      - tapOn:
+          id: "tool-audio"
+- runFlow:
+    when:
+      notVisible:
+        id: "tool-audio"
+    commands:
+      - tapOn:
+          text: "(Audio|Ses)"
 - tapOn:
     id: "tool-soundFromVideo"
 - tapOn:

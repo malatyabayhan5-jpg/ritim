@@ -98,6 +98,8 @@ for flow in $FLOWS; do
     {
       echo "--- $flow hata anı: ekran $(adb shell wm size 2>/dev/null | tr -d '\r' | tail -1), $(adb shell wm density 2>/dev/null | tr -d '\r' | tail -1); kap ve tool-* sınırları ---"
       adb shell cat /sdcard/ui.xml 2>/dev/null | grep -oE 'resource-id="(tool-[^"]*|preview|timeline-box|timeline-vscroll|toolbar-scroll|panel-[^"]*)"[^>]*bounds="[^"]*"' | sed -E 's/resource-id="([^"]*)".*bounds="([^"]*)"/\1 \2/' | head -30
+      # Maestro'nun kendi gördüğü hiyerarşi (uiautomator dökümüyle farkı tanı için)
+      echo "maestro hierarchy: $(timeout 90 maestro hierarchy 2>/dev/null > "$OUT/maestro_hiyerarsi_$flow.json"; wc -c < "$OUT/maestro_hiyerarsi_$flow.json") bayt; tool-* kimlikleri: $(grep -oE '"resource-id" *: *"tool-[^"]*"' "$OUT/maestro_hiyerarsi_$flow.json" 2>/dev/null | sed -E 's/.*"(tool-[^"]*)"/\1/' | tr '\n' ' ')"
       python3 "$(dirname "$0")/ascii_shot.py" "$OUT/hata_$flow.png" --rows 44 2>&1
     } >> "$OUT/ekran_ascii.txt"
   fi
