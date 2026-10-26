@@ -196,7 +196,10 @@ for flow in $FLOWS; do
   js=$(grep -E "\[$flow\].*jsStall ms=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*ms=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
   cp=$(grep -E "\[$flow\].*KurguPerf.*compose total=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*total=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
   nm=$(grep -cE "\[$flow\].*KurguPerf.*main stall" "$OUT/kurgu_gunluk.txt")
-  [ -n "$ms$js$cp" ] && echo "Tıkanma $flow: ana iş parçacığı $nm kez (en uzun ms: ${ms:-yok}); JS en uzun ms: ${js:-yok}; önizleme kurulumu en uzun ms: ${cp:-yok}" >> "$OUT/sonuclar.txt"
+  # Duraklatılmışken işlenen kareler (2 sn'lik pencere başına en yüksek üç değer, BUG-010)
+  pf=$(grep -E "\[$flow\].*KurguPerf: paused activity frames=" "$OUT/kurgu_gunluk.txt" | sed -E 's/.*frames=([0-9]+).*/\1/' | sort -n | tail -3 | tr '\n' ' ')
+  pw=$(grep -cE "\[$flow\].*KurguPerf: paused activity" "$OUT/kurgu_gunluk.txt")
+  [ -n "$ms$js$cp" ] && echo "Tıkanma $flow: ana iş parçacığı $nm kez (en uzun ms: ${ms:-yok}); JS en uzun ms: ${js:-yok}; önizleme kurulumu en uzun ms: ${cp:-yok}; duraklatılmışken etkin pencere: $pw (en çok kare: ${pf:-yok})" >> "$OUT/sonuclar.txt"
 done
 # Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
 for flow in 1_kabul_akisi 6_katmanlar; do

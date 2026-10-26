@@ -85,7 +85,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   /** Kaydırıcı değerleri: kompozisyonu yeniden kurmadan günceller, duraklatılmışsa kareyi yeniler. */
   fun setLive(json: String?) {
-    if (json == null) return
+    if (json == null || json == lastLiveJson) return
     lastLiveJson = json
     if (applyLive(json)) requestRedraw()
   }
@@ -114,6 +114,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private val redraw = Runnable {
     val p = player ?: return@Runnable
     lastRedraw = android.os.SystemClock.uptimeMillis()
+    redraws.incrementAndGet()
     if (graphSpent && playerMulti) return@Runnable rebuildAt(p.currentPosition, playWhenReady = false)
     if (!p.isPlaying && p.playbackState != Player.STATE_IDLE) p.seekTo(p.currentPosition)
   }
@@ -227,12 +228,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     player?.let { if (playerMulti == multi) return it }
     if (player != null) releasePlayer()
     playerMulti = multi
+    multiNow = multi
+    playingNow = false
     graphSpent = false
     val builder = CompositionPlayer.Builder(context)
     if (multi) builder.setVideoGraphFactory(MultipleInputVideoGraph.Factory())
     val p = builder.build()
     p.addListener(object : Player.Listener {
       override fun onIsPlayingChanged(isPlaying: Boolean) {
+        playingNow = isPlaying
         emitState()
         if (isPlaying) main.post(positionTick) else main.removeCallbacks(positionTick)
       }
@@ -384,6 +388,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private fun issueSeek(target: Long) {
     val p = player ?: return
     seekInFlight = scrubbing
+    seeks.incrementAndGet()
     p.seekTo(target)
     if (seekInFlight) {
       main.removeCallbacks(seekWatchdog)
@@ -485,13 +490,34 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   // Tıkanma sürerken ana iş parçacığının (ve JS / oynatma / GL iş parçacıklarının) o anki yığını
   // arka plandan bir kez yazılır: neyin beklettiği doğrudan görünür.
   @Volatile private var samplerOn = false
+  // Tanı (BUG-010): duraklatılmışken önizleme kare işlemeyi sürdürüyor mu? 2 sn'lik pencerelerde
+  // işlenen ana iz karesi, arama ve yeniden çizim sayısı; yalnızca oynatma yokken etkinlik varsa yazılır.
+  private val seeks = java.util.concurrent.atomic.AtomicLong()
+  private val redraws = java.util.concurrent.atomic.AtomicLong()
+  @Volatile private var playingNow = false
+  @Volatile private var multiNow = false
   private fun startStallSampler() {
     if (samplerOn) return
     samplerOn = true
     Thread({
       var dumpedFor = 0L
+      var tick = 0
+      var lastF = PreviewStats.frames.get()
+      var lastS = seeks.get()
+      var lastR = redraws.get()
       while (samplerOn) {
         try { Thread.sleep(1000) } catch (e: InterruptedException) { break }
+        if (++tick % 2 == 0) {
+          val f = PreviewStats.frames.get()
+          val sk = seeks.get()
+          val rd = redraws.get()
+          if (!playingNow && (f != lastF || sk != lastS || rd != lastR)) {
+            android.util.Log.i("KurguPerf", "paused activity frames=${f - lastF} seeks=${sk - lastS} redraws=${rd - lastR} multi=$multiNow")
+          }
+          lastF = f
+          lastS = sk
+          lastR = rd
+        }
         val beat = mainBeat
         if (beat == 0L) continue
         val stuck = android.os.SystemClock.uptimeMillis() - beat

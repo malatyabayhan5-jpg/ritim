@@ -184,6 +184,15 @@ video background removal test pass again. Flow 1 stalled 50 s and then 59 s afte
 `glGenTextures` (Media3 `TexturePool.createTextures`), a call that only blocks when the emulator's GL
 pipe is backed up. Flow 1 now waits up to 120 s for the main toolbar after the transition so the rest
 of the flow (audio, text, export) is checked; the stall still prints in "Tıkanma".
+CI #140/#141: flow 1 now fails one step earlier (`tool-back` within 30 s after the transition) and
+flow 7 stalled 39 s. Timing in #140: the multi-input preview was built at 06:29:40 (61 ms), but the
+88.8 s main-thread stall only began at 06:31:32, almost two minutes later; in #141 flow 7 the video
+graph was still creating shader programs (`DefaultVideoFrameProcessor.configure`) 50 s after the
+build. So the graph keeps the GL pipe busy long after it is built, while nothing is playing. Next
+measurement (pending CI): the preview logs `paused activity frames= seeks= redraws=` every 2 s when
+frames are processed while paused, and a live update whose values did not change no longer triggers
+a redraw (each redraw is a seek, and a seek in the multi-input graph flushes every decoder).
+Waits for `tool-back` (flow 1) and the record panel (flow 7) are 120 s for this run.
 
 ## Test tooling bugs (not app bugs)
 

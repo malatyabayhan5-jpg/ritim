@@ -77,6 +77,7 @@ class KeyedPlacement(
   }
 
   override fun getMatrix(presentationTimeUs: Long): Matrix {
+    if (liveKey != null) PreviewStats.frames.incrementAndGet()
     val t = presentationTimeUs / 1000.0 - clipStartMs
     val lv = LiveParams.get(liveKey)?.takeIf { it.size >= 4 }
     val s = Keyframes.valueAt(kf["scale"], t, lv?.get(0) ?: scale)
@@ -91,6 +92,11 @@ class KeyedPlacement(
     m.postTranslate(x, y)
     return m
   }
+}
+
+/** Tanı (BUG-010): önizlemede ana iz kliplerinin işlenen kare sayısı (KurguPreviewView okur). */
+object PreviewStats {
+  val frames = java.util.concurrent.atomic.AtomicLong()
 }
 
 /** Anahtar kareli opaklık (ana iz): rengi siyaha doğru karartır. */

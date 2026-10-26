@@ -193,7 +193,7 @@ appId: app.kurgu.editor
 - extendedWaitUntil:
     visible:
       id: "tool-back"
-    timeout: 30000
+    timeout: 120000
 - tapOn:
     id: "tool-back"
 # Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle.
