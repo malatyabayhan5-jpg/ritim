@@ -55,7 +55,8 @@ CapCut's promo banner, tool grid or template tabs. Those are out of scope.
 2. [must] Editor layout: confirm on the phone (two-line labels at 64 dp, top bar width on 360 dp).
 3. [should] Chroma key, canvas background (colour / blur / image) and video background removal: CI
    and lab verified, not checked on a device. Removal only finds people.
-4. [should] Share sheet right after export (partial).
+4. [should] Share sheet right after export: Share on the done screen opens the Android share sheet;
+   a failure now shows an error instead of doing nothing. Not automated (the system sheet is outside the app).
 5. [could] Stabilization: translation only (no rotation); CI #123 ran it on the test clip
    (33 samples, 14 keys) — 18 of 33 samples hit the zoom margin, so fast shakes are only partly
    removed at Medium.
@@ -72,6 +73,7 @@ clip has no person), stabilization.
 | F01 export | Upsell for higher resolution (Pro) | Every resolution the encoder supports is free; unsupported modes are locked with a reason | keep (better) |
 | F04 captions | Auto captions sheet: source, language, templates (where it runs was not checked) | whisper.cpp on the phone, no upload; a model download is asked for first | keep; slower on old phones |
 | F05 audio | Sounds and SFX libraries | No licensed library; your own files, extract from video, record | keep (licensing) |
+| F02 panels | Most tool panels are bottom sheets that cover the timeline and toolbar; the preview keeps its size | The panel replaces only the toolbar; the timeline stays visible above it and the preview gives up the height | keep: results land on the timeline while the panel is still open (effect layer, AI split, recorded voiceover, auto captions; e2e 1, 3, 4, 7 check them there). The preview's video buffer has a fixed size, so the smaller preview costs no rebuild |
 | F08 keyframes | Diamond adds keys; curves per key | Same; Curve tool while on a key | parity |
 | F10 background | Canvas colour / style / blur | Colour, blur and image (CI #123) | parity |
 | editor | Search button, AI tools, templates | Not present; AI tools are on-device only | keep |

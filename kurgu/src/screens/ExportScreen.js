@@ -310,7 +310,7 @@ export default function ExportScreen({ params }) {
             <Txt faint style={styles.note}>{t('export.encoder', { name: result.videoEncoder || '—', sec: fmt.number(Math.round(result.elapsedMs / 1000)) })}</Txt>
           </Section>
           <Row style={{ justifyContent: 'center', marginTop: space.lg }}>
-            <Button kind="secondary" icon="share-outline" title={t('export.share')} onPress={() => Sharing.shareAsync(result.uri, { mimeType: 'video/mp4' }).catch(() => {})} />
+            <Button kind="secondary" icon="share-outline" title={t('export.share')} onPress={() => Sharing.shareAsync(result.uri, { mimeType: 'video/mp4' }).catch(() => toast(t('errors.generic'), 'error'))} testID="export-share" />
             <Button title={t('common.done')} onPress={nav.pop} testID="export-finish" />
           </Row>
         </ScrollView>
