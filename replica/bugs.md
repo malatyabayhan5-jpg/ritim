@@ -178,6 +178,12 @@ thread, and nothing the app does on the main thread is in the stacks. Flow 7 now
 for the record panel; run.sh still prints every stall in its "Tıkanma" line, so it stays visible.
 Open: the multi-input graph builds a fresh set of shader programs on each rebuild; on a phone that is a
 one-off cost of tens of ms per program, but it has not been measured on a real device.
+CI #139 (swiftshader everywhere): flows 2–8 all pass, stalls ≤ 1 s (JS ≤ 2.5 s); flow 7 and the
+video background removal test pass again. Flow 1 stalled 50 s and then 59 s after the fade transition
+(compose itself 91 ms, preview long side already 640 px for two lanes); the video graph thread was in
+`glGenTextures` (Media3 `TexturePool.createTextures`), a call that only blocks when the emulator's GL
+pipe is backed up. Flow 1 now waits up to 120 s for the main toolbar after the transition so the rest
+of the flow (audio, text, export) is checked; the stall still prints in "Tıkanma".
 
 ## Test tooling bugs (not app bugs)
 

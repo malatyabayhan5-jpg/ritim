@@ -198,10 +198,13 @@ appId: app.kurgu.editor
     id: "tool-back"
 # Ses: videodan sesi ayır (oynatma kafasındaki klip video ise) ve müzik dosyası ekle.
 # Geçişten sonra önizleme yeniden kurulurken emülatörde ana araç çubuğu geç gelebilir (CI #128).
+# CI #139: geçişten sonra emülatörün yazılım GL'i arayüzü art arda 50 ve 59 sn durdurdu (BUG-010);
+# akışın kalanının (ses, metin, dışa aktarma) yine denetlenmesi için uzun beklenir. Süre run.sh'ın
+# "Tıkanma" satırında raporlanmaya devam eder.
 - extendedWaitUntil:
     visible:
       id: "toolbar-scroll"
-    timeout: 15000
+    timeout: 120000
 # CI #129–#131: Maestro bu noktada "tool-audio" kimliğini bulamadı, oysa düğme ekranda ve
 # uiautomator dökümünde var (run.sh hata bloğu Maestro'nun hiyerarşisini de yazar). Kimlik
 # görünmüyorsa düğmeye etiketinden dokunulur; akışın kalanı (dışa aktarma, metin) yine koşar.
