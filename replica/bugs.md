@@ -157,7 +157,13 @@ makes the UI wait for the video producer to deliver a frame at the new size; ope
 panels resizes the preview area, so every resize waited for the (slow, multi-input) video graph.
 Fix (pending CI): the SurfaceView buffer has a fixed size (canvas aspect, long side 960 px), so the
 view only scales and the UI never waits for the video. On a phone this wait would show as a hitch
-each time a panel opens or closes. Whether a real phone GPU shows the same length
+each time a panel opens or closes.
+CI #137: flows 3/6/7 stay at 0 stalls and pass, but flow 1 still froze 92 s after the transition, so
+the surface size was not it (kept anyway: it avoids buffer reallocation on every panel). The stacks
+show the main thread waiting for the render thread and every listed app thread idle, which points at
+the emulator's software GL pipe being held. Experiment (pending CI): only the flow 1 group runs the
+emulator with `-gpu swangle_indirect` (ANGLE over SwiftShader Vulkan); the stack dump now lists every
+non-idle thread, not just ones picked by name. Whether a real phone GPU shows the same length
 is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
 
 ## Test tooling bugs (not app bugs)

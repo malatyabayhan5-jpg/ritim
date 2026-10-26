@@ -506,11 +506,15 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private fun dumpThreads(stuckMs: Long) {
     try {
       val all = Thread.getAllStackTraces()
+      // Boşta bekleyen (MessageQueue / park) iş parçacıkları atlanır; çalışan ya da kilitte
+      // bekleyen her iş parçacığı yazılır (adına göre seçim GL iş parçacığını kaçırdı, CI #137)
+      var shown = 0
       for ((t, frames) in all) {
         val n = t.name
-        val interesting = t === Looper.getMainLooper().thread || n.startsWith("mqt_js") || n.contains("Playback") ||
-          n.contains("Effect") || n.contains("GL") || n.contains("Composition") || n.contains("VideoFrame")
-        if (!interesting) continue
+        val idle = frames.isEmpty() || frames[0].methodName.let { it == "nativePollOnce" || it == "park" || it == "sleep" || it == "wait" && t !== Looper.getMainLooper().thread }
+        val interesting = t === Looper.getMainLooper().thread || n.startsWith("mqt_js") || !idle
+        if (!interesting || shown >= 24) continue
+        shown++
         val top = frames.take(14).joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }
         android.util.Log.w("KurguPerf", "stack stuck=${stuckMs}ms thread=$n state=${t.state} :: $top")
       }

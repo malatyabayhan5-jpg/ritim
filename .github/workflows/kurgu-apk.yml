@@ -95,6 +95,10 @@ jobs:
             akislar: 6_katmanlar 7_seslendirme 8_fotograf
           - grup: kabul-disa-aktarma
             akislar: 1_kabul_akisi
+            # Deney (BUG-010): geçişli çok girişli önizlemede arayüz 90 sn donuyor; yalnızca bu
+            # grupta ANGLE üzerinden SwiftShader (swangle) denenir, diğer gruplar karşılaştırma için
+            # eski modda kalır.
+            gpu: swangle_indirect
     name: e2e (${{ matrix.grup }})
     env:
       E2E_FLOWS: ${{ matrix.akislar }}
@@ -130,7 +134,7 @@ jobs:
           # -feature -HardwareDecoder: emülatörün ana makinedeki H.264 köprüsü (goldfish) her
           # donmadan önce "no frame / ColorBuffer" hataları veriyordu (CI #62, #65, #67);
           # konuk içi yazılımsal çözücü (c2.android) kullanılır.
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -skin 540x1170 -feature -HardwareDecoder
+          emulator-options: -no-window -gpu ${{ matrix.gpu || 'swiftshader_indirect' }} -noaudio -no-boot-anim -camera-back none -no-snapshot -skin 540x1170 -feature -HardwareDecoder
           script: bash kurgu/e2e/run.sh
 
       - name: Sonuçlar
