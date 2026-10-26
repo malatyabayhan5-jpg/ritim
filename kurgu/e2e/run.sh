@@ -96,8 +96,8 @@ for flow in $FLOWS; do
     adb exec-out screencap -p > "$OUT/hata_$flow.png" 2>/dev/null
     # Tanı: araç düğmelerinin ekrandaki sınırları (görünür sayılmayan düğme ekran dışında mı?)
     {
-      echo "--- $flow hata anı: ekran $(adb shell wm size 2>/dev/null | tr -d '\r' | tail -1); tool-* sınırları ---"
-      adb shell cat /sdcard/ui.xml 2>/dev/null | grep -o 'resource-id="tool-[^"]*"[^>]*bounds="[^"]*"' | sed -E 's/resource-id="([^"]*)".*bounds="([^"]*)"/\1 \2/' | head -24
+      echo "--- $flow hata anı: ekran $(adb shell wm size 2>/dev/null | tr -d '\r' | tail -1), $(adb shell wm density 2>/dev/null | tr -d '\r' | tail -1); kap ve tool-* sınırları ---"
+      adb shell cat /sdcard/ui.xml 2>/dev/null | grep -oE 'resource-id="(tool-[^"]*|preview|timeline-box|timeline-vscroll|toolbar-scroll|panel-[^"]*)"[^>]*bounds="[^"]*"' | sed -E 's/resource-id="([^"]*)".*bounds="([^"]*)"/\1 \2/' | head -30
       python3 "$(dirname "$0")/ascii_shot.py" "$OUT/hata_$flow.png" --rows 44 2>&1
     } >> "$OUT/ekran_ascii.txt"
   fi

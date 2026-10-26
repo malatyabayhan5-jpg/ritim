@@ -1219,7 +1219,7 @@ export default function EditorScreen({ params, focused }) {
       <View style={fullscreen ? styles.hidden : null}>
 
       {/* Zaman çizelgesi */}
-      <View style={[styles.timeline, { height: timelineH }]}>
+      <View style={[styles.timeline, { height: timelineH }]} testID="timeline-box">
         <Timeline
           project={missing.size ? markMissing(project, missing) : project}
           playhead={playhead}
@@ -1751,7 +1751,8 @@ const styles = StyleSheet.create({
   controlsSide: { flex: 1, alignItems: 'center' },
   hidden: { display: 'none' },
   time: { color: colors.textDim, fontSize: 12, fontVariant: ['tabular-nums'], minWidth: 110 },
-  timeline: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  // Şeritler ya da oynatma kafası kabın dışına (araç çubuğunun üstüne) çizilmesin (CI #130)
+  timeline: { overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   toolbar: { minHeight: 72, alignItems: 'center', backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   toolBack: { marginHorizontal: space.xs },
   toolScroll: { paddingHorizontal: space.xs, alignItems: 'center' },

@@ -118,6 +118,24 @@ a paused seek reports its target; `pause()` reports a position only when it was 
 selecting an item and the keyframe diamond pause unconditionally (`playing` can lag after the player
 is rebuilt at the end of the timeline).
 
+### BUG-009: Timeline drawn over the toolbar after text and effect lanes were added
+
+- Severity: S2 (main toolbar unusable)
+- Flow / case: F01 / e2e 1
+- Screen: S03
+- Build: 343e046 (APK of CI #128)  Device: CI emulator #129, #130
+
+Steps
+1. Add clips, a text, an effect layer, a clip effect and a transition; go back to the main toolbar.
+
+Expected: the main toolbar (Edit, Audio, Text, …) is visible and tappable.
+Actual: Maestro never saw `tool-audio` as visible for 15 s. The UI dump puts the toolbar at
+y 1107–1163 of 1170, but the failure screenshot shows the timeline's dark background and the playhead
+line running down to the bottom of the screen where the toolbar should be.
+Status: the timeline box now clips its content (`overflow: hidden`), so nothing inside it can paint
+over the toolbar. Not yet confirmed as the cause; the next failure (if any) also logs the bounds of
+the preview, timeline box and toolbar and the screen density. Pending CI.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.
