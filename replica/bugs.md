@@ -139,8 +139,16 @@ CI #133 per flow: flows with layers or A/B transitions stalled 65–108 s (3: 93
 Status: partly mitigated (pending CI): when a project has no video layer, image / sticker / shape
 layers in normal blend mode now go through the single-input `BlendLayerFx` path like the blended ones,
 so they no longer switch the preview to the multi-input graph. A/B transitions and video layers still
-use it; the next run logs the stacks of the main, JS, playback and GL threads while a stall lasts
-over 3 s, to fix those at the root. Whether a real phone GPU shows the same length
+use it.
+CI #134 stacks during a 74 s stall: the main thread waits in `HardwareRenderer.nSyncAndDrawFrame`
+(the UI frame cannot be drawn), while `Effect:MultipleInputVideoGraph:Thread` keeps converting decoded
+frames (`SurfaceTexture.updateTexImage`) and the playback thread keeps loading. The video graph holds
+the (software) GPU and the UI cannot draw. Hypothesis: after a transition is added at the cut, main
+track and both transition lanes seek into the same window and each decoder decodes from the previous
+keyframe through the GL pipeline; the test videos had one keyframe per file (x264 default), so that
+is hundreds of frames. Experiment (pending CI): test videos encoded with a keyframe every second like
+phone cameras. If the stalls shrink, the fix is to avoid paused re-seeks in multi-input mode and to
+make short-GOP preview proxies for long-GOP imports. Whether a real phone GPU shows the same length
 is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
 
 ## Test tooling bugs (not app bugs)

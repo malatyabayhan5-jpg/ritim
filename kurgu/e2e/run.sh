@@ -17,15 +17,18 @@ echo "Android $(adb shell getprop ro.build.version.release | tr -d '\r') (API $(
 
 # Test medyası: iki video (farklı boyut ve ses), bir fotoğraf, bir müzik dosyası
 M="$OUT/media"
-ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i sine=frequency=440:sample_rate=44100 -t 6 -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$M/kurgu_video1.mp4"
-ffmpeg -loglevel error -y -f lavfi -i testsrc=size=720x1280:rate=30 -f lavfi -i sine=frequency=660:sample_rate=44100 -t 5 -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$M/kurgu_video2.mp4"
+# Telefon kameraları gibi saniyede bir anahtar kare (-g 30). x264 varsayılanı (250) tek anahtar
+# karelik dosya verir; çok girişli önizlemede her atlama baştan çözülür (BUG-010 deneyi). Sahne
+# videosunda sahne değişimleri (2,5 ve 5 sn) zaten anahtar karedir.
+ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i sine=frequency=440:sample_rate=44100 -t 6 -c:v libx264 -g 30 -pix_fmt yuv420p -c:a aac -shortest "$M/kurgu_video1.mp4"
+ffmpeg -loglevel error -y -f lavfi -i testsrc=size=720x1280:rate=30 -f lavfi -i sine=frequency=660:sample_rate=44100 -t 5 -c:v libx264 -g 30 -pix_fmt yuv420p -c:a aac -shortest "$M/kurgu_video2.mp4"
 ffmpeg -loglevel error -y -f lavfi -i "color=c=0x8B6CFF:size=1080x1350,drawgrid=w=135:h=135:t=4:c=white" -frames:v 1 "$M/kurgu_foto.jpg"
 ffmpeg -loglevel error -y -f lavfi -i "sine=frequency=330:sample_rate=44100" -t 12 -c:a libmp3lame -b:a 128k "$M/kurgu_muzik.mp3"
 # Otomatik altyazı testi: sentezlenmiş İngilizce konuşma (espeak-ng) + düz arka plan
 if command -v espeak-ng > /dev/null; then
   espeak-ng -v en-us -s 135 -w "$M/konusma.wav" "Hello world. This is an automatic caption test for the video editor." 2> /dev/null
   ffmpeg -loglevel error -y -f lavfi -i "color=c=0x203040:size=640x360:rate=30" -i "$M/konusma.wav" -af "adelay=600|600,apad" \
-    -t 10 -c:v libx264 -pix_fmt yuv420p -c:a aac -ar 44100 "$M/kurgu_konusma.mp4"
+    -t 10 -c:v libx264 -g 30 -pix_fmt yuv420p -c:a aac -ar 44100 "$M/kurgu_konusma.mp4"
 fi
 # AI testi: 3 belirgin sahne (2,5 sn) ve 2.–4. saniyeler arası sessiz ses
 ffmpeg -loglevel error -y -f lavfi -i testsrc2=size=640x360:rate=30:d=2.5 -f lavfi -i smptebars=size=640x360:rate=30:d=2.5 -f lavfi -i "mandelbrot=size=640x360:rate=30" \
