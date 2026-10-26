@@ -193,6 +193,21 @@ measurement (pending CI): the preview logs `paused activity frames= seeks= redra
 frames are processed while paused, and a live update whose values did not change no longer triggers
 a redraw (each redraw is a seek, and a seek in the multi-input graph flushes every decoder).
 Waits for `tool-back` (flow 1) and the record panel (flow 7) are 120 s for this run.
+CI #142 (measurement): the app does no repeated work while paused. Flow 1: the multi-input preview
+was built at 07:17:47; in the next 90 s the preview processed **0 frames**, issued 0 seeks and 1
+redraw, then the UI stalled 82 s; the first frame arrived as the stall ended (07:19:17), a second one
+after another 59 s stall. Flow 7 (cold open of flow 6's layered project): built at 07:20:34, no frame
+at all until the 77 s stall ended at 07:22:14. The graph thread sat in `glGenTextures`
+(`TexturePool.createTextures`) while the UI waited in `nSyncAndDrawFrame`. Single-input projects in the
+same runs render 1–4 frames per redraw with no stall, and flow 6 builds a multi-input graph for the
+same kind of project without any stall. Conclusion for now: on this emulator one multi-input frame
+can take 60–90 s inside Media3's own GL setup, and every UI frame waits behind it; the app's code is
+not in that path and sends no extra work (redraw for unchanged live values is now skipped anyway).
+The input sizes are small (720p test videos, 640 px preview canvas). Open: whether a phone shows any
+of this delay. To check on the phone: open a project with a transition (or a video layer) from the
+home screen and note how long the preview takes to show the first frame and whether the buttons
+respond meanwhile.
+Status: e2e flows 1 and 7 stay red on the emulator because of this stall; flows 2–6 and 8 pass.
 
 ## Test tooling bugs (not app bugs)
 
