@@ -23,6 +23,8 @@ import kotlin.math.roundToInt
 @OptIn(UnstableApi::class)
 class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
   companion object {
+    /** Önizleme yüzeyi tamponunun uzun kenarı (piksel); bkz. fixSurfaceSize. */
+    private const val SURFACE_LONG_SIDE = 960
     private val views = java.util.Collections.newSetFromMap(java.util.WeakHashMap<KurguPreviewView, Boolean>())
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -191,6 +193,27 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   private var atTimelineEnd = false
 
+  /**
+   * SurfaceView tamponunun boyutu sabitlenir (kanvas oranı, uzun kenar [SURFACE_LONG_SIDE]).
+   * Android 12+ SurfaceView'ın boyutu değişince arayüz, video üreticisi yeni boyutta bir kare
+   * verene kadar bir sonraki kareyi çizmez; panel açılıp kapanınca önizleme alanı küçülüp
+   * büyüdüğü için arayüz her seferinde video grafiğini bekliyordu (CI #133–#136: çok girişli
+   * önizlemede 70–110 sn donma, ana iş parçacığı HardwareRenderer.nSyncAndDrawFrame içinde).
+   * Sabit tamponda görünüm yalnızca ölçeklenir, yeni kare beklenmez. Önizleme çözünürlüğü
+   * (previewSide) bundan bağımsızdır; Media3 son kareyi yüzey boyutuna ölçekler.
+   */
+  private var fixedW = 0
+  private var fixedH = 0
+  private fun fixSurfaceSize(s: RenderSpec) {
+    val k = SURFACE_LONG_SIDE.toFloat() / max(1, max(s.width, s.height))
+    val bw = max(2, (s.width * k).roundToInt() and 1.inv())
+    val bh = max(2, (s.height * k).roundToInt() and 1.inv())
+    if (bw == fixedW && bh == fixedH) return
+    fixedW = bw
+    fixedH = bh
+    surfaceView.holder.setFixedSize(bw, bh)
+  }
+
   /** Taze oynatıcıyla aynı kompozisyonu verilen konumdan kurar. */
   private fun rebuildAt(positionMs: Long, playWhenReady: Boolean) {
     releasePlayer()
@@ -272,6 +295,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     val scale = minOf(1f, side.toFloat() / max(s.width, s.height))
     val w = (s.width * scale).roundToInt()
     val h = (s.height * scale).roundToInt()
+    fixSurfaceSize(s)
     try {
       // Tanı: ana iş parçacığında geçen süre parça parça (donma araştırması, CI #129–#132)
       val t0 = android.os.SystemClock.uptimeMillis()

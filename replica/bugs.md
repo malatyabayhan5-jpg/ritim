@@ -148,7 +148,16 @@ track and both transition lanes seek into the same window and each decoder decod
 keyframe through the GL pipeline; the test videos had one keyframe per file (x264 default), so that
 is hundreds of frames. Experiment (pending CI): test videos encoded with a keyframe every second like
 phone cameras. If the stalls shrink, the fix is to avoid paused re-seeks in multi-input mode and to
-make short-GOP preview proxies for long-GOP imports. Whether a real phone GPU shows the same length
+make short-GOP preview proxies for long-GOP imports.
+CI #136 (image layers on the single-input path + 1 s keyframes): flows 3, 6 and 7 had **no** main-
+thread stall (were 65–108 s); flow 1 still stalled 91 s right after the transition made the preview
+multi-input, so the keyframe interval was not the cause. That stall's stacks: main thread in
+`nSyncAndDrawFrame`, playback thread idle. Cause: on Android 12+ a SurfaceView whose size changes
+makes the UI wait for the video producer to deliver a frame at the new size; opening and closing
+panels resizes the preview area, so every resize waited for the (slow, multi-input) video graph.
+Fix (pending CI): the SurfaceView buffer has a fixed size (canvas aspect, long side 960 px), so the
+view only scales and the UI never waits for the video. On a phone this wait would show as a hitch
+each time a panel opens or closes. Whether a real phone GPU shows the same length
 is unknown (the emulator compiles shaders in software); the user reported freezes on a Xiaomi.
 
 ## Test tooling bugs (not app bugs)
