@@ -383,30 +383,64 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private var scrubbing = false
   private var seekInFlight = false
   private var queuedSeekMs = -1L
-  private val seekWatchdog = Runnable { finishSeek() }
+  private val seekWatchdog = Runnable { finishSeek(rendered = false) }
+
+  // Bir aramanın kareyi ekrana getirme süresi (ms, üstel ortalama). Bekçi süresi buna göre
+  // ayarlanır: sabit 250 ms'lik bekçi, telefonda aramanın daha uzun sürdüğü videolarda (uzun
+  // anahtar kare aralığı, 4K) her aramayı kare gelmeden bir sonrakiyle kesiyordu; parmak
+  // durana kadar önizlemede hiç kare görünmüyordu.
+  private var seekCostMs = 0.0
+  private var seekIssuedAt = 0L
+  private var scrubStats = IntArray(3) // aramalar, gelen kareler, bekçi kesmeleri
+  private var scrubMaxMs = 0L
+  private var scrubSumMs = 0L
+
+  private fun watchdogMs(): Long = (seekCostMs * 2).toLong().coerceIn(250L, 2000L)
 
   private fun issueSeek(target: Long) {
     val p = player ?: return
     seekInFlight = scrubbing
     seeks.incrementAndGet()
+    seekIssuedAt = android.os.SystemClock.uptimeMillis()
     p.seekTo(target)
     if (seekInFlight) {
+      scrubStats[0]++
       main.removeCallbacks(seekWatchdog)
       // Kare gelmese bile (aynı kare, arabellekte) birleştirme kilitli kalmasın
-      main.postDelayed(seekWatchdog, 250)
+      main.postDelayed(seekWatchdog, watchdogMs())
     }
   }
 
-  private fun finishSeek() {
+  private fun finishSeek(rendered: Boolean = true) {
     main.removeCallbacks(seekWatchdog)
     if (!seekInFlight) return
     seekInFlight = false
+    val took = android.os.SystemClock.uptimeMillis() - seekIssuedAt
+    if (rendered) {
+      seekCostMs = if (seekCostMs == 0.0) took.toDouble() else seekCostMs * 0.7 + took * 0.3
+      scrubStats[1]++
+      scrubSumMs += took
+      scrubMaxMs = max(scrubMaxMs, took)
+    } else {
+      // Kare bekçi süresinde gelmedi: sonraki arama daha uzun beklesin
+      seekCostMs = max(seekCostMs, took.toDouble()) * 1.5
+      scrubStats[2]++
+    }
     val q = queuedSeekMs
     queuedSeekMs = -1L
     if (q >= 0 && scrubbing) issueSeek(q)
   }
 
   fun setScrubbing(enabled: Boolean) {
+    if (enabled && !scrubbing) {
+      scrubStats = IntArray(3)
+      scrubMaxMs = 0L
+      scrubSumMs = 0L
+    }
+    if (!enabled && scrubbing && scrubStats[0] > 0) {
+      val avg = if (scrubStats[1] > 0) scrubSumMs / scrubStats[1] else -1L
+      android.util.Log.i("KurguPerf", "scrub seeks=${scrubStats[0]} frames=${scrubStats[1]} cutoffs=${scrubStats[2]} avgMs=$avg maxMs=$scrubMaxMs costMs=${seekCostMs.toLong()} multi=$playerMulti")
+    }
     scrubbing = enabled
     if (!enabled) {
       // Kaydırma bitti: son konuma arama JS'ten ayrıca gelir

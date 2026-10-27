@@ -39,6 +39,13 @@ appId: app.kurgu.editor
     from:
       id: "timeline-scroll"
     direction: LEFT
+# Yavaş kaydırma (parmak ekranda 3 sn): önizleme arama başına kare getirebiliyor mu?
+# run.sh "Kaydırma" satırı arama / kare / kesme sayılarını yazar (KurguPerf scrub).
+- swipe:
+    from:
+      id: "timeline-scroll"
+    direction: RIGHT
+    duration: 3000
 # Efekt yoğunluğu kaydırıcısı (canlı parametre yolu)
 - tapOn:
     id: "clip-0"

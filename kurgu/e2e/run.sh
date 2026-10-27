@@ -201,6 +201,11 @@ for flow in $FLOWS; do
   pw=$(grep -cE "\[$flow\].*KurguPerf: paused activity" "$OUT/kurgu_gunluk.txt")
   [ -n "$ms$js$cp" ] && echo "Tıkanma $flow: ana iş parçacığı $nm kez (en uzun ms: ${ms:-yok}); JS en uzun ms: ${js:-yok}; önizleme kurulumu en uzun ms: ${cp:-yok}; duraklatılmışken etkin pencere: $pw (en çok kare: ${pf:-yok})" >> "$OUT/sonuclar.txt"
 done
+# Kaydırma: aramaların kaçı kare getirdi, kaçı bekçiyle kesildi, kare gelme süresi (KurguPerf scrub)
+for flow in $FLOWS; do
+  sc=$(grep -E "\[$flow\].*KurguPerf: scrub " "$OUT/kurgu_gunluk.txt" | sed 's/.*KurguPerf: scrub //' | tail -3 | tr '\n' ';')
+  [ -n "$sc" ] && echo "Kaydırma $flow: $sc" >> "$OUT/sonuclar.txt"
+done
 # Dışa aktarma ilk denemede düştüyse (akış "Tekrar dene" ile sürer) bu gizlenmez
 for flow in 1_kabul_akisi 6_katmanlar; do
   ran "$flow" || continue

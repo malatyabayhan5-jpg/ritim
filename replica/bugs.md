@@ -209,6 +209,31 @@ home screen and note how long the preview takes to show the first frame and whet
 respond meanwhile.
 Status: e2e flows 1 and 7 stay red on the emulator because of this stall; flows 2–6 and 8 pass.
 
+### BUG-011: Scrubbing the timeline responds very late on the user's phone
+
+- Severity: S2 (core editing feels broken; no crash)
+- Flow / case: F02 scrubbing / e2e 5
+- Screen: S03
+- Build: CI #142 APK  Device: the user's Xiaomi (reported 2026-10-27: "kaydırırken tepkime süresi çok çok uzun")
+
+Steps
+1. Open a project, drag the timeline left / right.
+
+Expected: the preview follows the finger with real frames.
+Actual (user report): the response comes very late.
+Cause found in the code (not yet measured on the phone): while scrubbing, the preview allows one seek
+at a time and releases it when the frame arrives (Media3 reports the first rendered frame after every
+seek) or after a fixed 250 ms watchdog. If a seek takes longer than 250 ms (phone footage: 1 s+
+keyframe interval, 1080p / 4K HEVC, every seek decodes from the previous keyframe), the watchdog
+starts the next seek before the frame appears, the new seek cancels the old decode, and no frame is
+shown until the finger stops.
+Fix (pending CI): the watchdog follows the measured seek-to-frame time (2 × moving average, 250–2000
+ms, and it grows when a seek is cut off), so each seek gets time to show its frame. The preview logs
+`KurguPerf scrub seeks= frames= cutoffs= avgMs= maxMs=` at the end of each drag; e2e 5 adds a 3 s
+slow drag and run.sh prints a "Kaydırma" line. If phone seeks still take several hundred ms, the next
+step is low-resolution, short-keyframe preview proxies for imported videos.
+Status: fix pending CI; phone check needed.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.
