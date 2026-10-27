@@ -232,7 +232,11 @@ ms, and it grows when a seek is cut off), so each seek gets time to show its fra
 `KurguPerf scrub seeks= frames= cutoffs= avgMs= maxMs=` at the end of each drag; e2e 5 adds a 3 s
 slow drag and run.sh prints a "Kaydırma" line. If phone seeks still take several hundred ms, the next
 step is low-resolution, short-keyframe preview proxies for imported videos.
-Status: fix pending CI; phone check needed.
+CI #143 (emulator, 6 s 1280x720 test clips, 1 s keyframes): the build compiles; the 3 s slow drag in
+e2e 5 issued 22 seeks and 21 showed their frame, 0 cut off, 143 ms average, 199 ms worst. On the
+emulator seeks stayed under the old 250 ms, so it never showed the starvation; whether the phone did
+depends on how long a seek takes on the user's footage, which only the phone can tell.
+Status: fix in the #143 APK; phone check needed.
 
 ## Test tooling bugs (not app bugs)
 
