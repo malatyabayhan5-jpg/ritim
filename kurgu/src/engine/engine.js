@@ -118,6 +118,18 @@ export function encoderCapabilities() {
   return capsPromise;
 }
 
+/** Tanılama raporu için cihaz bilgisi ve yerel ölçüm satırları (PerfLog). */
+export function diagnostics() {
+  if (!KurguEngine?.diagnostics) return Promise.resolve(null);
+  return KurguEngine.diagnostics().catch(() => null);
+}
+
+/** Video izinin ilk 10 sn'sindeki anahtar kare sayısı ve en uzun aralık (kod çözmeden). */
+export function keyframeInfo(uri) {
+  if (!KurguEngine?.keyframeInfo) return Promise.resolve(null);
+  return KurguEngine.keyframeInfo(uri).catch(() => null);
+}
+
 export function deviceStatus() {
   if (!KurguEngine) return Promise.resolve({ thermal: -1, powerSave: false });
   return KurguEngine.deviceStatus().catch(() => ({ thermal: -1, powerSave: false }));

@@ -479,7 +479,14 @@
     "privacy": "Privacy",
     "privacyText": "Your videos are processed on your device and never sent to a server. The app does not collect usage data (telemetry).",
     "about": "About",
-    "licenses": "Video engine: AndroidX Media3 (Apache 2.0). H.264/HEVC encoding uses the device's hardware encoder."
+    "licenses": "Video engine: AndroidX Media3 (Apache 2.0). H.264/HEVC encoding uses the device's hardware encoder.",
+    "diagnostics": {
+      "title": "Diagnostics report",
+      "text": "Shares the real measurements from this phone (scrub times, stalls, device and video formats) as one text. File and project names are not included.",
+      "share": "Share report",
+      "preparing": "Preparing report…",
+      "failed": "Could not prepare the report"
+    }
   },
   "help": {
     "title": "Help & tips",

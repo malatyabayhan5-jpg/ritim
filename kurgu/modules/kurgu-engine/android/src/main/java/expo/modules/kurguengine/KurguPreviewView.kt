@@ -253,7 +253,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
       override fun onPlayerError(error: PlaybackException) {
         // Tanılama: tam neden zinciri günlüğe (logcat KurguPreview)
-        android.util.Log.e("KurguPreview", "player error ${error.errorCodeName}", error)
+        PerfLog.e("KurguPreview", "player error ${error.errorCodeName}", error)
         // Çok girişli grafik bitişten sonra kullanılınca (Media3 1.9.4, bkz. graphSpent) kare
         // işleme hatası verir: kullanıcıya hata göstermeden oynatıcı aynı konumdan yeniden kurulur.
         // ERROR_CODE_TIMEOUT: oynatma iş parçacığı yoğun işte (ör. ters oynatma kodlaması) zamanında
@@ -266,7 +266,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
         if (recoverable && recoveries < 3) {
           recoveries++
           val pos = player?.currentPosition ?: pendingPositionMs
-          android.util.Log.w("KurguPreview", "player recovery #$recoveries (${error.errorCodeName}) at $pos ms")
+          PerfLog.w("KurguPreview", "player recovery #$recoveries (${error.errorCodeName}) at $pos ms")
           main.post { rebuildAt(pos, playWhenReady = false) }
           return
         }
@@ -317,7 +317,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       p.prepare()
       p.playWhenReady = wasPlaying
       val t4 = android.os.SystemClock.uptimeMillis()
-      android.util.Log.i("KurguPerf", "compose total=${t4 - t0} release=${t1 - t0} build=${t2 - t1} player=${t3 - t2} set=${t4 - t3} multi=$multi clips=${s.main.size}")
+      PerfLog.i("KurguPerf", "compose total=${t4 - t0} release=${t1 - t0} build=${t2 - t1} player=${t3 - t2} set=${t4 - t3} multi=$multi clips=${s.main.size}")
     } catch (e: Exception) {
       onPreviewError(mapOf("code" to "COMPOSITION_FAILED", "message" to (e.message ?: e.javaClass.simpleName)))
     }
@@ -439,7 +439,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     }
     if (!enabled && scrubbing && scrubStats[0] > 0) {
       val avg = if (scrubStats[1] > 0) scrubSumMs / scrubStats[1] else -1L
-      android.util.Log.i("KurguPerf", "scrub seeks=${scrubStats[0]} frames=${scrubStats[1]} cutoffs=${scrubStats[2]} avgMs=$avg maxMs=$scrubMaxMs costMs=${seekCostMs.toLong()} multi=$playerMulti")
+      PerfLog.i("KurguPerf", "scrub seeks=${scrubStats[0]} frames=${scrubStats[1]} cutoffs=${scrubStats[2]} avgMs=$avg maxMs=$scrubMaxMs costMs=${seekCostMs.toLong()} multi=$playerMulti")
     }
     scrubbing = enabled
     if (!enabled) {
@@ -496,11 +496,11 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       try {
         it.release()
         val took = android.os.SystemClock.uptimeMillis() - r0
-        if (took > 100) android.util.Log.w("KurguPerf", "release ms=$took")
+        if (took > 100) PerfLog.w("KurguPerf", "release ms=$took")
       } catch (e: IllegalStateException) {
         // Oynatma iş parçacığı Media3 hatasıyla ölmüşse release() denetime takılır
         // (CompositionPlayer.handleRelease: playbackThread.isAlive). Oynatıcı bırakılır.
-        android.util.Log.w("KurguPreview", "release after dead playback thread", e)
+        PerfLog.w("KurguPreview", "release after dead playback thread", e)
       }
     }
     player = null
@@ -514,7 +514,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
     override fun run() {
       val now = android.os.SystemClock.uptimeMillis()
       val late = now - stallDueAt
-      if (stallDueAt > 0 && late > 700) android.util.Log.w("KurguPerf", "main stall ms=$late")
+      if (stallDueAt > 0 && late > 700) PerfLog.w("KurguPerf", "main stall ms=$late")
       stallDueAt = now + 500
       mainBeat = now
       main.postDelayed(this, 500)
@@ -546,7 +546,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
           val sk = seeks.get()
           val rd = redraws.get()
           if (!playingNow && (f != lastF || sk != lastS || rd != lastR)) {
-            android.util.Log.i("KurguPerf", "paused activity frames=${f - lastF} seeks=${sk - lastS} redraws=${rd - lastR} multi=$multiNow")
+            PerfLog.i("KurguPerf", "paused activity frames=${f - lastF} seeks=${sk - lastS} redraws=${rd - lastR} multi=$multiNow")
           }
           lastF = f
           lastS = sk
@@ -576,10 +576,10 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
         if (!interesting || shown >= 24) continue
         shown++
         val top = frames.take(14).joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }
-        android.util.Log.w("KurguPerf", "stack stuck=${stuckMs}ms thread=$n state=${t.state} :: $top")
+        PerfLog.w("KurguPerf", "stack stuck=${stuckMs}ms thread=$n state=${t.state} :: $top")
       }
     } catch (e: Throwable) {
-      android.util.Log.w("KurguPerf", "stack dump failed ${e.javaClass.simpleName}")
+      PerfLog.w("KurguPerf", "stack dump failed ${e.javaClass.simpleName}")
     }
   }
 
@@ -623,7 +623,7 @@ object PlaybackCrashGuard {
         e is IllegalStateException &&
         e.stackTrace.any { it.className.startsWith("androidx.media3.effect.MultipleInputVideoGraph") || it.className.startsWith("androidx.media3.effect.DefaultVideoCompositor") }
       if (ours) {
-        android.util.Log.e("KurguPreview", "multi-input graph crash suppressed; rebuilding preview", e)
+        PerfLog.e("KurguPreview", "multi-input graph crash suppressed; rebuilding preview", e)
         onRecover?.invoke()
       } else {
         previous?.uncaughtException(thread, e)

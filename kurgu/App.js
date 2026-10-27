@@ -13,6 +13,10 @@ import HelpScreen from './src/screens/HelpScreen';
 import AiToolsScreen from './src/screens/AiToolsScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
 import PhotoEditorScreen from './src/screens/PhotoEditorScreen';
+import { installConsoleCapture } from './src/engine/diagnostics';
+
+// Tanılama raporu için uygulama günlük satırları baştan itibaren bellekte tutulur
+installConsoleCapture();
 
 const SCREENS = {
   home: HomeScreen,

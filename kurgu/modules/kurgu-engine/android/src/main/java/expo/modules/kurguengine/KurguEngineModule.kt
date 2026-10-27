@@ -169,6 +169,29 @@ class KurguEngineModule : Module() {
       )
     }
 
+    // Tanılama raporu (Ayarlar): cihaz bilgisi ve son önizleme / dışa aktarma ölçümleri
+    AsyncFunction("diagnostics") {
+      val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+      val mem = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+      mapOf(
+        "manufacturer" to Build.MANUFACTURER,
+        "model" to Build.MODEL,
+        "sdk" to Build.VERSION.SDK_INT,
+        "release" to Build.VERSION.RELEASE,
+        "hardware" to (if (Build.VERSION.SDK_INT >= 31) Build.SOC_MODEL else Build.HARDWARE),
+        "cores" to Runtime.getRuntime().availableProcessors(),
+        "ramMb" to mem.totalMem / (1024 * 1024),
+        "availMb" to mem.availMem / (1024 * 1024),
+        "heapMb" to am.memoryClass,
+        "lowRam" to am.isLowRamDevice,
+        "lines" to PerfLog.snapshot(),
+      )
+    }
+
+    AsyncFunction("keyframeInfo") { uri: String ->
+      MediaTools.keyframeInfo(context, uri)
+    }
+
     AsyncFunction("exportVideo") { specJson: String, outPath: String, options: Map<String, Any?>, promise: Promise ->
       if (exporter?.isRunning == true) {
         promise.reject("EXPORT_BUSY", "An export is already running", null)

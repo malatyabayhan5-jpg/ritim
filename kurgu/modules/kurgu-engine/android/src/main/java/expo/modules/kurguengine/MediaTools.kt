@@ -58,6 +58,39 @@ object MediaTools {
     }
   }
 
+  /**
+   * Anahtar kare aralığı (tanılama): video izinin ilk [maxMs] ms'sindeki eşitleme örnekleri
+   * kod çözmeden sayılır. Önizlemede her arama önceki anahtar kareden çözmeye başlar; aralık
+   * uzunsa kaydırma yavaşlar (BUG-011).
+   */
+  fun keyframeInfo(context: Context, uriString: String, maxMs: Long = 10_000): Map<String, Any?> {
+    val ex = MediaExtractor()
+    try {
+      ex.setDataSource(context, Uri.parse(uriString), null)
+      val track = (0 until ex.trackCount).firstOrNull { ex.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true }
+        ?: return mapOf("syncCount" to 0, "spanMs" to 0L, "maxGapMs" to 0L)
+      ex.selectTrack(track)
+      var count = 0
+      var last = -1L
+      var maxGap = 0L
+      var lastUs = 0L
+      while (true) {
+        val t = ex.sampleTime
+        if (t < 0 || t > maxMs * 1000) break
+        lastUs = t
+        if (ex.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+          if (last >= 0) maxGap = max(maxGap, t - last)
+          last = t
+          count++
+        }
+        if (!ex.advance()) break
+      }
+      return mapOf("syncCount" to count, "spanMs" to lastUs / 1000, "maxGapMs" to maxGap / 1000)
+    } finally {
+      ex.release()
+    }
+  }
+
   private fun probeImage(context: Context, uri: Uri, mime: String?): Map<String, Any?> {
     val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }

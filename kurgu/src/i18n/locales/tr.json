@@ -479,7 +479,14 @@
     "privacy": "Gizlilik",
     "privacyText": "Videolarınız cihazınızda işlenir ve hiçbir sunucuya gönderilmez. Uygulama kullanım verisi (telemetri) toplamaz.",
     "about": "Hakkında",
-    "licenses": "Video motoru: AndroidX Media3 (Apache 2.0). H.264/HEVC kodlama cihazın donanım kodlayıcısıyla yapılır."
+    "licenses": "Video motoru: AndroidX Media3 (Apache 2.0). H.264/HEVC kodlama cihazın donanım kodlayıcısıyla yapılır.",
+    "diagnostics": {
+      "title": "Tanılama raporu",
+      "text": "Telefonundaki gerçek ölçümleri (kaydırma süreleri, donmalar, cihaz ve video biçimleri) tek metin olarak paylaşır. Dosya ve proje adları rapora girmez.",
+      "share": "Raporu paylaş",
+      "preparing": "Rapor hazırlanıyor…",
+      "failed": "Rapor hazırlanamadı"
+    }
   },
   "help": {
     "title": "Yardım ve ipuçları",

@@ -79,7 +79,7 @@ class Exporter(
     )
     // Teşhis: dizi yapısı (iz türleri, öğe türleri, süreler, hızlar) — takılmalar CI günlüğünden çözülebilsin
     try {
-      Log.i("KurguExport", "export start ${options.width}x${options.height}@${options.fps} totalMs=${spec.totalMs} layers=${spec.layers.size} audioLanes=${spec.audioLanes.size}")
+      PerfLog.i("KurguExport", "export start ${options.width}x${options.height}@${options.fps} totalMs=${spec.totalMs} layers=${spec.layers.size} audioLanes=${spec.audioLanes.size}")
       CompositionFactory.describe(composition).forEach { Log.i("KurguExport", it) }
       // Metinler (e2e text_check.py çıktıda animasyonu bu zamanlarla ölçer)
       spec.texts.forEach { Log.i("KurguExport", "text start=${it.startMs} end=${it.endMs} in=${it.animIn} out=${it.animOut} ms=${it.animMs}") }
@@ -132,13 +132,13 @@ class Exporter(
           settle()
           file.delete()
           // Teşhis: Media3'ün iç izleme özeti (hangi aşamanın durduğunu gösterir)
-          Log.e("KurguExport", "export failed ${exportException.errorCodeName}: ${exportException.cause?.message ?: exportException.message}".take(4000))
+          PerfLog.e("KurguExport", "export failed ${exportException.errorCodeName}: ${exportException.cause?.message ?: exportException.message}".take(4000))
           // Neden zinciri (ör. kodlayıcı yapılandırma hatasının asıl istisnası) ve en derin nedenin ilk kareleri
           var c: Throwable? = exportException.cause
           var depth = 0
           var deepest: Throwable? = null
           while (c != null && depth < 6) {
-            Log.e("KurguExport", "cause[$depth] ${c.javaClass.name}: ${c.message?.substringBefore("DebugTrace")?.take(600)}")
+            PerfLog.e("KurguExport", "cause[$depth] ${c.javaClass.name}: ${c.message?.substringBefore("DebugTrace")?.take(600)}")
             deepest = c
             c = c.cause
             depth++
@@ -199,7 +199,7 @@ class Exporter(
         // olaylar ve zamanları) parçalı yazılır; en çok 3 kez (CI #72/#74/#79: %70'te yavaşlama)
         stallDumps++
         lastChangeAt = now
-        Log.w("KurguExport", "stall #$stallDumps at $lastProgress%")
+        PerfLog.w("KurguExport", "stall #$stallDumps at $lastProgress%")
         if (stallDumps == 1) DebugTraceUtil.generateTraceSummary().chunked(3000).forEachIndexed { i, part -> Log.w("KurguExport", "stall$stallDumps[$i] $part") }
         // CI #82 izi: ses videoyu bekliyor, tüm video bileşenleri (ortak GL iş parçacığı) aynı
         // anda susuyor. Hangi çağrıda beklediği iş parçacığı yığınlarından görülür.
