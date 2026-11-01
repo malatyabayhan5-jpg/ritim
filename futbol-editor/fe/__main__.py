@@ -40,13 +40,8 @@ def main(argv=None):
 
     a = sub.add_parser("analyze", help="1) referans analizi")
     common(a, ref=True)
-    f = sub.add_parser("fetch", help="2-3) klip ara ve indir")
+    f = sub.add_parser("fetch", help="2-3) gerçek oyuncu görüntüsü ara ve indir")
     common(f, player=True)
-    for p in (f,):
-        p.add_argument("--max-videos", type=int, default=12)
-        p.add_argument("--cookies", help="YouTube bot doğrulaması için cookies.txt")
-        p.add_argument("--urls", help="arama yerine indirilecek URL listesi (satır başına bir URL)")
-        p.add_argument("--local", help="indirme yerine bu klasördeki videoları kullan")
     s = sub.add_parser("shots", help="4) kaynak çekim analizi + oyuncu doğrulama")
     common(s)
     pl = sub.add_parser("plan", help="5-6) eşleme, renk LUT, ses planı")
@@ -60,11 +55,18 @@ def main(argv=None):
 
     run_p = sub.add_parser("run", help="hepsini sırayla çalıştır")
     common(run_p, ref=True, player=True)
-    run_p.add_argument("--max-videos", type=int, default=12)
-    run_p.add_argument("--cookies")
-    run_p.add_argument("--urls")
-    run_p.add_argument("--local")
     run_p.add_argument("--skip-fetch", action="store_true", help="01_FOOTAGE'daki mevcut klipleri kullan")
+    for p in (f, run_p):
+        p.add_argument("--max-videos", type=int, default=12)
+        p.add_argument("--per-query", type=int, default=8, help="arama başına sonuç")
+        p.add_argument("--clubs", help="virgülle kulüp/milli takım: 'Arsenal,Brighton,Belgium'")
+        p.add_argument("--channels", help="virgülle resmî YouTube kanalları: '@kanal1,@kanal2'")
+        p.add_argument("--providers", help="virgülle: youtube_api,youtube,channels,tiktok,instagram,google "
+                                            "('none' = arama yapma, yalnızca --urls/--local)")
+        p.add_argument("--cc-only", action="store_true", help="YouTube API: yalnızca Creative Commons")
+        p.add_argument("--cookies", help="giriş/bot doğrulaması için Netscape cookies.txt")
+        p.add_argument("--urls", help="X/Instagram/TikTok/YouTube gönderi adresleri (satır başına bir URL)")
+        p.add_argument("--local", help="bu klasördeki videoları da kullan")
     run_p.add_argument("--jobs", type=int)
 
     args = ap.parse_args(argv)
@@ -80,9 +82,18 @@ def main(argv=None):
             from .analyze import analyze_reference
             analyze_reference(Path(args.ref), paths)
         if args.cmd == "fetch" or (args.cmd == "run" and not args.skip_fetch):
+            _ensure_config(paths, args.player)
             from .fetch import fetch
+            from .plan import load_config
+            cfg = load_config(paths)
+            split = lambda v: [x.strip() for x in v.split(",") if x.strip()] if v else None  # noqa: E731
             urls = Path(args.urls).read_text().split() if args.urls else None
-            fetch(paths, args.player, args.max_videos, args.cookies, urls, Path(args.local) if args.local else None)
+            fetch(paths, args.player, args.max_videos, args.cookies, urls, Path(args.local) if args.local else None,
+                  clubs=split(args.clubs) or cfg["clubs"],
+                  providers=([] if (args.providers or "").strip().lower() in ("none", "yok") else
+                             split(args.providers) or cfg["providers"]),
+                  channels=split(args.channels) or cfg["official_channels"], cc_only=args.cc_only or cfg["cc_only"],
+                  per_query=args.per_query)
         if args.cmd in ("shots", "run"):
             from .shots import analyze_footage
             analyze_footage(paths)

@@ -51,14 +51,61 @@ def check(network: bool = True, cookies: str | None = None) -> list[dict]:
     du = shutil.disk_usage(".")
     add("disk", "OK" if du.free > 10e9 else "UYARI", f"{du.free / 1e9:.0f} GB boş", "en az 10 GB boş alan önerilir")
     if network:
-        try:
-            from .fetch import search
-            r = search("Leandro Trossard", per_query=2, cookies=cookies, extra_queries=[])
-            add("internet araması (YouTube)", "OK", f"test araması {len(r)} sonuç döndürdü")
-        except Exception as e:
-            add("internet araması (YouTube)", "ENGELLİ", str(e)[:300],
-                "README → 'İndirme engeli' bölümü")
+        for name, status, detail, fix in platform_access(cookies):
+            add(name, status, detail, fix)
     return res
+
+
+PLATFORM_HOSTS = [
+    ("YouTube (site)", "https://www.youtube.com/"),
+    ("YouTube (video dosyaları)", "https://redirector.googlevideo.com/"),
+    ("TikTok", "https://www.tiktok.com/"),
+    ("Instagram", "https://www.instagram.com/"),
+    ("X (Twitter)", "https://x.com/"),
+    ("Google arama sitesi", "https://www.google.com/"),
+    ("Google API'leri", "https://www.googleapis.com/"),
+]
+
+
+def _reach(url: str) -> tuple[bool, str]:
+    import urllib.error
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            return True, f"HTTP {r.status}"
+    except urllib.error.HTTPError as e:
+        return True, f"HTTP {e.code} (sunucuya ulaşıldı)"
+    except Exception as e:
+        return False, str(getattr(e, "reason", e))[:120]
+
+
+def platform_access(cookies=None):
+    """Her platform için: sunucuya ulaşılıyor mu, arama/indirme için ne gerekiyor?"""
+    import os
+    out = []
+    for name, url in PLATFORM_HOSTS:
+        ok, why = _reach(url)
+        out.append((f"erişim: {name}", "OK" if ok else "ENGELLİ", why,
+                    "" if ok else "README → 'İndirme engeli' (ağ izni ya da kendi bilgisayarında çalıştır)"))
+    from . import sources as S
+    for env, prov, label in (("YT_API_KEY", "youtube_api", "YouTube Data API araması"),
+                             ("GOOGLE_API_KEY", "google", "Google Programmable Search")):
+        if not os.environ.get(env) or (prov == "google" and not os.environ.get("GOOGLE_CSE_ID")):
+            out.append((label, "ANAHTAR YOK", f"{env}{' + GOOGLE_CSE_ID' if prov == 'google' else ''} tanımlı değil",
+                        "README → 'API anahtarları'"))
+            continue
+        try:
+            n = len(S.PROVIDERS[prov]("Leandro Trossard", [], 1, max_queries=1))  # kota: tek sorgu
+            out.append((label, "OK", f"test araması {n} aday döndürdü", ""))
+        except S.ProviderError as e:
+            out.append((label, e.status, str(e), ""))
+    try:
+        n = len(S.youtube_search("Leandro Trossard", [], 1, cookies=cookies, max_queries=1))
+        out.append(("yt-dlp YouTube araması", "OK", f"test araması {n} aday", ""))
+    except S.ProviderError as e:
+        out.append(("yt-dlp YouTube araması", e.status, str(e), "README → 'İndirme engeli'"))
+    return out
 
 
 def print_report(res: list[dict]) -> bool:

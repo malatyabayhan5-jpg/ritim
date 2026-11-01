@@ -816,9 +816,11 @@ When the user gives a reference video and a player name and wants the edit produ
 Workflow:
 
 1. Run `python -m fe doctor` first (from `futbol-editor/`, with `.venv/bin/python` if `./kurulum.sh` was run). Report every component that is not `OK` plainly, with the reason it gives.
-2. `python -m fe run --ref <reference> --player "<name>"` runs: analyze → fetch → shots → plan → render → qc.
-3. If fetching is blocked (network policy, bot check), say so explicitly, name the blocked host, and continue only with the steps that do not depend on it. Never substitute other footage and present it as the player's, and never report a download that did not happen.
-4. Read the QC report (`08_EXPORTS/<name>_qc.md`) and look at the contact sheet before calling the video finished. Report WARN/FAIL items honestly.
-5. Respect copyright: the manifest records every clip's source; remind the user that publishing rights are their responsibility.
+2. `python -m fe run --ref <reference> --player "<name>" --clubs "<club1,club2,national team>"` runs: analyze → fetch → shots → plan → render → qc.
+3. Footage must be real footage of the player. Never use stock-video sites (Pexels, Pixabay, Mixkit, Shutterstock and similar); the pipeline filters them out. Search sources, in priority order: official club/league/broadcaster channels, YouTube, TikTok, Instagram, X (via Google Programmable Search or user-supplied post URLs), Google video results. Cover every footage category: in-match close-ups, goals and assists, dribbles, runs and duels, celebrations, training, alternative angles.
+4. After `fetch`, read `06_PROJECT_FILES/kaynak_raporu.md` and report each platform's status exactly as written (OK / ENGELLİ / ANAHTAR YOK / GİRİŞ GEREKLİ / ATLANDI) and each clip's permission status. If fetching is blocked, name the blocked host and continue only with steps that do not depend on it. Never substitute other footage and present it as the player's, and never report a download that did not happen.
+5. After `shots`, read `kaynak_degerlendirme.md` and look at the per-source contact sheets; sources judged "kullanma" are excluded automatically.
+6. Read the QC report (`08_EXPORTS/<name>_qc.md`) and look at the contact sheet before calling the video finished. Report WARN/FAIL items honestly.
+7. Respect copyright: the manifest records every clip's source and permission status; publishing rights are the user's responsibility.
 
 Known limits (state them when relevant): player identity is verified only when a face is visible; event type (goal/celebration/skill) is not classified; on-screen text in the reference is not detected (use `config.json → texts`); only frame-duplication slow motion is detected.

@@ -1,28 +1,90 @@
 # Otomatik Futbol Editörü
 
-Bir **referans video** ve bir **futbolcu adı** verirsin. Sistem referansın kurgu stilini çıkarır, oyuncunun kliplerini
-internette arayıp indirir, çekimleri seçip sıralar, aynı ritim/renk/geçişlerle FFmpeg üzerinden render eder ve
-kalite kontrolden geçirir.
+Bir **referans video** ve bir **futbolcu adı** verirsin. Sistem şunları yapar:
+1. Referansın kurgu stilini çıkarır.
+2. Oyuncunun **gerçek maç ve antrenman görüntülerini** YouTube, resmî kanallar, TikTok, Instagram, X ve Google Video üzerinde arar ve indirir.
+3. Görüntüleri sahne sahne değerlendirip seçer.
+4. Aynı ritim, renk ve geçişlerle FFmpeg üzerinden render eder.
+5. Kalite kontrolden geçirir.
+
+**Stok video siteleri (Pexels, Pixabay, Mixkit, Shutterstock vb.) kullanılmaz.** Bu siteler aramaya hiç dahil edilmez ve başka bir kaynaktan adresleri gelse bile elenir.
 
 ```bash
 ./kurulum.sh
-.venv/bin/python -m fe run --ref referans.mp4 --player "Leandro Trossard"
+.venv/bin/python -m fe run --ref referans.mp4 --player "Leandro Trossard" --clubs "Arsenal,Brighton,Belgium"
 # çıktı: projeler/leandro-trossard/08_EXPORTS/leandro-trossard.mp4
 ```
 
 ## Durum: ne çalışıyor, ne çalışmıyor
 
-`python -m fe doctor` her bileşeni gerçekten çalıştırarak test eder. Claude Code bulut oturumunda alınan sonuç:
+`python -m fe doctor` her bileşeni ve her platformu gerçekten bağlanarak test eder. Claude Code bulut oturumunda alınan sonuç:
 
-| Bileşen | Durum | Not |
+| Bileşen | Bulut oturumu | Kendi bilgisayarında (beklenen) |
 |---|---|---|
-| Referans analizi (kesim, kararma, donmuş kare, yakınlaşma, renk, müzik) | ✅ çalışıyor | gerçek referans videoyla doğrulandı |
-| Çekim çıkarma + yakın/orta/geniş plan sınıflama | ✅ çalışıyor | |
-| Yüzden oyuncu doğrulama (YuNet + SFace) | ✅ çalışıyor | yalnızca yüzün göründüğü planlarda |
-| Eşleme, renk eşleme (3D LUT), vinyet, yakınlaşma, hareket bulanıklığı, kararmalar | ✅ çalışıyor | |
-| Müzik, iki geçişli loudnorm, yazı (drawtext), SFX yerleştirme | ✅ çalışıyor | SFX dosyalarını sen koyarsın |
-| Render (FFmpeg/libx264) + kalite kontrol | ✅ çalışıyor | uçtan uca test edildi |
-| **İnternette klip arama/indirme (yt-dlp)** | ❌ **bulut oturumunda ENGELLİ** | ağ politikası YouTube'u reddediyor (proxy 403) |
+| Referans analizi, çekim çıkarma, yüzden oyuncu doğrulama | ✅ çalışıyor (test edildi) | ✅ |
+| Eşleme, renk (3D LUT), efektler, müzik, render, kalite kontrol | ✅ çalışıyor (uçtan uca test edildi) | ✅ |
+| YouTube sitesi / yt-dlp araması | ❌ ENGELLİ (proxy 403) | ✅ |
+| YouTube video dosyaları (googlevideo.com), yani indirme | ❌ ENGELLİ | ✅ |
+| TikTok, Instagram, X, google.com | ❌ ENGELLİ | ✅ (Instagram ve X çoğu zaman giriş çerezi ister) |
+| Google API'leri (googleapis.com): YouTube Data API, Programmable Search | ✅ sunucuya erişiliyor, **API anahtarı gerekli** | ✅ anahtarla |
+
+Yani bulut oturumunda API anahtarıyla **arama ve aday listesi** çıkarılabilir, ama **video indirilemez**. Tam otomatik akış için sistemi kendi bilgisayarında çalıştır ya da ağ izni ver ("İndirme engeli" bölümüne bak).
+
+## Kaynaklar ve arama stratejisi
+
+| Sağlayıcı | Ne yapar | Gereken | Sınır |
+|---|---|---|---|
+| `youtube_api` | YouTube Data API v3 ile arama. Süre, HD bilgisi, **lisans** (Creative Commons mu?) ve kanal bilgisi gelir | `YT_API_KEY` | Arama başına 100 kota birimi. Varsayılan günlük kota 10.000 birim, tam tarama yaklaşık 2.000 birim |
+| `youtube` | yt-dlp ile YouTube araması | youtube.com erişimi | Veri merkezi IP'lerinde bot doğrulaması isteyebilir (`--cookies`) |
+| `channels` | Resmî kulüp, lig ve yayıncı kanallarının **içinde** oyuncu araması | `--channels '@kanal'` ya da aramada bulunan resmî kanallar | |
+| `tiktok` | `#leandrotrossard`, `#trossard`, `#trossardarsenal` gibi hashtag sayfaları | tiktok.com erişimi | TikTok'un herkese açık arama API'si yok. Videolar dikey ve çoğu filigranlı |
+| `instagram` | Hashtag sayfaları | **giriş çerezi** (`--cookies`) | Instagram girişsiz erişimi büyük ölçüde kapatıyor |
+| `google` | Google Programmable Search: X, Instagram, TikTok ve YouTube'daki **tekil gönderi** adreslerini bulur | `GOOGLE_API_KEY` + `GOOGLE_CSE_ID` | Günlük ücretsiz kota sınırlı. Google'ın güncel koşullarını kontrol et |
+| `--urls liste.txt` | Elindeki X/Instagram/TikTok/YouTube gönderi adreslerini indirir | | X ve Instagram çoğu zaman `--cookies` ister |
+
+**X (Twitter):** Doğrudan arama yoktur, çünkü X'in arama API'si ücretli erişim istiyor. X gönderileri `google` sağlayıcısı ya da `--urls` ile bulunur, yt-dlp ile indirilir.
+
+**Aranan görüntü türleri.** Her tür için farklı arama ifadeleri kullanılır. `{club}` kalıpları `--clubs` ile verdiğin her kulüp için ayrı ayrı çalışır.
+
+| Kategori | Örnek aramalar |
+|---|---|
+| `yakin_plan`: maç içi yakın planlar | "{p} close up", "{p} 4K scenepack", "{p} tunnel cam" |
+| `gol_asist`: gol ve asistler | "{p} all goals", "{p} goals and assists", "{p} goal {club}" |
+| `calim`: çalım ve driplingler | "{p} skills dribbles", "{p} dribbling", "{p} skills {club}" |
+| `kosu_mucadele`: koşular ve ikili mücadeleler | "{p} every touch", "{p} duels", "{p} sprint speed" |
+| `sevinc`: gol sevinçleri | "{p} celebration", "{p} goal celebration" |
+| `antrenman`: antrenman | "{p} training", "{club} training {p}" |
+| `farkli_aci`: farklı açılar | "{p} player cam", "{p} tactical cam", "{p} behind the scenes", "{p} pitchside" |
+
+**Eleme ve sıralama:**
+- **Elenenler:** Başlığında oyuncunun soyadı geçmeyen videolar, video oyunları (FIFA/EA FC/eFootball), tepki videoları, başkalarının edit'leri, basın toplantıları ve röportajlar.
+- **Öne çıkanlar:** Resmî kanallar (lig/yayıncı adları + `--clubs`), HD, uygun süre (30 sn–15 dk) ve Creative Commons lisans.
+- **İndirme sırası:** Her kategoriden sırayla seçilir, böylece her görüntü türünden kaynak gelir.
+
+**İzin durumu.** Her indirilen klip için `kaynak_raporu.md` dosyasına yazılır:
+- Creative Commons ise atıf ile yeniden kullanım izinli.
+- Diğer her şey (resmî kurum, standart YouTube lisansı, sosyal medya gönderisi) için "yeniden yayın izni yok".
+
+Bu bilgilendirme amaçlıdır, hukuki tavsiye değildir.
+
+## Sahne sahne değerlendirme
+
+`shots` adımı her kaynak videoyu çekimlerine ayırır ve `06_PROJECT_FILES/kaynak_degerlendirme.md` dosyasına yazar.
+
+**Kaynak başına ölçülenler:**
+- Kullanılabilir çekim sayısı, yakın/orta/geniş dağılımı
+- Hedef oyuncu olarak doğrulanan çekimler ve başka kişilerin yüzleri
+- Çözünürlük ve dikey video uyarısı
+- **Sabit grafik/filigran tahmini** (skor tabelası, kanal logosu) ve siyah bant
+
+**Karar:** Her kaynak "iyi", "sınırlı" ya da "kullanma" alır. "Kullanma" alan kaynaklar (ör. başka bir oyuncu ağırlıklı derleme) kurguya hiç girmez.
+
+**Kontakt sayfaları:** `kaynak_kontakt/` klasörüne yazılır. Etiket renkleri: yeşil = hedef oyuncu, kırmızı = başka kişi, gri = belirsiz.
+
+**Oyuncu doğrulama:**
+- **Hedef yüzün belirlenmesi:** SFace yüz imzaları kümelenir; en sık görünen yüz hedef kabul edilir. İstersen `05_IMAGES/` klasörüne oyuncunun fotoğraflarını koy, o zaman hedef fotoğrafa göre seçilir.
+- **Benzerlik eşikleri:** Hedef yüze benzerlik ≥0,30 ise "hedef", <0,18 ise "başka kişi", aradaki değerler "belirsiz".
+- **Küçük yüzler:** Görüntünün %0,8'inden küçük yüzlerle kimlik kararı verilmez.
 
 ## Kurulum
 
@@ -38,33 +100,42 @@ Gerekenler: Python 3.10+, ffmpeg (`brew install ffmpeg` / `sudo apt install ffmp
 winget install Gyan.FFmpeg
 cd futbol-editor
 py -m venv .venv; .venv\Scripts\pip install -r requirements.txt
-# models\ klasörüne şu iki dosyayı indir (kurulum.sh içindeki adresler):
-#   face_detection_yunet_2023mar.onnx, face_recognition_sface_2021dec.onnx
+# models\ klasörüne kurulum.sh içindeki iki .onnx dosyasını indir
 .venv\Scripts\python -m fe doctor
 ```
+
+### API anahtarları (isteğe bağlı ama önerilir)
+- **YouTube Data API v3:** Google Cloud Console'da bir proje aç, "YouTube Data API v3"ü etkinleştir ve bir API anahtarı oluştur. Sonra: `export YT_API_KEY=...`
+- **Google Programmable Search:** programmablesearchengine.google.com'da tüm web'i arayan bir arama motoru oluştur (`GOOGLE_CSE_ID`). Google Cloud'da "Custom Search API"yi etkinleştir (`GOOGLE_API_KEY`). Sonra: `export GOOGLE_API_KEY=... GOOGLE_CSE_ID=...`
+
+Anahtarları koda ya da repoya yazma; yalnızca ortam değişkeni olarak ver.
+
+### Giriş çerezi (Instagram, X, YouTube bot doğrulaması)
+Tarayıcıda ilgili siteye giriş yap. "Get cookies.txt LOCALLY" gibi bir eklentiyle Netscape biçiminde `cookies.txt` dışa aktar ve `--cookies cookies.txt` ile ver. Bu dosya oturum anahtarın sayılır: paylaşma ve repoya koyma.
 
 ## Kullanım
 
 ```bash
 # hepsi bir arada
-python -m fe run --ref referans.mp4 --player "Leandro Trossard"
+python -m fe run --ref referans.mp4 --player "Leandro Trossard" --clubs "Arsenal,Brighton,Belgium"
 
 # adım adım
-python -m fe analyze --ref referans.mp4 --player "Leandro Trossard"   # 1) style.json + müzik
-python -m fe fetch   --player "Leandro Trossard" --max-videos 12      # 2-3) ara + indir
-python -m fe shots   --player "Leandro Trossard"                      # 4) çekimler + oyuncu doğrulama
-python -m fe plan    --player "Leandro Trossard"                      # 5-6) eşleme + LUT + ses planı
-python -m fe render  --player "Leandro Trossard"                      # 7-8) MP4
-python -m fe qc      --player "Leandro Trossard"                      # 9) kalite kontrol
+python -m fe analyze --ref referans.mp4 --player "Leandro Trossard"            # 1) style.json + müzik
+python -m fe fetch   --player "Leandro Trossard" --clubs "Arsenal,Brighton,Belgium" --max-videos 15
+python -m fe shots   --player "Leandro Trossard"                               # sahne sahne değerlendirme
+python -m fe plan    --player "Leandro Trossard"                               # eşleme + LUT + ses
+python -m fe render  --player "Leandro Trossard"                               # MP4
+python -m fe qc      --player "Leandro Trossard"                               # kalite kontrol
 ```
 
-İndirme seçenekleri:
-- `--cookies cookies.txt`: YouTube "bot değilim" doğrulaması isterse tarayıcıdan dışa aktarılmış çerez dosyası.
-- `--urls liste.txt`: Arama yerine bu URL'leri indir.
-- `--local klasör`: İndirme yapma, bu klasördeki videoları kullan.
-- `run --skip-fetch`: `01_FOOTAGE`'da zaten olan klipleri kullan.
+`fetch` / `run` seçenekleri:
+- `--clubs`: Kulüp ve milli takım adları. Kulüp aramalarında, hashtag'lerde ve resmî kanal tespitinde kullanılır.
+- `--channels '@kanal,...'`: İçinde arama yapılacak resmî YouTube kanalları.
+- `--providers youtube_api,youtube,channels,tiktok,instagram,google`: Hangi kaynaklar kullanılacak. `none` verirsen arama yapılmaz, yalnızca `--urls`/`--local` kullanılır.
+- `--cc-only`: Yalnızca Creative Commons lisanslı YouTube videoları (YouTube API gerekir).
+- `--urls liste.txt`, `--local klasör`, `--cookies cookies.txt`, `--max-videos`, `--per-query`
 
-Oyuncu doğrulamasını güçlendirmek için `05_IMAGES/` klasörüne oyuncunun 2-3 net yüz fotoğrafını koyabilirsin (isteğe bağlı).
+Bu ayarlar `06_PROJECT_FILES/config.json` dosyasına da yazılabilir (`clubs`, `official_channels`, `providers`, `cc_only`).
 
 ## Proje klasörü
 
@@ -72,63 +143,54 @@ Oyuncu doğrulamasını güçlendirmek için `05_IMAGES/` klasörüne oyuncunun 
 projeler/<oyuncu>/
 ├── 01_FOOTAGE/        indirilen kaynak klipler
 ├── 02_AUDIO/sfx/      (isteğe bağlı) whoosh*.wav, impact*.wav
-├── 03_MUSIC/          music.wav (referanstan çıkarılır)
+├── 03_MUSIC/          music.wav (referanstan)
 ├── 05_IMAGES/         (isteğe bağlı) oyuncu yüz fotoğrafları
-├── 06_PROJECT_FILES/  style.json, manifest.json, shots.json, edl.json, grade.cube, config.json
+├── 06_PROJECT_FILES/  style.json, manifest.json, kaynak_raporu.md, kaynak_degerlendirme.md,
+│                      kaynak_kontakt/, shots.json, edl.json, grade.cube, config.json
 ├── 07_PROXIES/        render parçaları
 └── 08_EXPORTS/        <oyuncu>.mp4, <oyuncu>_qc.md/json, <oyuncu>_kontakt.png
 ```
 
-## Nasıl çalışır
+## Nasıl çalışır (özet)
 
-1. **Referans analizi** (`analyze`): Video 60 fps'e kadar kare kare taranır.
-   - **Kesimler:** Renk histogramı farkı yerel ortancanın 3 katını aşınca kesim sayılır. Kararma ve açılmalar kesim sayılmaz.
-   - **Geçişler:** Siyahtan açılma ve siyaha kararma süreleri ölçülür. Hareketsiz çekimler donmuş kare (freeze), görüntünün kendiliğinden yaklaşması yakınlaşma (push-in, faz korelasyonu ile) olarak işaretlenir.
-   - **Diğer efektler:** Netlik düşüşüyle hareket bulanıklığı tahmin edilir.
-   - **Plan ölçeği:** Yüz boyutu ve çim oranından yakın, orta ya da geniş plan çıkarılır.
-   - **Renk:** Lab ortalaması/sapması ve köşe/merkez parlaklık oranı (vinyet) ölçülür.
-   - **Müzik:** Tempo, vuruşlar, LUFS ve sondaki sessizlik ölçülür.
-2. **Arama ve indirme** (`fetch`): yt-dlp ile 7 farklı aramadan aday videolar toplanır ("scenepack", "all goals", "skills"…). Başlığında oyuncunun soyadı geçmeyenler, video oyunları (FIFA/EA FC/eFootball), tepki videoları ve başkalarının edit'leri elenir. İndirme en fazla 1080p, yalnızca görüntü. Kaynak adresleri `manifest.json`'a yazılır.
-3. **Çekim analizi** (`shots`): Her klip çekimlere bölünür. Aynı plan farklı derlemelerde tekrar ediyorsa elenir. Yüzler SFace ile kümelenir; en sık görünen yüz kümesi (ya da `05_IMAGES` fotoğraflarına en yakın küme) hedef oyuncu kabul edilir. Başka birinin yüzü görünen çekimler hiç kullanılmaz.
-4. **Eşleme** (`plan`): Referanstaki her çekim bir "slot" olur. Süreler kare kare aynen korunur, yani kesimler müzikle aynı yerde kalır.
-   - **Çekim seçimi:** Her slota aynı plan ölçeğinde bir kaynak çekim seçilir. Aksiyon slotlarında en hareketli an, yakın plan slotlarında doğrulanmış yüz tercih edilir.
-   - **Renk:** Seçilen kaynakların renk istatistiği referansa eşlenip `grade.cube` olarak yazılır (Reinhard yöntemi).
-5. **Render** (`render`):
-   - **Parçalar:** Her slot ayrı parça olarak işlenir: kare kırpma (kadraj merkezi yüze ya da hareketin olduğu yere göre ayarlanır), donmuş kare, yakınlaşma, hareket bulanıklığı, LUT, vinyet ve kararmalar.
-   - **Birleştirme ve ses:** Parçalar birleştirilir. Müzik iki geçişli loudnorm ile referansın LUFS değerine getirilir (true peak −1 dBTP).
-6. **Kalite kontrol** (`qc`):
-   - **Teknik:** Çözünürlük, fps ve süre plana uyuyor mu? Planda olmayan siyah kare ya da donma var mı? LUFS ve true peak sınırda mı?
-   - **Kurgu:** Kesimler planlanan karenin ±2 karesinde mi?
-   - **İçerik:** Büyütülmüş düşük çözünürlüklü planlar, oyuncu doğrulama oranı, tekrar kullanılan planlar.
-   - **Çıktı:** Sonuç kontakt sayfası ve rapor olarak yazılır. Hata varsa çıkış kodu 2.
-
-`config.json` ile ayarlanabilenler: `texts` (yazı ekleme), `grade_strength`, `vignette`, `music` (başka bir müzik; kesimler vuruşlara kaydırılır), `target_lufs`, `sfx`, `slowmo_speed`, `push_in_max`, `allow_unverified_closeups`, `preset`, `crf`.
+1. **analyze:** Referans 60 fps'e kadar taranır.
+   - **Kesimler:** Renk histogramı farkıyla bulunur; kararma ve açılmalar kesim sayılmaz.
+   - **Efektler:** Siyaha kararma, donmuş kare, yakınlaşma (faz korelasyonu) ve hareket bulanıklığı tespit edilir.
+   - **Plan ölçeği:** Yakın/orta/geniş plan yüz boyutu ve çim oranından çıkarılır.
+   - **Renk ve ses:** Lab renk istatistiği, vinyet, tempo, vuruşlar ve LUFS ölçülür.
+2. **fetch:** Arama ve indirme yapılır. Yukarıdaki bölümlere bak.
+3. **shots:** Sahne sahne değerlendirme ve oyuncu doğrulama. Yukarıdaki bölüme bak.
+4. **plan:** Referanstaki her çekim bir slot olur ve süreler kare kare korunur.
+   - **Çekim seçimi:** Slota aynı plan ölçeğinde bir kaynak çekim seçilir. Puanlamada kategori uyumu (yakın plan slotuna `yakin_plan`/`sevinc`, aksiyona `calim`/`gol_asist`), hareket, doğrulanmış yüz, çözünürlük ve resmî kaynak öne çıkar.
+   - **Renk:** Kaynakların renk istatistiği referansa eşlenip `grade.cube` LUT dosyası olarak yazılır.
+5. **render:** Parça parça işlenir: kare kırpma (kadraj yüze ya da hareketin olduğu yere göre ayarlanır), donmuş kare, yakınlaşma, hareket bulanıklığı, LUT, vinyet ve kararmalar. Ardından birleştirilir; müzik iki geçişli loudnorm ile işlenir.
+6. **qc:** Çözünürlük, fps, süre, planlanmamış siyah kare veya donma, LUFS/true peak, kesim zamanlaması, büyütme oranı, oyuncu doğrulama oranı ve tekrar kullanılan planlar kontrol edilir. Sonuç kontakt sayfası ve raporla birlikte yazılır.
 
 ## İndirme engeli
 
-Claude Code bulut oturumunda test edildi: `youtube.com`, `google.com`, `vimeo.com`, `dailymotion.com`, `pexels.com`, `wikimedia.org` adreslerinin hepsi ağ vekil sunucusu tarafından reddediliyor (403). Çözüm yolları:
+Bulut oturumunda test edilen adreslerin hepsi ağ vekil sunucusu tarafından reddediliyor (403): `youtube.com`, `googlevideo.com`, `ytimg.com`, `tiktok.com`, `instagram.com`, `x.com`, `google.com`. Yalnızca `googleapis.com` açık. Çözüm yolları:
 
-1. **Önerilen:** Sistemi kendi bilgisayarında çalıştır (`./kurulum.sh` → `python -m fe run …`). Ev bağlantısında YouTube araması ve indirmesi normal çalışır.
-2. **Bulut oturumunda:** Ortam ayarlarından (oturum başlığındaki ortam menüsü → Edit → Network access) `youtube.com`, `www.youtube.com`, `googlevideo.com`, `ytimg.com` alanlarına izin ver. Uyarı: İzin verilse bile YouTube veri merkezi IP'lerinden "bot değilim" doğrulaması isteyebilir. Bu durumda `--cookies` gerekir.
+1. **Önerilen:** Sistemi kendi bilgisayarında çalıştır.
+2. **Bulut oturumunda:** Ortam ayarlarından (oturum başlığındaki ortam menüsü → Edit → Network access) şu alanlara izin ver: `youtube.com`, `googlevideo.com`, `ytimg.com`, `tiktok.com`, `tiktokcdn.com`, `instagram.com`, `cdninstagram.com`, `x.com`, `twitter.com`, `twimg.com`. İzin verilse bile platformlar veri merkezi IP'lerinden giriş ya da bot doğrulaması isteyebilir; o zaman `--cookies` gerekir.
 
-## Eksik bileşenler ve kurulum planı
+## Eksik bileşenler
 
 | Eksik | Etkisi | Plan |
 |---|---|---|
-| Ağ erişimi (bulut) | Arama/indirme yapılamıyor | Yukarıdaki iki yol |
-| Geniş planlarda oyuncu doğrulama | Yüz görünmeyen planlar doğrulanamıyor; derlemelerde başka oyuncu riski | Forma numarası OCR'ı (PaddleOCR/EasyOCR) + oyuncu takibi. Şimdilik kaynak başlık filtresi + kontakt sayfası kontrolü |
-| Olay türü (gol, sevinç, çalım) sınıflama | Slotlar plan ölçeği ve harekete göre doluyor, "bu an gol mü" bilinmiyor | Video sınıflandırma modeli ya da yayın grafiklerinden (skor değişimi) gol anı tespiti |
-| Referanstaki yazıların tespiti | Yazı stili otomatik kopyalanmıyor | Tesseract/PaddleOCR. Şimdilik `config.json → texts` |
-| Hızlanma/yavaşlama (speed ramp) ve interpolasyonlu ağır çekim tespiti | Yalnızca kare tekrarıyla yapılmış ağır çekim yakalanıyor | Optik akış hız profili |
-| SFX kütüphanesi | Sistem ses efekti üretmez | Lisanslı whoosh/impact dosyalarını `02_AUDIO/sfx/` klasörüne koy, `config.json → "sfx": true` |
-| Müzik tanıma | Referanstaki şarkının orijinali bulunamıyor (referans ses genelde düşük bitrate) | Orijinal dosyayı `config.json → music` ile ver |
+| Ağ erişimi (bulut) | İndirme yapılamıyor | Yukarıdaki iki yol |
+| Geniş planlarda oyuncu doğrulama | Yüz görünmeyen planlar "belirsiz" kalıyor | Forma numarası OCR'ı (PaddleOCR/EasyOCR) + oyuncu takibi |
+| Olay türü sınıflama | Kategori aramadan geliyor; tek bir çekimin gol mü sevinç mi olduğu ayrıca tanınmıyor | Video sınıflandırma modeli ya da skor grafiği değişimi |
+| Referanstaki yazıların tespiti | Yazı stili kopyalanmıyor | Tesseract/PaddleOCR. Şimdilik `config.json → texts` |
+| Speed ramp ve interpolasyonlu ağır çekim tespiti | Yalnızca kare tekrarıyla yapılmış ağır çekim yakalanıyor | Optik akış hız profili |
+| SFX kütüphanesi | Sistem ses efekti üretmez | Lisanslı dosyaları `02_AUDIO/sfx/` klasörüne koy |
+| Müzik tanıma | Referans şarkının orijinali bulunamıyor | `config.json → music` |
 
 ## Telif
 
-İndirilen maç görüntüleri ve müzikler hak sahiplerine aittir. `manifest.json` her klibin kaynağını kaydeder. Videoyu yayınlamadan önce kullanım hakkını kontrol etmek sana düşer. TikTok/Instagram'da müziği gömmek yerine platformun ses kütüphanesinden eklemek daha güvenlidir.
+Maç görüntüleri kulüplere, liglere ve yayıncılara, sosyal medya gönderileri yükleyenlere aittir. Sistem her klibin kaynağını ve izin durumunu kaydeder. Yayınlamadan önce kullanım hakkını kontrol etmek sana düşer.
 
 ## Test
 
 ```bash
-.venv/bin/python -m unittest discover -s tests
+.venv/bin/python -m unittest discover -s tests     # 18 test, ağ gerektirmez
 ```

@@ -12,6 +12,10 @@ from .util import FEError, load_json, log, save_json
 
 DEFAULT_CONFIG = {
     "player": "",
+    "clubs": [],             # ["Arsenal", "Brighton", "Belgium"] → kulüp aramaları + resmî kanal tespiti
+    "official_channels": [], # ["@kanaladi", "https://www.youtube.com/channel/UC..."] → kanal içi arama
+    "providers": ["youtube_api", "youtube", "channels", "tiktok", "instagram", "google"],
+    "cc_only": False,        # true → YouTube API'de yalnızca Creative Commons lisanslı videolar
     "texts": [],            # [{"text": "LEANDRO TROSSARD", "start": 0.6, "end": 2.2, "size": 0.07, "y": 0.5}]
     "grade_strength": 1.0,  # 0 = renge dokunma, 1 = referansa tam eşle
     "vignette": True,
@@ -119,7 +123,10 @@ def make_plan(paths: dict) -> dict:
     style = load_json(paths["style"], "analyze")
     shots_doc = load_json(paths["shots"], "shots")
     cfg = load_config(paths)
-    pool = shots_doc["shots"]
+    bad = {src["path"] for src in shots_doc.get("sources", []) if src.get("verdict") == "kullanma"}
+    pool = [s for s in shots_doc["shots"] if s["source"] not in bad]
+    if bad:
+        log(f"{len(bad)} kaynak değerlendirmede 'kullanma' aldı ve dışarıda bırakıldı")
     if not pool:
         raise FEError("Kullanılabilir kaynak çekim yok.")
     out = style["output"]
@@ -186,10 +193,17 @@ def make_plan(paths: dict) -> dict:
                     mn = (s["motion"] - m_lo) / max(m_hi - m_lo, 1e-6)
                     score = (-1.5 * rank + (0.8 if ident == "target" else 0.0) + min(1.0, s["sharp"] / s_hi) * 0.4
                              + (0.3 if s["src_h"] >= 1080 else 0.0) - 1.2 * use_count.get(s["id"], 0))
+                    cat = s.get("category")
                     if kind == "closeup":
                         score += min(1.0, s.get("face_area", 0) / 0.05)
+                        score += 0.3 if cat in ("yakin_plan", "sevinc") else 0.0
                     else:
                         score += float(np.clip(mn, 0, 1.2)) * (1.0 if slot["freeze"] or rs["motion"] > 0.02 else 0.4)
+                        if slot["freeze"]:
+                            score += 0.3 if cat in ("gol_asist", "sevinc") else 0.0
+                        else:
+                            score += 0.2 if cat in ("calim", "kosu_mucadele", "gol_asist", "farkli_aci") else 0.0
+                    score += 0.2 if s.get("official") else 0.0
                     if best is None or score > best[0]:
                         best = (score, s, a, kind)
                 if best is not None and rank == 0:
