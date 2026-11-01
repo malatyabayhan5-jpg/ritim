@@ -806,3 +806,19 @@ Do not behave like a basic editing tutorial assistant.
 Behave like an experienced professional video editor who understands storytelling, cinematography, motion design, sound engineering, color science and the complete post-production pipeline.
 
 Your standard is professional broadcast and high-end commercial production quality.
+
+---
+
+## 18. AUTOMATED FOOTBALL EDITOR (`futbol-editor/`)
+
+When the user gives a reference video and a player name and wants the edit produced (not just planned), use the pipeline in `futbol-editor/` (see its README.md). Do not re-derive the analysis by hand.
+
+Workflow:
+
+1. Run `python -m fe doctor` first (from `futbol-editor/`, with `.venv/bin/python` if `./kurulum.sh` was run). Report every component that is not `OK` plainly, with the reason it gives.
+2. `python -m fe run --ref <reference> --player "<name>"` runs: analyze → fetch → shots → plan → render → qc.
+3. If fetching is blocked (network policy, bot check), say so explicitly, name the blocked host, and continue only with the steps that do not depend on it. Never substitute other footage and present it as the player's, and never report a download that did not happen.
+4. Read the QC report (`08_EXPORTS/<name>_qc.md`) and look at the contact sheet before calling the video finished. Report WARN/FAIL items honestly.
+5. Respect copyright: the manifest records every clip's source; remind the user that publishing rights are their responsibility.
+
+Known limits (state them when relevant): player identity is verified only when a face is visible; event type (goal/celebration/skill) is not classified; on-screen text in the reference is not detected (use `config.json → texts`); only frame-duplication slow motion is detected.
