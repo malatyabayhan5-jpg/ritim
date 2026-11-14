@@ -38,3 +38,34 @@ test('console capture keeps only Kurgu lines', () => {
   assert.equal(snap.filter((l) => l.includes('[KurguUI] play')).length, 1);
   assert.equal(snap.filter((l) => l.includes('unrelated')).length, 0);
 });
+
+test('crash section: abnormal exits are flagged, background kills are not', async () => {
+  const { hasNewCrash, isAbnormalExit } = await import('../src/engine/diagnostics.js');
+  const anr = { time: 2000, reason: 'ANR', importance: 100, status: 0, rssMb: 400, description: 'Input dispatching timed out', trace: '"main" prio=5\n  at android.view.ThreadedRenderer.draw' };
+  const bgKill = { time: 3000, reason: 'LOW_MEMORY', importance: 400, status: 0, rssMb: 100, description: '' };
+  const fgKill = { ...bgKill, importance: 100 };
+  assert.equal(isAbnormalExit(anr), true);
+  assert.equal(isAbnormalExit(bgKill), false);
+  assert.equal(isAbnormalExit(fgKill), true);
+  assert.equal(hasNewCrash({ lastCrash: null, exits: [anr, bgKill] }, 2500), false, 'already acknowledged');
+  assert.equal(hasNewCrash({ lastCrash: null, exits: [anr, bgKill] }, 1000), true);
+  assert.equal(hasNewCrash({ lastCrash: 'thread=main', exits: [] }, 9e15), true);
+  assert.equal(hasNewCrash(null), false);
+  const text = formatReport({ version: '1', device: null, crash: { lastCrash: 'thread=main\njava.lang.OutOfMemoryError', exits: [anr, bgKill] } });
+  assert.match(text, /--- crash\nthread=main\njava\.lang\.OutOfMemoryError/);
+  assert.match(text, /ANR \(!\) importance=100/);
+  assert.match(text, /ThreadedRenderer\.draw/);
+  assert.match(text, /LOW_MEMORY importance=400/);
+});
+
+test('global error handler records and forwards', async () => {
+  const { installGlobalErrorHandler } = await import('../src/engine/diagnostics.js');
+  let handler = null;
+  const forwarded = [];
+  const utils = { getGlobalHandler: () => (e, f) => forwarded.push([e.message, f]), setGlobalHandler: (h) => { handler = h; } };
+  const sunk = [];
+  installGlobalErrorHandler((l) => sunk.push(l), utils);
+  handler(new Error('boom'), true);
+  assert.equal(forwarded.length, 1);
+  assert.match(sunk[0], /\[KurguJS\] fatal boom ::/);
+});

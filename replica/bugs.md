@@ -238,6 +238,22 @@ emulator seeks stayed under the old 250 ms, so it never showed the starvation; w
 depends on how long a seek takes on the user's footage, which only the phone can tell.
 Status: fix in the #143 APK; phone check needed.
 
+### BUG-012: The app keeps crashing on the user's phone
+
+- Severity: S1
+- Build: CI #144 APK (or earlier)  Device: the user's Xiaomi (reported 2026-11-14: "uygulama sürekli çöküyor")
+- Not reproduced: emulator e2e on #144 shows no crash record (7 of 8 flows pass). No steps, no log from the phone;
+  this session cannot reach the phone.
+- Done (pending CI): crash capture. An uncaught exception is written to a file before the process dies; on
+  Android 11+ the system's process exit reasons (ANR with the main thread stack, native crash, low memory)
+  are read too. After a crash the home screen shows a banner with "Copy report". JS fatal errors go to the
+  native log first.
+- Hardening in the same build, from code review (not confirmed as the cause): in the preview, frames larger
+  than the preview canvas are scaled down in the first GL step (`FitWithin`), so every later shader runs at
+  preview size instead of 1080p / 4K; the scrub watchdog can no longer grow to 2 s after cut-offs (CI #144
+  showed 4 seeks / 2 cut-offs in a 3 s drag).
+- Status: open until the phone's crash report arrives.
+
 ## Test tooling bugs (not app bugs)
 
 - text_check sampled frames past the video end when the text ran to the end — fixed in eb80b39.

@@ -15,6 +15,13 @@
     "save": "Save"
   },
   "home": {
+    "crash": {
+      "title": "Kurgu closed unexpectedly",
+      "text": "Copy the report and send it to the developer so the cause can be found. File and project names are not included.",
+      "copy": "Copy report",
+      "dismiss": "Dismiss",
+      "copied": "Report copied; you can paste it now"
+    },
     "newProject": "New project",
     "newProjectHint": "Pick videos and photos from your gallery",
     "templates": "Templates",
@@ -481,6 +488,8 @@
     "about": "About",
     "licenses": "Video engine: AndroidX Media3 (Apache 2.0). H.264/HEVC encoding uses the device's hardware encoder.",
     "diagnostics": {
+      "copy": "Copy report",
+      "copied": "Report copied",
       "title": "Diagnostics report",
       "text": "Shares the real measurements from this phone (scrub times, stalls, device and video formats) as one text. File and project names are not included.",
       "share": "Share report",

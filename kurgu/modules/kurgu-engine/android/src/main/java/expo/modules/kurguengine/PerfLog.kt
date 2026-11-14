@@ -9,7 +9,7 @@ import android.util.Log
  */
 object PerfLog {
   private const val MAX = 300
-  private val lines = ArrayDeque<String>()
+  private val lines = kotlin.collections.ArrayDeque<String>()
   private val clock = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US)
 
   fun i(tag: String, msg: String) = add('I', tag, msg, null)
@@ -28,7 +28,7 @@ object PerfLog {
     synchronized(lines) {
       // SimpleDateFormat iş parçacığı güvenli değil: kilit içinde biçimlenir
       lines.addLast("${clock.format(java.util.Date())} $level $tag $msg$cause".take(600))
-      while (lines.size > MAX) lines.removeFirst()
+      while (lines.size > MAX) lines.removeAt(0)
     }
   }
 

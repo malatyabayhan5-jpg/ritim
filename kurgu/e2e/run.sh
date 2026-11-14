@@ -362,6 +362,8 @@ for flow in $FLOWS; do
   tail -40 "$OUT/$flow.log" 2>/dev/null
 done
 echo "===== çökme kayıtları ====="
+# Sistemin süreç çıkış nedenleri (ANR, yerel çökme, bellek): uygulamanın çökme raporuyla aynı kaynak
+"$ADB" shell dumpsys activity exit-info app.kurgu.editor 2>/dev/null | grep -E "reason=|description=" | head -24 || true
 grep -A30 "$PKG" "$OUT/cokme.txt" 2>/dev/null | head -60
 echo "===== AI araçları günlüğü ====="
 cat "$OUT/kurgu_gunluk.txt" 2>/dev/null | head -250

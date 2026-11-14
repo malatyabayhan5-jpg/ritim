@@ -94,6 +94,26 @@ class KeyedPlacement(
   }
 }
 
+/**
+ * Önizleme: kaynak kare önizleme kanvasından büyükse (telefon videosu 1080p / 4K) ilk adımda
+ * küçültülür. Matris dönüşümü olduğu için Media3 bunu çözücü dokusunu örnekleyen ilk shader'a
+ * katar: sonraki bütün efektler (arka plan, katman, LUT, parıltı) 4K yerine önizleme
+ * boyutunda çalışır. Dışa aktarmada kullanılmaz.
+ */
+@OptIn(UnstableApi::class)
+class FitWithin(private val maxSide: Int) : MatrixTransformation {
+  private val identity = Matrix()
+
+  override fun configure(inputWidth: Int, inputHeight: Int): Size {
+    val long = max(inputWidth, inputHeight)
+    if (long <= maxSide) return Size(inputWidth, inputHeight)
+    val s = maxSide.toFloat() / long
+    return Size(max(2, (inputWidth * s).toInt()), max(2, (inputHeight * s).toInt()))
+  }
+
+  override fun getMatrix(presentationTimeUs: Long): Matrix = identity
+}
+
 /** Tanı (BUG-010): önizlemede ana iz kliplerinin işlenen kare sayısı (KurguPreviewView okur). */
 object PreviewStats {
   val frames = java.util.concurrent.atomic.AtomicLong()

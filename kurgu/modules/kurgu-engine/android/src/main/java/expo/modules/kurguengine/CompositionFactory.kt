@@ -235,6 +235,7 @@ object CompositionFactory {
         .build()
     }
     val video = mutableListOf<Effect>()
+    if (live) video.add(FitWithin(max(w, h)))
     clip.colorMatrix?.let { video.add(StaticColorMatrix(it, if (live) "cm:${clip.key}" else null)) }
     clip.lut?.takeIf { it.amount > 0f && CubeLut.fileOf(it.uri).isFile }?.let { video.add(LutFx(it, if (live) "lut:${clip.key}" else null)) }
     clip.effects.forEach { video.add(ShaderFx(it, if (live) "fx:${it.key}" else null)) }
@@ -283,6 +284,7 @@ object CompositionFactory {
           .build(),
       )
     }
+    if (live) video.add(FitWithin(max(w, h)))
     if (clip.fit != "fill" && (live || !CanvasBgFx.isBlack(background))) {
       // Sığdırılan klibin boşlukları kanvas arka planıyla (renk / bulanık kopya) dolar. Önizlemede
       // her zaman bu yol kullanılır ki arka plan değişince kompozisyon yeniden kurulmasın.

@@ -36,14 +36,62 @@ export function jsSnapshot() {
   return jsLines.slice();
 }
 
+/** Yakalanmayan JS hatalarını kaydeder, sonra önceki işleyiciye iletir. `sink`: yerel günlük. */
+export function installGlobalErrorHandler(sink, utils = globalThis.ErrorUtils) {
+  if (!utils?.setGlobalHandler) return;
+  const prev = utils.getGlobalHandler?.();
+  utils.setGlobalHandler((error, isFatal) => {
+    try {
+      const stack = String(error?.stack || '').split('\n').slice(0, 10).map((l) => l.trim()).join(' < ');
+      const line = `[KurguJS] ${isFatal ? 'fatal' : 'error'} ${error?.message || error} :: ${stack}`;
+      recordJs(`E ${line}`);
+      sink?.(line);
+    } catch {
+      // kayıt başarısızsa da asıl işleyici çalışır
+    }
+    prev?.(error, isFatal);
+  });
+}
+
+const ALWAYS_ABNORMAL = new Set(['CRASH', 'CRASH_NATIVE', 'ANR', 'INITIALIZATION_FAILURE']);
+const FOREGROUND_ABNORMAL = new Set(['LOW_MEMORY', 'EXCESSIVE_RESOURCE_USAGE', 'SIGNALED', 'OTHER']);
+
+/** Kullanıcının "çöktü" diye gördüğü çıkış mı? Arka planda sistemin kapatması sayılmaz. */
+export function isAbnormalExit(e) {
+  if (!e) return false;
+  return ALWAYS_ABNORMAL.has(e.reason) || (FOREGROUND_ABNORMAL.has(e.reason) && e.importance <= 200);
+}
+
+/** `since` (ms) sonrasında çökme var mı: çökme dosyası ya da olağan dışı süreç çıkışı. */
+export function hasNewCrash(info, since = 0) {
+  if (!info) return false;
+  if (info.lastCrash) return true;
+  return (info.exits || []).some((e) => e.time > since && isAbnormalExit(e));
+}
+
+function formatCrash(info) {
+  if (!info) return [];
+  const out = ['--- crash'];
+  out.push(info.lastCrash ? String(info.lastCrash).slice(0, 5000) : 'no uncaught exception recorded');
+  const exits = info.exits || [];
+  out.push(`--- process exits (${exits.length})`);
+  for (const e of exits) {
+    const d = new Date(e.time);
+    const when = Number.isFinite(e.time) ? d.toISOString().replace('T', ' ').slice(0, 19) : '?';
+    out.push(`${when}Z ${e.reason}${isAbnormalExit(e) ? ' (!)' : ''} importance=${e.importance} status=${e.status} rss=${e.rssMb} MB${e.description ? ` · ${e.description}` : ''}`);
+    if (e.trace) out.push(String(e.trace).slice(0, 3500));
+  }
+  return out;
+}
+
 const mb = (bytes) => (bytes > 0 ? `${(bytes / 1048576).toFixed(1)} MB` : '?');
 
 /**
  * Rapor metni. `device`: yerel diagnostics() sonucu (null olabilir); `media`: [{ kind, width,
  * height, durationMs, frameRate, hdr, mimeType, size, codec, bitrate, keyframes }];
- * `settings`: { previewQuality }; `jsLines` / `nativeLines`: ölçüm satırları.
+ * `settings`: { previewQuality }; `jsLines` / `nativeLines`: ölçüm satırları; `crash`: crashInfo().
  */
-export function formatReport({ version, device, media = [], settings = {}, jsLines: js = [], nativeLines, maxChars = 14000 }) {
+export function formatReport({ version, device, media = [], settings = {}, jsLines: js = [], nativeLines, crash = null, maxChars = 20000 }) {
   const out = [];
   out.push(`Kurgu ${version || '?'} diagnostics`);
   if (device) {
@@ -67,7 +115,8 @@ export function formatReport({ version, device, media = [], settings = {}, jsLin
     out.push(parts.join(' · '));
   });
   const native = nativeLines || device?.lines || [];
-  const head = out.join('\n');
+  // Çökme bölümü en üstte ve kırpılmadan: raporun en değerli kısmı
+  const head = [...out, ...formatCrash(crash)].join('\n');
   // Satırlar sondan kırpılmaz, baştan kırpılır: en yeni ölçümler kalır.
   const budget = Math.max(1000, maxChars - head.length - 64);
   const fit = (lines, share) => {

@@ -23,6 +23,10 @@ class KurguEngineModule : Module() {
 
     Events("onExportProgress", "onAiProgress")
 
+    OnCreate {
+      appContext.reactContext?.let { CrashLog.install(it) }
+    }
+
     AsyncFunction("probe") { uri: String ->
       MediaTools.probe(context, uri)
     }
@@ -187,6 +191,27 @@ class KurguEngineModule : Module() {
         "lines" to PerfLog.snapshot(),
       )
     }
+
+    // Çökme kaydı: son yakalanmayan istisna ve sistemin süreç çıkış nedenleri (Android 11+)
+    AsyncFunction("crashInfo") {
+      CrashLog.install(context)
+      mapOf("lastCrash" to CrashLog.read(), "exits" to CrashLog.exits(context))
+    }
+
+    AsyncFunction("clearCrash") {
+      CrashLog.clear()
+    }
+
+    // JS tarafındaki yakalanmayan hata: süreç ölmeden önce yerel günlüğe (çökme dosyasına girer)
+    Function("noteJs") { line: String ->
+      PerfLog.e("KurguJS", line.take(1500))
+    }
+
+    AsyncFunction("copyText") { text: String ->
+      val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+      cm.setPrimaryClip(android.content.ClipData.newPlainText("Kurgu", text))
+      true
+    }.runOnQueue(Queues.MAIN)
 
     AsyncFunction("keyframeInfo") { uri: String ->
       MediaTools.keyframeInfo(context, uri)

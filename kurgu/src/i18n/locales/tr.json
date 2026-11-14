@@ -15,6 +15,13 @@
     "save": "Kaydet"
   },
   "home": {
+    "crash": {
+      "title": "Kurgu beklenmedik şekilde kapandı",
+      "text": "Nedenini bulabilmemiz için raporu kopyalayıp geliştiriciye gönder. Dosya ve proje adları rapora girmez.",
+      "copy": "Raporu kopyala",
+      "dismiss": "Kapat",
+      "copied": "Rapor kopyalandı; şimdi yapıştırabilirsin"
+    },
     "newProject": "Yeni proje",
     "newProjectHint": "Galeriden video ve fotoğraf seçin",
     "templates": "Şablonlar",
@@ -481,6 +488,8 @@
     "about": "Hakkında",
     "licenses": "Video motoru: AndroidX Media3 (Apache 2.0). H.264/HEVC kodlama cihazın donanım kodlayıcısıyla yapılır.",
     "diagnostics": {
+      "copy": "Raporu kopyala",
+      "copied": "Rapor kopyalandı",
       "title": "Tanılama raporu",
       "text": "Telefonundaki gerçek ölçümleri (kaydırma süreleri, donmalar, cihaz ve video biçimleri) tek metin olarak paylaşır. Dosya ve proje adları rapora girmez.",
       "share": "Raporu paylaş",

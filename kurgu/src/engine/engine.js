@@ -124,6 +124,30 @@ export function diagnostics() {
   return KurguEngine.diagnostics().catch(() => null);
 }
 
+/** Son çökme kaydı ve sistemin süreç çıkış nedenleri: { lastCrash, exits } ya da null. */
+export function crashInfo() {
+  if (!KurguEngine?.crashInfo) return Promise.resolve(null);
+  return KurguEngine.crashInfo().catch(() => null);
+}
+
+export function clearCrash() {
+  return KurguEngine?.clearCrash ? KurguEngine.clearCrash().catch(() => {}) : Promise.resolve();
+}
+
+export function copyText(text) {
+  if (!KurguEngine?.copyText) return Promise.resolve(false);
+  return KurguEngine.copyText(text).then(() => true, () => false);
+}
+
+/** Yakalanmayan JS hatasını yerel günlüğe eşzamanlı yazar (çökme dosyasına girsin). */
+export function noteJs(line) {
+  try {
+    KurguEngine?.noteJs?.(line);
+  } catch {
+    // tanılama asla uygulamayı düşürmez
+  }
+}
+
 /** Video izinin ilk 10 sn'sindeki anahtar kare sayısı ve en uzun aralık (kod çözmeden). */
 export function keyframeInfo(uri) {
   if (!KurguEngine?.keyframeInfo) return Promise.resolve(null);

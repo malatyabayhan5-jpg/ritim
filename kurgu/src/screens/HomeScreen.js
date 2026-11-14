@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Image, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 import Constants from 'expo-constants';
@@ -24,7 +24,10 @@ import {
 import { importPicked, pickFiles, pickFromGallery } from '../storage/importer';
 import { createProject, RATIOS } from '../model/schema';
 import { addMediaToProject } from '../model/timeline';
-import { loadSettings } from '../storage/settings';
+import { loadSettings, saveSettings } from '../storage/settings';
+import { clearCrash, copyText, crashInfo } from '../engine/engine';
+import { hasNewCrash } from '../engine/diagnostics';
+import { buildReport } from '../engine/report';
 import * as DocumentPicker from 'expo-document-picker';
 import { formatTimecode, ltr } from '../i18n/core';
 import { createBlankPhoto, createPhotoFromGallery } from './PhotoEditorScreen';
@@ -174,8 +177,42 @@ export default function HomeScreen({ focused }) {
   const visible = (projects || []).filter((p) => (filter === 'drafts' ? !p.exportedAt : filter === 'exported' ? !!p.exportedAt : true));
   const version = Constants.expoConfig?.version || '0.1.0';
 
+  // Önceki kullanımda uygulama çöktüyse (ya da sistem "yanıt vermiyor" diye kapattıysa) rapor bandı
+  const [crashed, setCrashed] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const [info, st] = await Promise.all([crashInfo(), loadSettings()]);
+      if (hasNewCrash(info, st.crashAckAt || 0)) setCrashed(true);
+    })().catch(() => {});
+  }, []);
+  const dismissCrash = async () => {
+    setCrashed(false);
+    await clearCrash();
+    await saveSettings({ crashAckAt: Date.now() });
+  };
+  const copyCrash = async () => {
+    try {
+      const text = await buildReport();
+      if (await copyText(text)) toast(t('home.crash.copied'));
+      else await Share.share({ message: text });
+      await dismissCrash();
+    } catch {
+      toast(t('errors.generic'), 'error');
+    }
+  };
+
   const header = (
     <View>
+      {crashed ? (
+        <View style={styles.crash} testID="crash-banner">
+          <Txt style={{ fontWeight: '700' }}>{t('home.crash.title')}</Txt>
+          <Txt dim style={{ fontSize: 13 }}>{t('home.crash.text')}</Txt>
+          <Row style={{ justifyContent: 'flex-end' }}>
+            <Chip label={t('home.crash.dismiss')} onPress={dismissCrash} testID="crash-dismiss" />
+            <Chip label={t('home.crash.copy')} active onPress={copyCrash} icon="copy-outline" testID="crash-copy" />
+          </Row>
+        </View>
+      ) : null}
       <Row style={styles.top}>
         <Text style={styles.brand}>{t('app.name')}</Text>
         <Row gap={0}>
@@ -389,6 +426,7 @@ function QuickTool({ icon, label, onPress, testID }) {
 }
 
 const styles = StyleSheet.create({
+  crash: { margin: space.md, padding: space.md, gap: space.sm, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.warning },
   screen: { flex: 1, backgroundColor: colors.bg },
   top: { justifyContent: 'space-between', paddingHorizontal: space.lg, height: 56 },
   brand: { color: colors.text, fontSize: 26, fontWeight: '800', letterSpacing: 0.5 },

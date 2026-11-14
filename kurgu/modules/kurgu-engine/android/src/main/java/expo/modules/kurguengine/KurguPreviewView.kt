@@ -14,6 +14,7 @@ import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -59,6 +60,8 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
 
   init {
     addView(surfaceView)
+    // Önce çökme kaydı: PlaybackCrashGuard yutmadığı her istisnayı ona iletir
+    CrashLog.install(context)
     PlaybackCrashGuard.install()
     synchronized(views) { views.add(this) }
     PlaybackCrashGuard.onRecover = { main.post { rebuildAt(player?.currentPosition ?: pendingPositionMs, playWhenReady = false) } }
@@ -395,7 +398,7 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
   private var scrubMaxMs = 0L
   private var scrubSumMs = 0L
 
-  private fun watchdogMs(): Long = (seekCostMs * 2).toLong().coerceIn(250L, 2000L)
+  private fun watchdogMs(): Long = (seekCostMs * 2).toLong().coerceIn(250L, 800L)
 
   private fun issueSeek(target: Long) {
     val p = player ?: return
@@ -422,8 +425,10 @@ class KurguPreviewView(context: Context, appContext: AppContext) : ExpoView(cont
       scrubSumMs += took
       scrubMaxMs = max(scrubMaxMs, took)
     } else {
-      // Kare bekçi süresinde gelmedi: sonraki arama daha uzun beklesin
-      seekCostMs = max(seekCostMs, took.toDouble()) * 1.5
+      // Kare bekçi süresinde gelmedi: sonraki arama biraz daha uzun beklesin. Üst sınır var:
+      // kare hiç gelmeyen durumda (aynı kare, zaman çizelgesi sonu) bekçi 2 sn'ye çıkıp
+      // kaydırmayı kilitliyordu (CI #144: 4 arama, 2 kesme).
+      seekCostMs = min(400.0, max(seekCostMs, took.toDouble()) * 1.25)
       scrubStats[2]++
     }
     val q = queuedSeekMs

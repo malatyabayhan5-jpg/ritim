@@ -13,10 +13,12 @@ import HelpScreen from './src/screens/HelpScreen';
 import AiToolsScreen from './src/screens/AiToolsScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
 import PhotoEditorScreen from './src/screens/PhotoEditorScreen';
-import { installConsoleCapture } from './src/engine/diagnostics';
+import { installConsoleCapture, installGlobalErrorHandler } from './src/engine/diagnostics';
+import { noteJs } from './src/engine/engine';
 
 // Tanılama raporu için uygulama günlük satırları baştan itibaren bellekte tutulur
 installConsoleCapture();
+installGlobalErrorHandler(noteJs);
 
 const SCREENS = {
   home: HomeScreen,

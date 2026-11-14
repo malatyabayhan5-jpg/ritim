@@ -8,9 +8,9 @@ import { useNav } from '../navigation';
 import { Chip, Icon, IconButton, Row, Txt, useToast } from '../ui';
 import { colors, font, radius, space } from '../theme';
 import { loadSettings, saveSettings } from '../storage/settings';
-import { clearCache, collectUnusedMedia, listProjects, loadProject, mediaUri, storageUsage } from '../storage/library';
-import { diagnostics, keyframeInfo, probe } from '../engine/engine';
-import { formatReport, jsSnapshot } from '../engine/diagnostics';
+import { clearCache, collectUnusedMedia, storageUsage } from '../storage/library';
+import { copyText } from '../engine/engine';
+import { buildReport } from '../engine/report';
 import { ASPECT_OPTIONS } from '../model/catalog';
 import { normalizeServerUrl } from '../model/cloud';
 
@@ -34,30 +34,13 @@ export default function SettingsScreen() {
   const update = async (patch) => setS(await saveSettings(patch));
 
   const [reporting, setReporting] = useState(false);
-  const shareReport = async () => {
+  const sendReport = async (copy) => {
     if (reporting) return;
     setReporting(true);
     try {
-      const device = await diagnostics();
-      // Son düzenlenen projenin medya biçimleri (en çok 4 video için codec ve anahtar kare aralığı)
-      const latest = (await listProjects().catch(() => []))[0];
-      const project = latest ? await loadProject(latest.id).catch(() => null) : null;
-      const media = [];
-      let probed = 0;
-      for (const m of Object.values(project?.media || {})) {
-        const row = { kind: m.kind, width: m.width, height: m.height, durationMs: m.durationMs, frameRate: m.frameRate, hdr: m.hdr, mimeType: m.mimeType, size: m.size };
-        if (m.kind === 'video' && probed < 4) {
-          probed++;
-          const uri = mediaUri(m);
-          const info = await probe(uri).catch(() => null);
-          row.codec = info?.videoCodec || null;
-          row.bitrate = info?.bitrate || 0;
-          row.keyframes = await keyframeInfo(uri);
-        }
-        media.push(row);
-      }
-      const message = formatReport({ version: Constants.expoConfig?.version, device, media, settings: s, jsLines: jsSnapshot() });
-      await Share.share({ message, title: t('settings.diagnostics.title') });
+      const message = await buildReport();
+      if (copy && (await copyText(message))) toast(t('settings.diagnostics.copied'));
+      else await Share.share({ message, title: t('settings.diagnostics.title') });
     } catch {
       toast(t('settings.diagnostics.failed'), 'error');
     } finally {
@@ -180,10 +163,13 @@ export default function SettingsScreen() {
 
         <Group title={t('settings.diagnostics.title')}>
           <Txt dim style={styles.note}>{t('settings.diagnostics.text')}</Txt>
-          <Pressable testID="diagnostics-share" style={[styles.item, { flexDirection: row }]} onPress={shareReport} disabled={reporting} accessibilityRole="button">
-            <Icon name="pulse-outline" />
-            <Txt style={{ flex: 1 }}>{reporting ? t('settings.diagnostics.preparing') : t('settings.diagnostics.share')}</Txt>
-            <Icon name="share-outline" color={colors.textFaint} size={18} />
+          <Pressable testID="diagnostics-copy" style={[styles.item, { flexDirection: row }]} onPress={() => sendReport(true)} disabled={reporting} accessibilityRole="button">
+            <Icon name="copy-outline" />
+            <Txt style={{ flex: 1 }}>{reporting ? t('settings.diagnostics.preparing') : t('settings.diagnostics.copy')}</Txt>
+          </Pressable>
+          <Pressable testID="diagnostics-share" style={[styles.item, { flexDirection: row }]} onPress={() => sendReport(false)} disabled={reporting} accessibilityRole="button">
+            <Icon name="share-outline" />
+            <Txt style={{ flex: 1 }}>{t('settings.diagnostics.share')}</Txt>
           </Pressable>
         </Group>
 
